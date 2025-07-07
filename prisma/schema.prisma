@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  profileImage String?
+  resumes      Resume[]
+}
+
+model Resume {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String
+  content   Json
+  strengths Strength[]
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Strength {
+  id        Int      @id @default(autoincrement())
+  resumeId  Int
+  skillName String
+  rating    Int
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+}
