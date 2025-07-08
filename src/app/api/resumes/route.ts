@@ -4,12 +4,10 @@ import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import type { Session } from "next-auth";
 
-// Type assertion for authOptions to work with NextAuth v4
-const typedAuthOptions = authOptions as any;
-
 export async function GET() {
   try {
-    const session = await getServerSession(typedAuthOptions) as Session;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = await getServerSession(authOptions as any) as Session;
 
     // Cast session.user to include id property
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
@@ -42,7 +40,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(typedAuthOptions) as Session;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = await getServerSession(authOptions as any) as Session;
 
     // Cast session.user to include id property
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
@@ -64,7 +63,8 @@ export async function POST(request: NextRequest) {
     const resume = await prisma.resume.create({
       data: {
         title,
-        content: content as any, // Cast to any since content is Json type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        content: content as any, // Cast to any for JSON type compatibility
         userId: user.id,
       },
       include: {

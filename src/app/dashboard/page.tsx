@@ -40,7 +40,6 @@ interface Strength {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,8 +59,6 @@ export default function DashboardPage() {
       }
     } catch {
       setError("An error occurred while loading resumes");
-    } finally {
-      setLoading(false);
     }
   };
 

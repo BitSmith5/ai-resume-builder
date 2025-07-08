@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { authOptions } from "../../../../lib/auth";
+import { prisma } from "../../../../lib/prisma";
 import type { Session } from "next-auth";
-
-// Type assertion for authOptions to work with NextAuth v4
-const typedAuthOptions = authOptions as any;
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +10,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(typedAuthOptions) as Session;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = await getServerSession(authOptions as any) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -49,7 +47,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(typedAuthOptions) as Session;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = await getServerSession(authOptions as any) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -65,7 +64,8 @@ export async function PUT(
       },
       data: {
         title,
-        content,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        content: content as any, // Cast to any for JSON type compatibility
       },
     });
 
@@ -89,7 +89,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(typedAuthOptions) as Session;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = await getServerSession(authOptions as any) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

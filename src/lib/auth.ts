@@ -16,7 +16,7 @@ export const authOptions = {
     }),
   ],
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
   },
   callbacks: {
     session: async ({ 
@@ -27,30 +27,26 @@ export const authOptions = {
         user?: { id?: string; name?: string | null; email?: string | null; image?: string | null }; 
         expires?: string;
       }; 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       token: any;
     }) => {
-      console.log("Session callback - token:", token);
-      console.log("Session callback - session:", session);
-      
       if (session?.user && token) {
-        session.user.id = token.id;
+        session.user.id = token.id as string;
       }
-      
-      console.log("Session callback - final session:", session);
-      return session;
+      // Ensure expires is always a string
+      return {
+        ...session,
+        expires: session.expires ?? "",
+      };
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     jwt: async ({ token, user }: { token: any; user: any }) => {
-      console.log("JWT callback - token:", token);
-      console.log("JWT callback - user:", user);
-      
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
       }
-      
-      console.log("JWT callback - final token:", token);
       return token;
     },
   },
