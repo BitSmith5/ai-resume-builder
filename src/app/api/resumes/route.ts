@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { authOptions } from "../../../lib/auth";
+import { prisma } from "../../../lib/prisma";
 import type { Session } from "next-auth";
 
 // Type assertion for authOptions to work with NextAuth v4
@@ -11,13 +11,16 @@ export async function GET() {
   try {
     const session = await getServerSession(typedAuthOptions) as Session;
 
-    if (!session?.user?.id) {
+    // Cast session.user to include id property
+    const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
+    
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const resumes = await prisma.resume.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
       },
       include: {
         strengths: true,
@@ -41,7 +44,10 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(typedAuthOptions) as Session;
 
-    if (!session?.user?.id) {
+    // Cast session.user to include id property
+    const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
+    
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -58,8 +64,8 @@ export async function POST(request: NextRequest) {
     const resume = await prisma.resume.create({
       data: {
         title,
-        content,
-        userId: session.user.id,
+        content: content as any, // Cast to any since content is Json type
+        userId: user.id,
       },
       include: {
         strengths: true,
