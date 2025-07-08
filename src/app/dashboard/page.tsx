@@ -38,14 +38,16 @@ interface Strength {
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchResumes();
-  }, []);
+    if (status === "authenticated") {
+      fetchResumes();
+    }
+  }, [status]);
 
   const fetchResumes = async () => {
     try {
@@ -75,7 +77,8 @@ export default function DashboardPage() {
     return "error";
   };
 
-  if (loading) {
+  // Show loading state while session is loading
+  if (status === "loading") {
     return (
       <DashboardLayout>
         <Box sx={{ width: "100%" }}>
@@ -83,6 +86,11 @@ export default function DashboardPage() {
         </Box>
       </DashboardLayout>
     );
+  }
+
+  // Don't render if not authenticated (DashboardLayout will handle redirect)
+  if (status === "unauthenticated") {
+    return null;
   }
 
   return (

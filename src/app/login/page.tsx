@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -19,28 +19,71 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    console.log("Session status:", status);
+    console.log("Session data:", session);
+    
+    if (status === "authenticated" && session) {
+      console.log("User is authenticated, redirecting to dashboard");
+      router.push("/dashboard");
+    }
+  }, [session, status, router]);
 
   const handleSignIn = async (provider: "google" | "github") => {
     setIsLoading(true);
     setError("");
 
     try {
+      console.log("Starting sign in with:", provider);
       const result = await signIn(provider, {
         callbackUrl: "/dashboard",
         redirect: false,
       });
 
+      console.log("Sign in result:", result);
+
       if (result?.error) {
-        setError("Authentication failed. Please try again.");
+        setError(`Authentication failed: ${result.error}`);
       } else if (result?.ok) {
+        console.log("Sign in successful, redirecting...");
         router.push("/dashboard");
       }
-    } catch {
+    } catch (error) {
+      console.error("Sign in error:", error);
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking session
+  if (status === "loading") {
+    return (
+      <Container maxWidth="sm" sx={{ mt: 8 }}>
+        <Card elevation={3}>
+          <CardContent sx={{ p: 4, textAlign: "center" }}>
+            <Typography>Loading...</Typography>
+          </CardContent>
+        </Card>
+      </Container>
+    );
+  }
+
+  // Don't show login form if already authenticated
+  if (status === "authenticated") {
+    return (
+      <Container maxWidth="sm" sx={{ mt: 8 }}>
+        <Card elevation={3}>
+          <CardContent sx={{ p: 4, textAlign: "center" }}>
+            <Typography>Redirecting to dashboard...</Typography>
+          </CardContent>
+        </Card>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="sm" sx={{ mt: 8 }}>

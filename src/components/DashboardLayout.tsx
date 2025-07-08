@@ -18,8 +18,7 @@ import {
   Avatar,
   Menu,
   MenuItem,
-
-
+  CircularProgress,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -39,10 +38,23 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Show loading state while session is loading
+  if (status === "loading") {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
+  // Redirect if not authenticated
+  if (status === "unauthenticated") {
+    router.push("/login");
+    return null;
+  }
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -110,7 +122,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="body2" sx={{ mr: 2 }}>
-              {session?.user?.name}
+              {session?.user?.name || "User"}
             </Typography>
             <IconButton
               size="large"

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -15,6 +15,7 @@ import {
   Chip,
   Divider,
   Paper,
+  Avatar,
 } from '@mui/material';
 import {
   useUser,
@@ -33,6 +34,11 @@ export const StoreDemo: React.FC = () => {
   const { showSuccess, showError, showWarning, showInfo, showActionNotification } = useNotificationActions();
 
   const [newDraftTitle, setNewDraftTitle] = useState('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleCreateDraft = () => {
     if (!newDraftTitle.trim()) {
@@ -77,6 +83,18 @@ export const StoreDemo: React.FC = () => {
     setTimeout(() => showInfo('This is an info notification!'), 3000);
   };
 
+  // Don't render until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
+        <Typography variant="h4" gutterBottom>
+          Zustand Store Demo
+        </Typography>
+        <Typography>Loading...</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
@@ -92,12 +110,10 @@ export const StoreDemo: React.FC = () => {
           {user ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {user.image && (
-                <Image
+                <Avatar
                   src={user.image}
                   alt={user.name || 'User'}
-                  width={40}
-                  height={40}
-                  style={{ borderRadius: '50%' }}
+                  sx={{ width: 40, height: 40 }}
                 />
               )}
               <Box>

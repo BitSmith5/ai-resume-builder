@@ -15,27 +15,47 @@ export const authOptions = {
       clientSecret: process.env.GITHUB_SECRET!,
     }),
   ],
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
     session: async ({ 
       session, 
-      user 
+      token 
     }: { 
       session: { 
         user?: { id?: string; name?: string | null; email?: string | null; image?: string | null }; 
         expires?: string;
       }; 
-      user: { id: string; name?: string | null; email?: string | null; image?: string | null } 
+      token: any;
     }) => {
-      if (session?.user && user) {
-        session.user.id = user.id;
+      console.log("Session callback - token:", token);
+      console.log("Session callback - session:", session);
+      
+      if (session?.user && token) {
+        session.user.id = token.id;
       }
-      return {
-        ...session,
-        expires: session.expires || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      };
+      
+      console.log("Session callback - final session:", session);
+      return session;
+    },
+    jwt: async ({ token, user }: { token: any; user: any }) => {
+      console.log("JWT callback - token:", token);
+      console.log("JWT callback - user:", user);
+      
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.picture = user.image;
+      }
+      
+      console.log("JWT callback - final token:", token);
+      return token;
     },
   },
   pages: {
     signIn: "/login",
   },
+  debug: process.env.NODE_ENV === "development",
 }; 
