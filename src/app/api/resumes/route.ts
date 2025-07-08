@@ -37,7 +37,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await getServerSession(authOptions as any) as Session;
 
     // Cast session.user to include id property
@@ -60,8 +59,7 @@ export async function POST(request: NextRequest) {
     const resume = await prisma.resume.create({
       data: {
         title,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        content: content as any, // Cast to any for JSON type compatibility
+        content: content, // Prisma will handle the JSON type conversion
         userId: user.id,
       },
       include: {

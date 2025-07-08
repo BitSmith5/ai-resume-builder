@@ -27,8 +27,7 @@ export const authOptions = {
         user?: { id?: string; name?: string | null; email?: string | null; image?: string | null }; 
         expires?: string;
       }; 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      token: any;
+      token: { id?: string; email?: string; name?: string; picture?: string };
     }) => {
       if (session?.user && token) {
         session.user.id = token.id as string;
@@ -39,8 +38,10 @@ export const authOptions = {
         expires: session.expires ?? "",
       };
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    jwt: async ({ token, user }: { token: any; user: any }) => {
+    jwt: async ({ token, user }: { 
+      token: { id?: string; email?: string; name?: string; picture?: string }; 
+      user: { id: string; email: string; name: string; image: string } | null;
+    }) => {
       if (user) {
         token.id = user.id;
         token.email = user.email;
