@@ -4,9 +4,12 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Session } from "next-auth";
 
+// Type assertion for authOptions to work with NextAuth v4
+const typedAuthOptions = authOptions as any;
+
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions) as Session;
+    const session = await getServerSession(typedAuthOptions) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -36,7 +39,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions) as Session;
+    const session = await getServerSession(typedAuthOptions) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
