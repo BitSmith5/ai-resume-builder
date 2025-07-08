@@ -1,10 +1,9 @@
-import { NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import { prisma } from "./prisma";
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
@@ -17,11 +16,23 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    session: async ({ session, user }) => {
+    session: async ({ 
+      session, 
+      user 
+    }: { 
+      session: { 
+        user?: { id?: string; name?: string | null; email?: string | null; image?: string | null }; 
+        expires?: string;
+      }; 
+      user: { id: string; name?: string | null; email?: string | null; image?: string | null } 
+    }) => {
       if (session?.user && user) {
         session.user.id = user.id;
       }
-      return session;
+      return {
+        ...session,
+        expires: session.expires || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      };
     },
   },
   pages: {

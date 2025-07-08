@@ -13,13 +13,8 @@ export const useAuthSync = () => {
       return;
     }
 
-    if (session?.user) {
-      const user: User = {
-        id: session.user.id,
-        name: session.user.name,
-        email: session.user.email,
-        image: session.user.image,
-      };
+    if (session?.user && 'id' in session.user) {
+      const user = session.user as User;
       setUser(user);
     } else {
       setUser(null);

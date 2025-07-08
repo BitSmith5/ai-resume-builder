@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+
 import {
   Box,
   Typography,
   Button,
   Alert,
   LinearProgress,
-  IconButton,
   Chip,
 } from "@mui/material";
 import {
@@ -28,7 +27,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 interface Resume {
   id: number;
   title: string;
-  content: any;
+  content: unknown;
   strengths: Strength[];
   createdAt: string;
 }
@@ -40,7 +39,7 @@ interface Strength {
 }
 
 export default function ResumesPage() {
-  const { data: session } = useSession();
+
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -58,7 +57,7 @@ export default function ResumesPage() {
       } else {
         setError("Failed to load resumes");
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred while loading resumes");
     } finally {
       setLoading(false);
@@ -102,7 +101,7 @@ export default function ResumesPage() {
                 key={strength.id}
                 label={`${strength.skillName} (${strength.rating}/10)`}
                 size="small"
-                color={getStrengthColor(strength.rating) as any}
+                color={getStrengthColor(strength.rating) as "success" | "warning" | "error"}
                 variant="outlined"
               />
             ))}
@@ -124,16 +123,19 @@ export default function ResumesPage() {
       width: 120,
       getActions: (params) => [
         <GridActionsCellItem
+          key="view"
           icon={<ViewIcon />}
           label="View"
           onClick={() => handleView(params.row.id)}
         />,
         <GridActionsCellItem
+          key="edit"
           icon={<EditIcon />}
           label="Edit"
           onClick={() => handleEdit(params.row.id)}
         />,
         <GridActionsCellItem
+          key="delete"
           icon={<DeleteIcon />}
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
@@ -163,7 +165,7 @@ export default function ResumesPage() {
         } else {
           setError("Failed to delete resume");
         }
-      } catch (error) {
+      } catch {
         setError("An error occurred while deleting the resume");
       }
     }

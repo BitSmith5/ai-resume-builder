@@ -12,7 +12,7 @@ export interface User {
 export interface ResumeDraft {
   id?: number;
   title: string;
-  content: any;
+  content: unknown;
   strengths?: Array<{
     skillName: string;
     rating: number;
@@ -78,7 +78,7 @@ const initialState = {
 export const useAppStore = create<AppState>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         ...initialState,
 
         // User actions

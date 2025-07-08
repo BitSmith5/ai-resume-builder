@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { Session } from "next-auth";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const { id } = await params;
+    const session = await getServerSession(authOptions) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,7 +18,7 @@ export async function GET(
 
     const resume = await prisma.resume.findFirst({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(id, 10),
         userId: session.user.id,
       },
       include: {
@@ -40,10 +42,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const { id } = await params;
+    const session = await getServerSession(authOptions) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,7 +57,7 @@ export async function PUT(
 
     const resume = await prisma.resume.updateMany({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(id, 10),
         userId: session.user.id,
       },
       data: {
@@ -79,10 +82,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const { id } = await params;
+    const session = await getServerSession(authOptions) as Session;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -90,7 +94,7 @@ export async function DELETE(
 
     const resume = await prisma.resume.deleteMany({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(id, 10),
         userId: session.user.id,
       },
     });

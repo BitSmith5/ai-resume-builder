@@ -26,7 +26,7 @@ import { StoreDemo } from "@/components/StoreDemo";
 interface Resume {
   id: number;
   title: string;
-  content: any;
+  content: unknown;
   strengths: Strength[];
   createdAt: string;
 }
@@ -41,7 +41,7 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchResumes();
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       } else {
         setError("Failed to load resumes");
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred while loading resumes");
     } finally {
       setLoading(false);
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                             key={strength.id}
                             label={`${strength.skillName} (${strength.rating}/10)`}
                             size="small"
-                            color={getStrengthColor(strength.rating) as any}
+                            color={getStrengthColor(strength.rating) as "success" | "warning" | "error"}
                             variant="outlined"
                           />
                         ))}

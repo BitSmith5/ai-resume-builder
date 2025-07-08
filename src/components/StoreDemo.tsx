@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import {
   Box,
   Button,
@@ -91,10 +92,12 @@ export const StoreDemo: React.FC = () => {
           {user ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {user.image && (
-                <img
+                <Image
                   src={user.image}
                   alt={user.name || 'User'}
-                  style={{ width: 40, height: 40, borderRadius: '50%' }}
+                  width={40}
+                  height={40}
+                  style={{ borderRadius: '50%' }}
                 />
               )}
               <Box>
