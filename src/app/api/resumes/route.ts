@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Convert string dates to Date objects for workExperience and remove id/resumeId fields
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const processedWorkExperience = (workExperience || []).map((exp: any) => {
-      const { id, resumeId, ...rest } = exp;
+      const { id: _, resumeId: __, ...rest } = exp;
       return {
         ...rest,
         startDate: new Date(exp.startDate),
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     // Convert string dates to Date objects for education and remove id/resumeId fields
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const processedEducation = (education || []).map((edu: any) => {
-      const { id, resumeId, ...rest } = edu;
+      const { id: _, resumeId: __, ...rest } = edu;
       return {
         ...rest,
         startDate: new Date(edu.startDate),
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     // Filter out id and resumeId fields from strengths
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const processedStrengths = (strengths || []).map((strength: any) => {
-      const { id, resumeId, ...rest } = strength;
+      const { id: _, resumeId: __, ...rest } = strength;
       return rest;
     });
 
