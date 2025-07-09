@@ -16,32 +16,18 @@ export const authOptions = {
     }),
   ],
   session: {
-    strategy: "jwt" as const,
+    strategy: "database" as const,
   },
   callbacks: {
     session: async ({ 
       session, 
-      token 
+      user 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }: any) => {
-      if (session?.user && token) {
-        session.user.id = token.id as string;
+      if (session?.user && user) {
+        session.user.id = user.id;
       }
-      // Ensure expires is always a string
-      return {
-        ...session,
-        expires: session.expires ?? "",
-      };
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    jwt: async ({ token, user }: any) => {
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.picture = user.image;
-      }
-      return token;
+      return session;
     },
   },
   pages: {

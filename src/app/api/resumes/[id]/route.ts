@@ -68,21 +68,34 @@ export async function PUT(
       );
     }
 
-    // Convert string dates to Date objects for workExperience
+    // Convert string dates to Date objects for workExperience and remove id/resumeId fields
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedWorkExperience = (workExperience || []).map((exp: any) => ({
-      ...exp,
-      startDate: new Date(exp.startDate),
-      endDate: exp.endDate ? new Date(exp.endDate) : null,
-    }));
+    const processedWorkExperience = (workExperience || []).map((exp: any) => {
+      const { id, resumeId, ...rest } = exp;
+      return {
+        ...rest,
+        startDate: new Date(exp.startDate),
+        endDate: exp.endDate ? new Date(exp.endDate) : null,
+      };
+    });
 
-    // Convert string dates to Date objects for education
+    // Convert string dates to Date objects for education and remove id/resumeId fields
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedEducation = (education || []).map((edu: any) => ({
-      ...edu,
-      startDate: new Date(edu.startDate),
-      endDate: edu.endDate ? new Date(edu.endDate) : null,
-    }));
+    const processedEducation = (education || []).map((edu: any) => {
+      const { id, resumeId, ...rest } = edu;
+      return {
+        ...rest,
+        startDate: new Date(edu.startDate),
+        endDate: edu.endDate ? new Date(edu.endDate) : null,
+      };
+    });
+
+    // Filter out id and resumeId fields from strengths
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processedStrengths = (strengths || []).map((strength: any) => {
+      const { id, resumeId, ...rest } = strength;
+      return rest;
+    });
 
     // Delete existing related data
     await prisma.strength.deleteMany({
@@ -104,7 +117,7 @@ export async function PUT(
         title,
         content,
         strengths: {
-          create: strengths || [],
+          create: processedStrengths,
         },
         workExperience: {
           create: processedWorkExperience,
