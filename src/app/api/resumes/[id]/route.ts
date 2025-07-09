@@ -68,6 +68,22 @@ export async function PUT(
       );
     }
 
+    // Convert string dates to Date objects for workExperience
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processedWorkExperience = (workExperience || []).map((exp: any) => ({
+      ...exp,
+      startDate: new Date(exp.startDate),
+      endDate: exp.endDate ? new Date(exp.endDate) : null,
+    }));
+
+    // Convert string dates to Date objects for education
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processedEducation = (education || []).map((edu: any) => ({
+      ...edu,
+      startDate: new Date(edu.startDate),
+      endDate: edu.endDate ? new Date(edu.endDate) : null,
+    }));
+
     // Delete existing related data
     await prisma.strength.deleteMany({
       where: { resumeId: parseInt(resolvedParams.id) },
@@ -91,10 +107,10 @@ export async function PUT(
           create: strengths || [],
         },
         workExperience: {
-          create: workExperience || [],
+          create: processedWorkExperience,
         },
         education: {
-          create: education || [],
+          create: processedEducation,
         },
       },
       include: {
