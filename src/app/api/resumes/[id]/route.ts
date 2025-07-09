@@ -9,21 +9,24 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const resolvedParams = await params;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await getServerSession(authOptions as any) as Session;
-
-    if (!session?.user?.id) {
+    const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
+    
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const resume = await prisma.resume.findFirst({
       where: {
-        id: parseInt(id, 10),
-        userId: session.user.id,
+        id: parseInt(resolvedParams.id),
+        userId: user.id,
       },
       include: {
         strengths: true,
+        workExperience: true,
+        education: true,
       },
     });
 
@@ -46,34 +49,62 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const resolvedParams = await params;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await getServerSession(authOptions as any) as Session;
-
-    if (!session?.user?.id) {
+    const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
+    
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { title, content } = body;
+    const { title, content, strengths, workExperience, education } = body;
 
-    const resume = await prisma.resume.updateMany({
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: "Title and content are required" },
+        { status: 400 }
+      );
+    }
+
+    // Delete existing related data
+    await prisma.strength.deleteMany({
+      where: { resumeId: parseInt(resolvedParams.id) },
+    });
+    await prisma.workExperience.deleteMany({
+      where: { resumeId: parseInt(resolvedParams.id) },
+    });
+    await prisma.education.deleteMany({
+      where: { resumeId: parseInt(resolvedParams.id) },
+    });
+
+    const resume = await prisma.resume.update({
       where: {
-        id: parseInt(id, 10),
-        userId: session.user.id,
+        id: parseInt(resolvedParams.id),
+        userId: user.id,
       },
       data: {
         title,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        content: content as any, // Cast to any for JSON type compatibility
+        content,
+        strengths: {
+          create: strengths || [],
+        },
+        workExperience: {
+          create: workExperience || [],
+        },
+        education: {
+          create: education || [],
+        },
+      },
+      include: {
+        strengths: true,
+        workExperience: true,
+        education: true,
       },
     });
 
-    if (resume.count === 0) {
-      return NextResponse.json({ error: "Resume not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: "Resume updated successfully" });
+    return NextResponse.json(resume);
   } catch (error) {
     console.error("Error updating resume:", error);
     return NextResponse.json(
@@ -88,26 +119,23 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const resolvedParams = await params;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await getServerSession(authOptions as any) as Session;
-
-    if (!session?.user?.id) {
+    const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
+    
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resume = await prisma.resume.deleteMany({
+    await prisma.resume.delete({
       where: {
-        id: parseInt(id, 10),
-        userId: session.user.id,
+        id: parseInt(resolvedParams.id),
+        userId: user.id,
       },
     });
 
-    if (resume.count === 0) {
-      return NextResponse.json({ error: "Resume not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: "Resume deleted successfully" });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting resume:", error);
     return NextResponse.json(

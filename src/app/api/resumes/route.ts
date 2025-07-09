@@ -20,6 +20,8 @@ export async function GET() {
       },
       include: {
         strengths: true,
+        workExperience: true,
+        education: true,
       },
       orderBy: {
         id: "desc",
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, content } = body;
+    const { title, content, strengths, workExperience, education } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -61,9 +63,20 @@ export async function POST(request: NextRequest) {
         title,
         content: content,
         userId: user.id,
+        strengths: {
+          create: strengths || [],
+        },
+        workExperience: {
+          create: workExperience || [],
+        },
+        education: {
+          create: education || [],
+        },
       },
       include: {
         strengths: true,
+        workExperience: true,
+        education: true,
       },
     });
 

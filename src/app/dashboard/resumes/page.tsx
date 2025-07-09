@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Box,
@@ -39,6 +40,7 @@ interface Strength {
 }
 
 export default function ResumesPage() {
+  const router = useRouter();
 
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +153,7 @@ export default function ResumesPage() {
 
   const handleEdit = (id: number) => {
     // Navigate to edit resume page
-    console.log("Edit resume:", id);
+    router.push(`/dashboard/resumes/${id}/edit`);
   };
 
   const handleDelete = async (id: number) => {
