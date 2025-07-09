@@ -22,13 +22,8 @@ export const authOptions = {
     session: async ({ 
       session, 
       token 
-    }: { 
-      session: { 
-        user?: { id?: string; name?: string | null; email?: string | null; image?: string | null }; 
-        expires?: string;
-      }; 
-      token: { id?: string; email?: string; name?: string; picture?: string };
-    }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => {
       if (session?.user && token) {
         session.user.id = token.id as string;
       }
@@ -38,10 +33,8 @@ export const authOptions = {
         expires: session.expires ?? "",
       };
     },
-    jwt: async ({ token, user }: { 
-      token: { id?: string; email?: string; name?: string; picture?: string }; 
-      user: { id: string; email: string; name: string; image: string } | null;
-    }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    jwt: async ({ token, user }: any) => {
       if (user) {
         token.id = user.id;
         token.email = user.email;

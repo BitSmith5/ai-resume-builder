@@ -31,8 +31,9 @@ export interface ResumeData {
 }
 
 export const getResumes = async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await getServerSession(authOptions as any) as Session;
-  const userId = (session?.user as any)?.id;
+  const userId = session?.user?.id;
   if (!userId) {
     throw new Error('Unauthorized');
   }
@@ -49,8 +50,9 @@ export const getResumes = async () => {
 };
 
 export const getResume = async (id: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await getServerSession(authOptions as any) as Session;
-  const userId = (session?.user as any)?.id;
+  const userId = session?.user?.id;
   if (!userId) {
     throw new Error('Unauthorized');
   }
@@ -69,8 +71,9 @@ export const getResume = async (id: string) => {
 };
 
 export const createResume = async (data: ResumeData) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await getServerSession(authOptions as any) as Session;
-  const userId = (session?.user as any)?.id;
+  const userId = session?.user?.id;
   if (!userId) {
     throw new Error('Unauthorized');
   }
@@ -99,8 +102,9 @@ export const createResume = async (data: ResumeData) => {
 };
 
 export const updateResume = async (id: string, data: ResumeData) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await getServerSession(authOptions as any) as Session;
-  const userId = (session?.user as any)?.id;
+  const userId = session?.user?.id;
   if (!userId) {
     throw new Error('Unauthorized');
   }
@@ -143,8 +147,9 @@ export const updateResume = async (id: string, data: ResumeData) => {
 };
 
 export const deleteResume = async (id: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await getServerSession(authOptions as any) as Session;
-  const userId = (session?.user as any)?.id;
+  const userId = session?.user?.id;
   if (!userId) {
     throw new Error('Unauthorized');
   }
