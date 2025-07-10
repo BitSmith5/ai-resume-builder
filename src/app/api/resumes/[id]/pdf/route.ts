@@ -7,7 +7,7 @@ import puppeteer from 'puppeteer';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,7 +16,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const resumeId = parseInt(params.id);
+    const { id } = await params;
+    const resumeId = parseInt(id);
     if (isNaN(resumeId)) {
       return NextResponse.json({ error: 'Invalid resume ID' }, { status: 400 });
     }
