@@ -97,7 +97,7 @@ export default function ResumesPage() {
           return <Typography variant="body2" color="text.secondary">No skills</Typography>;
         }
         return (
-          <Box display="flex" flexWrap="wrap" gap={0.5}>
+          <Box display="flex" flexWrap="wrap" gap={0.5} alignContent="center" sx={{ minHeight: '100%' }}>
             {strengths.slice(0, 2).map((strength) => (
               <Chip
                 key={strength.id}
@@ -216,6 +216,7 @@ export default function ResumesPage() {
             rows={resumes}
             columns={columns}
             pageSizeOptions={[5, 10, 25]}
+            rowHeight={70}
             initialState={{
               pagination: {
                 paginationModel: { page: 0, pageSize: 10 },
