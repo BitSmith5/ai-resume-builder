@@ -25,6 +25,8 @@ import {
   Email as EmailIcon,
   Security as SecurityIcon,
   Settings as SettingsIcon,
+  LinkedIn as LinkedInIcon,
+  Language as LanguageIcon,
 } from "@mui/icons-material";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -33,7 +35,8 @@ interface ProfileData {
   email: string;
   bio: string;
   location: string;
-  website: string;
+  linkedinUrl: string;
+  portfolioUrl: string;
   phone: string;
   preferences: {
     emailNotifications: boolean;
@@ -50,7 +53,8 @@ export default function ProfilePage() {
     email: "",
     bio: "",
     location: "",
-    website: "",
+    linkedinUrl: "",
+    portfolioUrl: "",
     phone: "",
     preferences: {
       emailNotifications: true,
@@ -64,6 +68,29 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Load profile data from API
+  const loadProfileData = async () => {
+    try {
+      const response = await fetch('/api/profile');
+      if (response.ok) {
+        const userData = await response.json();
+        setProfileData(prev => ({
+          ...prev,
+          name: userData.name || "",
+          email: userData.email || "",
+          bio: userData.bio || "",
+          location: userData.location || "",
+          linkedinUrl: userData.linkedinUrl || "",
+          portfolioUrl: userData.portfolioUrl || "",
+          phone: userData.phone || "",
+          preferences: userData.preferences || prev.preferences,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load profile data:', error);
+    }
+  };
+
   useEffect(() => {
     if (session?.user) {
       setProfileData(prev => ({
@@ -71,6 +98,8 @@ export default function ProfilePage() {
         name: session.user?.name || "",
         email: session.user?.email || "",
       }));
+      // Load additional profile data from API
+      loadProfileData();
     }
   }, [session]);
 
@@ -80,12 +109,31 @@ export default function ProfilePage() {
     setSuccess(null);
 
     try {
-      // Simulate API call - replace with actual API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSuccess("Profile updated successfully!");
-      setIsEditing(false);
-    } catch {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: profileData.name,
+          email: profileData.email,
+          bio: profileData.bio,
+          location: profileData.location,
+          linkedinUrl: profileData.linkedinUrl,
+          portfolioUrl: profileData.portfolioUrl,
+          phone: profileData.phone,
+          preferences: profileData.preferences,
+        }),
+      });
+
+      if (response.ok) {
+        setSuccess("Profile updated successfully!");
+        setIsEditing(false);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to update profile. Please try again.");
+      }
+    } catch (error) {
       setError("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
@@ -97,13 +145,7 @@ export default function ProfilePage() {
     setError(null);
     setSuccess(null);
     // Reset to original data
-    if (session?.user) {
-      setProfileData(prev => ({
-        ...prev,
-        name: session.user?.name || "",
-        email: session.user?.email || "",
-      }));
-    }
+    loadProfileData();
   };
 
   const handlePreferenceChange = (key: keyof ProfileData['preferences']) => {
@@ -214,11 +256,25 @@ export default function ProfilePage() {
                   />
                   <TextField
                     fullWidth
-                    label="Website"
-                    value={profileData.website}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, website: e.target.value }))}
+                    label="LinkedIn URL"
+                    value={profileData.linkedinUrl}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
                     disabled={!isEditing}
-                    sx={{ gridColumn: { sm: "span 2" } }}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    InputProps={{
+                      startAdornment: <LinkedInIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Portfolio URL"
+                    value={profileData.portfolioUrl}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
+                    disabled={!isEditing}
+                    placeholder="https://yourportfolio.com"
+                    InputProps={{
+                      startAdornment: <LanguageIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                    }}
                   />
                   <TextField
                     fullWidth

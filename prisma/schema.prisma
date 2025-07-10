@@ -40,6 +40,12 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  bio           String?
+  location      String?
+  phone         String?
+  linkedinUrl   String?
+  portfolioUrl  String?
+  preferences   Json?
   accounts      Account[]
   sessions      Session[]
   resumes       Resume[]
