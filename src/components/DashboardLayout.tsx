@@ -121,7 +121,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             Dashboard
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography variant="body2" sx={{ mr: 2 }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                mr: 2,
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
               {session?.user?.name || "User"}
             </Typography>
             <IconButton
@@ -183,7 +189,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, md: 3 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
         }}
       >

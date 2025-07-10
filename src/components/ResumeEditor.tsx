@@ -24,7 +24,7 @@ import {
   Save as SaveIcon,
   Download as DownloadIcon,
 } from '@mui/icons-material';
-import { generateResumePDF } from './ResumePDF';
+// import { generateResumePDF } from './ResumePDF';
 
 interface ResumeData {
   title: string;
@@ -234,15 +234,17 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
 
   const handleDownloadPDF = async () => {
     try {
-      const blob = await generateResumePDF(resumeData);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${resumeData.title || 'resume'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // TODO: Implement PDF generation
+      setError('PDF generation not yet implemented');
+      // const blob = await generateResumePDF(resumeData);
+      // const url = URL.createObjectURL(blob);
+      // const link = document.createElement('a');
+      // link.href = url;
+      // link.download = `${resumeData.title || 'resume'}.pdf`;
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
+      // URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating PDF:', error);
       setError('Failed to generate PDF');
@@ -262,19 +264,31 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
       
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box 
+        display="flex" 
+        flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between" 
+        alignItems={{ xs: 'stretch', md: 'center' }} 
+        gap={{ xs: 2, md: 3 }}
+        mb={3}
+      >
         <TextField
           label="Resume Title"
           value={resumeData.title}
           onChange={(e) => setResumeData(prev => ({ ...prev, title: e.target.value }))}
-          sx={{ minWidth: 300 }}
+          sx={{ minWidth: { xs: '100%', md: 300 } }}
         />
-        <Stack direction="row" spacing={2}>
+        <Stack 
+          direction={{ xs: 'column', sm: 'row' }} 
+          spacing={2}
+          sx={{ width: { xs: '100%', md: 'auto' } }}
+        >
           <Button
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
             disabled={saving}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             {saving ? 'Saving...' : 'Save Resume'}
           </Button>
@@ -282,16 +296,32 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
             variant="outlined"
             startIcon={<DownloadIcon />}
             onClick={handleDownloadPDF}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             Download PDF
           </Button>
         </Stack>
       </Box>
 
-      <Box display="flex" gap={3}>
-        <Box sx={{ flex: 1 }}>
-          <Paper sx={{ p: 3 }}>
-            <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+      <Box 
+        display="flex" 
+        flexDirection={{ xs: 'column', lg: 'row' }}
+        gap={3}
+      >
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Paper sx={{ p: { xs: 2, md: 3 } }}>
+            <Tabs 
+              value={activeTab} 
+              onChange={(_, newValue) => setActiveTab(newValue)}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{
+                '& .MuiTab-root': {
+                  minWidth: { xs: 'auto', sm: 120 },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }
+              }}
+            >
               <Tab label="Personal Info" />
               <Tab label="Skills" />
               <Tab label="Work Experience" />
@@ -318,7 +348,11 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                         },
                       }))}
                     />
-                    <Box display="flex" gap={2}>
+                    <Box 
+                      display="flex" 
+                      flexDirection={{ xs: 'column', sm: 'row' }}
+                      gap={2}
+                    >
                       <TextField
                         fullWidth
                         label="Email"
@@ -388,15 +422,32 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
 
               {activeTab === 1 && (
                 <Box>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Box 
+                    display="flex" 
+                    flexDirection={{ xs: 'column', sm: 'row' }}
+                    justifyContent="space-between" 
+                    alignItems={{ xs: 'stretch', sm: 'center' }} 
+                    gap={2}
+                    mb={2}
+                  >
                     <Typography variant="h6">Skills & Strengths</Typography>
-                    <Button startIcon={<AddIcon />} onClick={addStrength}>
+                    <Button 
+                      startIcon={<AddIcon />} 
+                      onClick={addStrength}
+                      variant="outlined"
+                      size="small"
+                    >
                       Add Skill
                     </Button>
                   </Box>
                   {resumeData.strengths.map((strength, index) => (
                     <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                      <Box display="flex" gap={2} alignItems="center">
+                      <Box 
+                        display="flex" 
+                        flexDirection={{ xs: 'column', sm: 'row' }}
+                        gap={2} 
+                        alignItems={{ xs: 'stretch', sm: 'center' }}
+                      >
                         <TextField
                           fullWidth
                           label="Skill Name"
@@ -404,14 +455,18 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                           onChange={(e) => updateStrength(index, 'skillName', e.target.value)}
                         />
                         <TextField
-                          sx={{ width: 150 }}
+                          sx={{ width: { xs: '100%', sm: 150 } }}
                           type="number"
                           label="Rating (1-10)"
                           value={strength.rating}
                           onChange={(e) => updateStrength(index, 'rating', parseInt(e.target.value) || 5)}
                           inputProps={{ min: 1, max: 10 }}
                         />
-                        <IconButton onClick={() => removeStrength(index)} color="error">
+                        <IconButton 
+                          onClick={() => removeStrength(index)} 
+                          color="error"
+                          sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </Box>
@@ -422,16 +477,32 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
 
               {activeTab === 2 && (
                 <Box>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Box 
+                    display="flex" 
+                    flexDirection={{ xs: 'column', sm: 'row' }}
+                    justifyContent="space-between" 
+                    alignItems={{ xs: 'stretch', sm: 'center' }} 
+                    gap={2}
+                    mb={2}
+                  >
                     <Typography variant="h6">Work Experience</Typography>
-                    <Button startIcon={<AddIcon />} onClick={addWorkExperience}>
+                    <Button 
+                      startIcon={<AddIcon />} 
+                      onClick={addWorkExperience}
+                      variant="outlined"
+                      size="small"
+                    >
                       Add Experience
                     </Button>
                   </Box>
                   {resumeData.workExperience.map((exp, index) => (
                     <Box key={index} sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                       <Stack spacing={2}>
-                        <Box display="flex" gap={2}>
+                        <Box 
+                          display="flex" 
+                          flexDirection={{ xs: 'column', sm: 'row' }}
+                          gap={2}
+                        >
                           <TextField
                             fullWidth
                             label="Company"
@@ -445,7 +516,12 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                             onChange={(e) => updateWorkExperience(index, 'position', e.target.value)}
                           />
                         </Box>
-                        <Box display="flex" gap={2}>
+                        <Box 
+                          display="flex" 
+                          flexDirection={{ xs: 'column', sm: 'row' }}
+                          gap={2}
+                          alignItems={{ xs: 'stretch', sm: 'center' }}
+                        >
                           <TextField
                             fullWidth
                             type="date"
@@ -471,8 +547,13 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                               />
                             }
                             label="Current Position"
+                            sx={{ minWidth: 'fit-content' }}
                           />
-                          <IconButton onClick={() => removeWorkExperience(index)} color="error">
+                          <IconButton 
+                            onClick={() => removeWorkExperience(index)} 
+                            color="error"
+                            sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Box>
@@ -492,16 +573,32 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
 
               {activeTab === 3 && (
                 <Box>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Box 
+                    display="flex" 
+                    flexDirection={{ xs: 'column', sm: 'row' }}
+                    justifyContent="space-between" 
+                    alignItems={{ xs: 'stretch', sm: 'center' }} 
+                    gap={2}
+                    mb={2}
+                  >
                     <Typography variant="h6">Education</Typography>
-                    <Button startIcon={<AddIcon />} onClick={addEducation}>
+                    <Button 
+                      startIcon={<AddIcon />} 
+                      onClick={addEducation}
+                      variant="outlined"
+                      size="small"
+                    >
                       Add Education
                     </Button>
                   </Box>
                   {resumeData.education.map((edu, index) => (
                     <Box key={index} sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                       <Stack spacing={2}>
-                        <Box display="flex" gap={2}>
+                        <Box 
+                          display="flex" 
+                          flexDirection={{ xs: 'column', sm: 'row' }}
+                          gap={2}
+                        >
                           <TextField
                             fullWidth
                             label="Institution"
@@ -515,7 +612,11 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                             onChange={(e) => updateEducation(index, 'degree', e.target.value)}
                           />
                         </Box>
-                        <Box display="flex" gap={2}>
+                        <Box 
+                          display="flex" 
+                          flexDirection={{ xs: 'column', sm: 'row' }}
+                          gap={2}
+                        >
                           <TextField
                             fullWidth
                             label="Field of Study"
@@ -531,7 +632,12 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                             inputProps={{ min: 0, max: 4, step: 0.01 }}
                           />
                         </Box>
-                        <Box display="flex" gap={2}>
+                        <Box 
+                          display="flex" 
+                          flexDirection={{ xs: 'column', sm: 'row' }}
+                          gap={2}
+                          alignItems={{ xs: 'stretch', sm: 'center' }}
+                        >
                           <TextField
                             fullWidth
                             type="date"
@@ -557,8 +663,13 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                               />
                             }
                             label="Currently Studying"
+                            sx={{ minWidth: 'fit-content' }}
                           />
-                          <IconButton onClick={() => removeEducation(index)} color="error">
+                          <IconButton 
+                            onClick={() => removeEducation(index)} 
+                            color="error"
+                            sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Box>
@@ -571,8 +682,12 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
           </Paper>
         </Box>
 
-        <Box sx={{ flex: 1 }}>
-          <Paper sx={{ p: 3, height: 'fit-content' }}>
+        <Box sx={{ 
+          flex: 1, 
+          display: { xs: 'none', lg: 'block' },
+          minWidth: 0 
+        }}>
+          <Paper sx={{ p: { xs: 2, md: 3 }, height: 'fit-content', position: 'sticky', top: 24 }}>
             <Typography variant="h6" gutterBottom>Live Preview</Typography>
             <Divider sx={{ mb: 2 }} />
             
@@ -610,6 +725,7 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                       label={`${strength.skillName} (${strength.rating}/10)`}
                       color={strength.rating >= 8 ? 'success' : strength.rating >= 6 ? 'warning' : 'error'}
                       variant="outlined"
+                      size="small"
                     />
                   ))}
                 </Box>

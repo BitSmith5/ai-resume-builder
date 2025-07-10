@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Container } from '@mui/material';
 import DashboardLayout from '@/components/DashboardLayout';
 import ResumeEditor from '@/components/ResumeEditor';
 import { useRouter } from 'next/navigation';
@@ -18,16 +18,33 @@ export default function EditResumePage() {
 
   return (
     <DashboardLayout>
-      <Box>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Edit Resume
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Update your professional resume
-        </Typography>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 } }}>
+        <Box sx={{ mb: { xs: 3, md: 4 } }}>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom
+            sx={{
+              fontSize: { xs: '1.75rem', sm: '2.125rem', md: '2.5rem' },
+              fontWeight: 600,
+            }}
+          >
+            Edit Resume
+          </Typography>
+          <Typography 
+            variant="body1" 
+            color="text.secondary" 
+            sx={{ 
+              mb: { xs: 3, md: 4 },
+              fontSize: { xs: '0.875rem', md: '1rem' }
+            }}
+          >
+            Update your professional resume
+          </Typography>
+        </Box>
         
         <ResumeEditor resumeId={resumeId} onSave={handleSave} />
-      </Box>
+      </Container>
     </DashboardLayout>
   );
 } 
