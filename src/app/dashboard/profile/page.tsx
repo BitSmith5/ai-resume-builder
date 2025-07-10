@@ -10,13 +10,11 @@ import {
   TextField,
   Button,
   Avatar,
-  Divider,
   Alert,
   CircularProgress,
   Switch,
   FormControlLabel,
   Chip,
-  IconButton,
   Stack,
 } from "@mui/material";
 import {
@@ -26,7 +24,6 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
   Security as SecurityIcon,
-  Notifications as NotificationsIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -88,7 +85,7 @@ export default function ProfilePage() {
       
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
-    } catch (err) {
+    } catch {
       setError("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
