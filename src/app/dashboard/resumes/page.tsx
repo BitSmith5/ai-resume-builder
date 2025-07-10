@@ -15,7 +15,6 @@ import {
   DataGrid,
   GridColDef,
   GridActionsCellItem,
-  GridCellParams,
 } from "@mui/x-data-grid";
 import {
   Add as AddIcon,
