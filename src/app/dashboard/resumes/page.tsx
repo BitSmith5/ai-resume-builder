@@ -30,7 +30,7 @@ interface Resume {
   title: string;
   content: unknown;
   strengths: Strength[];
-  createdAt: string;
+  createdAt: string | Date;
 }
 
 interface Strength {
@@ -83,14 +83,61 @@ export default function ResumesPage() {
       field: "createdAt",
       headerName: "Created",
       width: 120,
-      valueGetter: (params: GridCellParams) => {
-        const dateValue = params.value as string;
-        if (!dateValue) return '';
+      renderCell: (params) => {
+        const dateValue = params.value;
         
-        const date = new Date(dateValue);
-        if (isNaN(date.getTime())) return '';
+        // Try to get the value directly from the row
+        const rowDateValue = params.row.createdAt;
         
-        return date.toISOString().split('T')[0];
+        // Use the row value if params.value is undefined
+        const finalDateValue = dateValue || rowDateValue;
+        
+        // Handle null, undefined, or empty string
+        if (!finalDateValue) {
+          return (
+            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+              <Typography variant="body2" color="text.secondary">N/A</Typography>
+            </Box>
+          );
+        }
+        
+        // Handle Date objects directly
+        if (finalDateValue instanceof Date) {
+          return (
+            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+              <Typography variant="body2">
+                {finalDateValue.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit'
+                })}
+              </Typography>
+            </Box>
+          );
+        }
+        
+        // Handle string dates
+        const date = new Date(finalDateValue as string);
+        if (isNaN(date.getTime())) {
+          return (
+            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+              <Typography variant="body2" color="error">Invalid Date</Typography>
+            </Box>
+          );
+        }
+        
+        // Format as MM/DD/YYYY for better readability
+        return (
+          <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+            <Typography variant="body2">
+              {date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+              })}
+            </Typography>
+          </Box>
+        );
       },
     },
     {
@@ -100,7 +147,11 @@ export default function ResumesPage() {
       renderCell: (params) => {
         const strengths = params.value as Strength[];
         if (!strengths || strengths.length === 0) {
-          return <Typography variant="body2" alignContent="center" color="text.secondary" sx={{ minHeight: '100%' }}>No skills</Typography>;
+          return (
+            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+              <Typography variant="body2" color="text.secondary">No skills</Typography>
+            </Box>
+          );
         }
         return (
           <Box display="flex" flexWrap="wrap" gap={0.5} alignContent="center" sx={{ minHeight: '100%' }}>
@@ -223,6 +274,7 @@ export default function ResumesPage() {
             columns={columns}
             pageSizeOptions={[5, 10, 25]}
             rowHeight={70}
+            getRowId={(row) => row.id}
             initialState={{
               pagination: {
                 paginationModel: { page: 0, pageSize: 10 },

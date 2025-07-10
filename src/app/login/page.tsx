@@ -23,11 +23,7 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    console.log("Session status:", status);
-    console.log("Session data:", session);
-    
     if (status === "authenticated" && session) {
-      console.log("User is authenticated, redirecting to dashboard");
       router.push("/dashboard");
     }
   }, [session, status, router]);
@@ -37,18 +33,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      console.log("Starting sign in with:", provider);
       const result = await signIn(provider, {
         callbackUrl: "/dashboard",
         redirect: false,
       });
 
-      console.log("Sign in result:", result);
-
       if (result?.error) {
         setError(`Authentication failed: ${result.error}`);
       } else if (result?.ok) {
-        console.log("Sign in successful, redirecting...");
         router.push("/dashboard");
       }
     } catch (error) {

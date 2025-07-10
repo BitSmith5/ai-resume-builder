@@ -31,7 +31,9 @@ export default function Home() {
   if (status === "loading") {
     return (
       <Container maxWidth="lg" sx={{ mt: 8 }}>
-        <Typography>Loading...</Typography>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <Typography>Loading...</Typography>
+        </Box>
       </Container>
     );
   }

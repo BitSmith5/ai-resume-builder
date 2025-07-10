@@ -18,7 +18,13 @@ export async function GET() {
       where: {
         userId: user.id,
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
         strengths: true,
         workExperience: true,
         education: true,
@@ -105,7 +111,13 @@ export async function POST(request: NextRequest) {
           create: processedEducation,
         },
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
         strengths: true,
         workExperience: true,
         education: true,
