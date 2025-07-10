@@ -96,12 +96,22 @@ function generatePDFHTML(resume: unknown): string {
     return '#f44336';
   };
 
+  // Helper function to safely access nested properties
+  const safeGet = (obj: unknown, path: string): unknown => {
+    return path.split('.').reduce((current, key) => {
+      if (current && typeof current === 'object' && key in current) {
+        return (current as Record<string, unknown>)[key];
+      }
+      return undefined;
+    }, obj);
+  };
+
   return `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>${(resume as any).title}</title>
+    <title>${(resume as Record<string, unknown>).title}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -187,58 +197,58 @@ function generatePDFHTML(resume: unknown): string {
 </head>
 <body>
     <div class="header">
-        <div class="name">${(resume as any).content.personalInfo.name || 'Your Name'}</div>
-        <div class="contact-info">${(resume as any).content.personalInfo.email || 'email@example.com'}</div>
-        <div class="contact-info">${(resume as any).content.personalInfo.phone || 'Phone Number'}</div>
-        <div class="contact-info">${(resume as any).content.personalInfo.address || 'Address'}</div>
+        <div class="name">${safeGet(resume, 'content.personalInfo.name') || 'Your Name'}</div>
+        <div class="contact-info">${safeGet(resume, 'content.personalInfo.email') || 'email@example.com'}</div>
+        <div class="contact-info">${safeGet(resume, 'content.personalInfo.phone') || 'Phone Number'}</div>
+        <div class="contact-info">${safeGet(resume, 'content.personalInfo.address') || 'Address'}</div>
     </div>
 
-    ${(resume as any).content.personalInfo.summary ? `
+    ${safeGet(resume, 'content.personalInfo.summary') ? `
     <div class="section">
         <div class="section-title">Professional Summary</div>
-        <div class="summary">${(resume as any).content.personalInfo.summary}</div>
+        <div class="summary">${safeGet(resume, 'content.personalInfo.summary')}</div>
     </div>
     ` : ''}
 
-    ${(resume as any).strengths.length > 0 ? `
+    ${(safeGet(resume, 'strengths') as unknown[])?.length > 0 ? `
     <div class="section">
         <div class="section-title">Skills</div>
         <div class="skills-container">
-            ${(resume as any).strengths.map((strength: unknown) => `
-                <span class="skill" style="border-color: ${getStrengthColor((strength as any).rating)}">
-                    ${(strength as any).skillName} (${(strength as any).rating}/10)
+            ${(safeGet(resume, 'strengths') as unknown[]).map((strength: unknown) => `
+                <span class="skill" style="border-color: ${getStrengthColor(safeGet(strength, 'rating') as number)}">
+                    ${safeGet(strength, 'skillName')} (${safeGet(strength, 'rating')}/10)
                 </span>
             `).join('')}
         </div>
     </div>
     ` : ''}
 
-    ${(resume as any).workExperience.length > 0 ? `
+    ${(safeGet(resume, 'workExperience') as unknown[])?.length > 0 ? `
     <div class="section">
         <div class="section-title">Work Experience</div>
-        ${(resume as any).workExperience.map((exp: unknown) => `
+        ${(safeGet(resume, 'workExperience') as unknown[]).map((exp: unknown) => `
             <div class="experience-item">
-                <div class="job-title">${(exp as any).position}</div>
-                <div class="company">${(exp as any).company}</div>
+                <div class="job-title">${safeGet(exp, 'position')}</div>
+                <div class="company">${safeGet(exp, 'company')}</div>
                 <div class="date-range">
-                    ${formatDate((exp as any).startDate)} - ${(exp as any).current ? 'Present' : formatDate((exp as any).endDate)}
+                    ${formatDate(safeGet(exp, 'startDate') as string)} - ${safeGet(exp, 'current') ? 'Present' : formatDate(safeGet(exp, 'endDate') as string)}
                 </div>
-                ${(exp as any).description ? `<div class="description">${(exp as any).description}</div>` : ''}
+                ${safeGet(exp, 'description') ? `<div class="description">${safeGet(exp, 'description')}</div>` : ''}
             </div>
         `).join('')}
     </div>
     ` : ''}
 
-    ${(resume as any).education.length > 0 ? `
+    ${(safeGet(resume, 'education') as unknown[])?.length > 0 ? `
     <div class="section">
         <div class="section-title">Education</div>
-        ${(resume as any).education.map((edu: unknown) => `
+        ${(safeGet(resume, 'education') as unknown[]).map((edu: unknown) => `
             <div class="education-item">
-                <div class="degree">${(edu as any).degree} in ${(edu as any).field}</div>
-                <div class="institution">${(edu as any).institution}</div>
+                <div class="degree">${safeGet(edu, 'degree')} in ${safeGet(edu, 'field')}</div>
+                <div class="institution">${safeGet(edu, 'institution')}</div>
                 <div class="date-range">
-                    ${formatDate((edu as any).startDate)} - ${(edu as any).current ? 'Present' : formatDate((edu as any).endDate)}
-                    ${(edu as any).gpa ? ` • GPA: ${(edu as any).gpa}` : ''}
+                    ${formatDate(safeGet(edu, 'startDate') as string)} - ${safeGet(edu, 'current') ? 'Present' : formatDate(safeGet(edu, 'endDate') as string)}
+                    ${safeGet(edu, 'gpa') ? ` • GPA: ${safeGet(edu, 'gpa')}` : ''}
                 </div>
             </div>
         `).join('')}
