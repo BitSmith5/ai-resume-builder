@@ -166,11 +166,25 @@ export default function ViewResumePage() {
               Created {resumeData.createdAt ? new Date(resumeData.createdAt).toISOString().split('T')[0] : 'Unknown'}
             </Typography>
           </Box>
-          <Stack direction="row" spacing={2}>
+          <Stack 
+            direction={{ xs: 'column', sm: 'row' }} 
+            spacing={2}
+            sx={{ width: { xs: '40%', sm: 'auto' } }}
+          >
+            <Button
+              variant="contained"
+              startIcon={downloading ? <CircularProgress size={16} /> : <DownloadIcon />}
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              {downloading ? 'Generating...' : 'Download PDF'}
+            </Button>
             <Button
               variant="outlined"
               startIcon={<ArrowBackIcon />}
               onClick={() => router.push('/dashboard')}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Back
             </Button>
@@ -178,16 +192,9 @@ export default function ViewResumePage() {
               variant="outlined"
               startIcon={<EditIcon />}
               onClick={() => router.push(`/dashboard/resumes/${resumeId}/edit`)}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Edit
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={downloading ? <CircularProgress size={16} /> : <DownloadIcon />}
-              onClick={handleDownloadPDF}
-              disabled={downloading}
-            >
-              {downloading ? 'Generating...' : 'Download PDF'}
             </Button>
           </Stack>
         </Box>
