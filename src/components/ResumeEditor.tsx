@@ -625,7 +625,13 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                       {exp.position} at {exp.company}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {new Date(exp.startDate).toLocaleDateString()} - {exp.current ? 'Present' : new Date(exp.endDate).toLocaleDateString()}
+                      {(() => {
+                        const startDate = exp.startDate ? new Date(exp.startDate) : null;
+                        const endDate = exp.endDate ? new Date(exp.endDate) : null;
+                        const startStr = startDate && !isNaN(startDate.getTime()) ? startDate.toISOString().split('T')[0] : 'Unknown';
+                        const endStr = exp.current ? 'Present' : (endDate && !isNaN(endDate.getTime()) ? endDate.toISOString().split('T')[0] : 'Unknown');
+                        return `${startStr} - ${endStr}`;
+                      })()}
                     </Typography>
                     <Typography variant="body2">
                       {exp.description}
@@ -647,8 +653,13 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                       {edu.institution}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {new Date(edu.startDate).toLocaleDateString()} - {edu.current ? 'Present' : new Date(edu.endDate).toLocaleDateString()}
-                      {edu.gpa && ` • GPA: ${edu.gpa}`}
+                      {(() => {
+                        const startDate = edu.startDate ? new Date(edu.startDate) : null;
+                        const endDate = edu.endDate ? new Date(edu.endDate) : null;
+                        const startStr = startDate && !isNaN(startDate.getTime()) ? startDate.toISOString().split('T')[0] : 'Unknown';
+                        const endStr = edu.current ? 'Present' : (endDate && !isNaN(endDate.getTime()) ? endDate.toISOString().split('T')[0] : 'Unknown');
+                        return `${startStr} - ${endStr}${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}`;
+                      })()}
                     </Typography>
                   </Box>
                 ))}

@@ -219,7 +219,7 @@ export default function DashboardPage() {
                     {resume.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" mb={2}>
-                    Created {new Date(resume.createdAt).toLocaleDateString()}
+                    Created {resume.createdAt ? new Date(resume.createdAt).toISOString().split('T')[0] : 'Unknown'}
                   </Typography>
                   
                   {resume.strengths.length > 0 && (

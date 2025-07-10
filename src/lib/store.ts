@@ -74,6 +74,9 @@ const initialState = {
   notifications: [],
 };
 
+// Counter for generating unique IDs
+let idCounter = 1;
+
 // Create the store
 export const useAppStore = create<AppState>()(
   devtools(
@@ -89,7 +92,7 @@ export const useAppStore = create<AppState>()(
         addResumeDraft: (draft) => {
           const newDraft: ResumeDraft = {
             ...draft,
-            id: draft.id || Date.now(),
+            id: draft.id || idCounter++,
             isDirty: true,
             lastModified: new Date(),
           };
@@ -135,7 +138,7 @@ export const useAppStore = create<AppState>()(
 
         // Notification actions
         addNotification: (notification) => {
-          const id = Date.now().toString();
+          const id = `notification-${idCounter++}`;
           const newNotification: SnackbarNotification = {
             id,
             duration: 6000, // Default 6 seconds

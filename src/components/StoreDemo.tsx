@@ -84,14 +84,7 @@ export const StoreDemo: React.FC = () => {
 
   // Don't render until client-side hydration is complete
   if (!isClient) {
-    return (
-      <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
-        <Typography variant="h4" gutterBottom>
-          Zustand Store Demo
-        </Typography>
-        <Typography>Loading...</Typography>
-      </Box>
-    );
+    return null;
   }
 
   return (
@@ -180,7 +173,10 @@ export const StoreDemo: React.FC = () => {
                           />
                           {draft.lastModified && (
                             <Typography variant="caption" color="text.secondary">
-                              Modified: {new Date(draft.lastModified).toLocaleString()}
+                              Modified: {(() => {
+                                const date = new Date(draft.lastModified);
+                                return isNaN(date.getTime()) ? 'Unknown' : date.toISOString().split('T')[0];
+                              })()}
                             </Typography>
                           )}
                         </Box>

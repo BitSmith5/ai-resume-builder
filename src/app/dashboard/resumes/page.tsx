@@ -84,7 +84,13 @@ export default function ResumesPage() {
       headerName: "Created",
       width: 120,
       valueGetter: (params: GridCellParams) => {
-        return new Date(params.value as string).toLocaleDateString();
+        const dateValue = params.value as string;
+        if (!dateValue) return '';
+        
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return '';
+        
+        return date.toISOString().split('T')[0];
       },
     },
     {
