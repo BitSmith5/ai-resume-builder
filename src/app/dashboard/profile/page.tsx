@@ -68,8 +68,8 @@ export default function ProfilePage() {
     if (session?.user) {
       setProfileData(prev => ({
         ...prev,
-        name: session.user.name || "",
-        email: session.user.email || "",
+        name: session.user?.name || "",
+        email: session.user?.email || "",
       }));
     }
   }, [session]);
@@ -100,8 +100,8 @@ export default function ProfilePage() {
     if (session?.user) {
       setProfileData(prev => ({
         ...prev,
-        name: session.user.name || "",
-        email: session.user.email || "",
+        name: session.user?.name || "",
+        email: session.user?.email || "",
       }));
     }
   };
