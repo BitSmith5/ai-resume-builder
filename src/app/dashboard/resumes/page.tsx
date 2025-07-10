@@ -247,7 +247,7 @@ export default function ResumesPage() {
     }
   };
 
-  const formatDate = (dateValue: any) => {
+  const formatDate = (dateValue: string | Date | null | undefined) => {
     if (!dateValue) return "N/A";
     
     if (dateValue instanceof Date) {
@@ -258,7 +258,7 @@ export default function ResumesPage() {
       });
     }
     
-    const date = new Date(dateValue as string);
+    const date = new Date(dateValue);
     if (isNaN(date.getTime())) return "Invalid Date";
     
     return date.toLocaleDateString('en-US', {
