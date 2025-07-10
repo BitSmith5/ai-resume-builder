@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useRouter, useParams } from 'next/navigation';
-import { generateResumePDF } from '@/components/ResumePDF';
+
 
 interface ResumeData {
   id: number;
@@ -99,15 +99,20 @@ export default function ViewResumePage() {
     
     setDownloading(true);
     try {
-      const blob = await generateResumePDF(resumeData);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${resumeData.title.replace(/\s+/g, '_')}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const response = await fetch(`/api/resumes/${resumeId}/pdf`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${resumeData.title.replace(/\s+/g, '_')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        console.error('Failed to generate PDF');
+      }
     } catch (error) {
       console.error('Failed to generate PDF:', error);
     } finally {

@@ -1,7 +1,4 @@
-"use client";
-
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
+import jsPDF from 'jspdf';
 
 interface ResumeData {
   title: string;
@@ -37,184 +34,137 @@ interface ResumeData {
   }>;
 }
 
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#ffffff',
-    padding: 30,
-    fontSize: 12,
-    lineHeight: 1.4,
-  },
-  header: {
-    marginBottom: 20,
-    borderBottom: '1px solid #333',
-    paddingBottom: 10,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#2c3e50',
-  },
-  contactInfo: {
-    fontSize: 10,
-    color: '#666',
-    marginBottom: 5,
-  },
-  section: {
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#2c3e50',
-    borderBottom: '1px solid #eee',
-    paddingBottom: 3,
-  },
-  summary: {
-    fontSize: 11,
-    color: '#333',
-    marginBottom: 10,
-  },
-  experienceItem: {
-    marginBottom: 12,
-  },
-  jobTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-  },
-  company: {
-    fontSize: 11,
-    color: '#666',
-    marginBottom: 3,
-  },
-  dateRange: {
-    fontSize: 10,
-    color: '#888',
-    marginBottom: 5,
-  },
-  description: {
-    fontSize: 10,
-    color: '#333',
-    marginTop: 5,
-  },
-  educationItem: {
-    marginBottom: 10,
-  },
-  degree: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-  },
-  institution: {
-    fontSize: 11,
-    color: '#666',
-    marginBottom: 3,
-  },
-  skillsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 5,
-  },
-  skill: {
-    backgroundColor: '#f8f9fa',
-    padding: '3px 8px',
-    margin: '2px',
-    borderRadius: 3,
-    fontSize: 9,
-  },
-});
-
-interface ResumePDFProps {
-  resumeData: ResumeData;
-}
-
-const ResumePDF: React.FC<ResumePDFProps> = ({ resumeData }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.name}>
-          {resumeData.content.personalInfo.name || 'Your Name'}
-        </Text>
-        <Text style={styles.contactInfo}>
-          {resumeData.content.personalInfo.email || 'email@example.com'}
-        </Text>
-        <Text style={styles.contactInfo}>
-          {resumeData.content.personalInfo.phone || 'Phone Number'}
-        </Text>
-        <Text style={styles.contactInfo}>
-          {resumeData.content.personalInfo.address || 'Address'}
-        </Text>
-      </View>
-
-      {/* Professional Summary */}
-      {resumeData.content.personalInfo.summary && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Professional Summary</Text>
-          <Text style={styles.summary}>{resumeData.content.personalInfo.summary}</Text>
-        </View>
-      )}
-
-      {/* Skills */}
-      {resumeData.strengths.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Skills</Text>
-          <View style={styles.skillsContainer}>
-            {resumeData.strengths.map((strength, index) => (
-              <Text key={index} style={styles.skill}>
-                {strength.skillName} ({strength.rating}/10)
-              </Text>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Work Experience */}
-      {resumeData.workExperience.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Work Experience</Text>
-          {resumeData.workExperience.map((exp, index) => (
-            <View key={index} style={styles.experienceItem}>
-              <Text style={styles.jobTitle}>{exp.position}</Text>
-              <Text style={styles.company}>{exp.company}</Text>
-              <Text style={styles.dateRange}>
-                {new Date(exp.startDate).toLocaleDateString()} - {exp.current ? 'Present' : new Date(exp.endDate).toLocaleDateString()}
-              </Text>
-              <Text style={styles.description}>{exp.description}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Education */}
-      {resumeData.education.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Education</Text>
-          {resumeData.education.map((edu, index) => (
-            <View key={index} style={styles.educationItem}>
-              <Text style={styles.degree}>
-                {edu.degree} in {edu.field}
-              </Text>
-              <Text style={styles.institution}>{edu.institution}</Text>
-              <Text style={styles.dateRange}>
-                {new Date(edu.startDate).toLocaleDateString()} - {edu.current ? 'Present' : new Date(edu.endDate).toLocaleDateString()}
-                {edu.gpa && ` • GPA: ${edu.gpa}`}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-    </Page>
-  </Document>
-);
-
 export const generateResumePDF = async (resumeData: ResumeData): Promise<Blob> => {
-  const element = <ResumePDF resumeData={resumeData} />;
-  const blob = await pdf(element).toBlob();
-  return blob;
-};
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new jsPDF();
+      let yPosition = 20;
+      const margin = 20;
+      const pageWidth = doc.internal.pageSize.width;
+      const contentWidth = pageWidth - (margin * 2);
 
-export default ResumePDF; 
+      // Helper function to add text with word wrapping
+      const addWrappedText = (text: string, y: number, fontSize: number = 12, fontStyle: string = 'normal') => {
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', fontStyle);
+        const lines = doc.splitTextToSize(text, contentWidth);
+        doc.text(lines, margin, y);
+        return y + (lines.length * fontSize * 0.4);
+      };
+
+      // Helper function to add section header
+      const addSectionHeader = (title: string, y: number) => {
+        yPosition = addWrappedText(title, y, 16, 'bold');
+        yPosition += 5;
+        return yPosition;
+      };
+
+      // Helper function to check if we need a new page
+      const checkNewPage = (requiredSpace: number) => {
+        if (yPosition + requiredSpace > doc.internal.pageSize.height - margin) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      };
+
+      // Title
+      yPosition = addWrappedText(resumeData.title || 'Resume', yPosition, 20, 'bold');
+      yPosition += 10;
+
+      // Personal Information
+      yPosition = addSectionHeader('Personal Information', yPosition);
+      
+      const personalInfo = resumeData.content.personalInfo;
+      if (personalInfo.name) {
+        yPosition = addWrappedText(`Name: ${personalInfo.name}`, yPosition);
+      }
+      if (personalInfo.email) {
+        yPosition = addWrappedText(`Email: ${personalInfo.email}`, yPosition);
+      }
+      if (personalInfo.phone) {
+        yPosition = addWrappedText(`Phone: ${personalInfo.phone}`, yPosition);
+      }
+      if (personalInfo.address) {
+        yPosition = addWrappedText(`Address: ${personalInfo.address}`, yPosition);
+      }
+      if (personalInfo.summary) {
+        yPosition += 5;
+        yPosition = addWrappedText('Professional Summary:', yPosition, 12, 'bold');
+        yPosition = addWrappedText(personalInfo.summary, yPosition);
+      }
+
+      yPosition += 10;
+
+      // Skills & Strengths
+      if (resumeData.strengths.length > 0) {
+        checkNewPage(50);
+        yPosition = addSectionHeader('Skills & Strengths', yPosition);
+        
+        resumeData.strengths.forEach((strength) => {
+          if (strength.skillName) {
+            const skillText = `${strength.skillName}${strength.rating ? ` (Rating: ${strength.rating}/10)` : ''}`;
+            yPosition = addWrappedText(`• ${skillText}`, yPosition);
+          }
+        });
+        yPosition += 10;
+      }
+
+      // Work Experience
+      if (resumeData.workExperience.length > 0) {
+        checkNewPage(100);
+        yPosition = addSectionHeader('Work Experience', yPosition);
+        
+        resumeData.workExperience.forEach((exp) => {
+          if (exp.company || exp.position) {
+            const companyText = exp.company ? exp.company : '';
+            const positionText = exp.position ? exp.position : '';
+            const dateText = exp.current ? 
+              `${exp.startDate} - Present` : 
+              `${exp.startDate} - ${exp.endDate}`;
+            
+            yPosition = addWrappedText(`${positionText} at ${companyText}`, yPosition, 12, 'bold');
+            yPosition = addWrappedText(dateText, yPosition, 10);
+            
+            if (exp.description) {
+              yPosition = addWrappedText(exp.description, yPosition, 10);
+            }
+            yPosition += 5;
+          }
+        });
+        yPosition += 10;
+      }
+
+      // Education
+      if (resumeData.education.length > 0) {
+        checkNewPage(100);
+        yPosition = addSectionHeader('Education', yPosition);
+        
+        resumeData.education.forEach((edu) => {
+          if (edu.institution || edu.degree) {
+            const institutionText = edu.institution ? edu.institution : '';
+            const degreeText = edu.degree ? edu.degree : '';
+            const fieldText = edu.field ? edu.field : '';
+            const dateText = edu.current ? 
+              `${edu.startDate} - Present` : 
+              `${edu.startDate} - ${edu.endDate}`;
+            
+            yPosition = addWrappedText(`${degreeText} in ${fieldText}`, yPosition, 12, 'bold');
+            yPosition = addWrappedText(institutionText, yPosition, 10);
+            yPosition = addWrappedText(dateText, yPosition, 10);
+            
+            if (edu.gpa) {
+              yPosition = addWrappedText(`GPA: ${edu.gpa}`, yPosition, 10);
+            }
+            yPosition += 5;
+          }
+        });
+      }
+
+      // Generate blob
+      const pdfBlob = doc.output('blob');
+      resolve(pdfBlob);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}; 
