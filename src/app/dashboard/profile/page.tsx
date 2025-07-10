@@ -133,7 +133,7 @@ export default function ProfilePage() {
         const errorData = await response.json();
         setError(errorData.error || "Failed to update profile. Please try again.");
       }
-    } catch (error) {
+    } catch {
       setError("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
