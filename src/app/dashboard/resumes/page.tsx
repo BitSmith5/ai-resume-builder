@@ -94,7 +94,7 @@ export default function ResumesPage() {
       renderCell: (params) => {
         const strengths = params.value as Strength[];
         if (!strengths || strengths.length === 0) {
-          return <Typography variant="body2" color="text.secondary">No skills</Typography>;
+          return <Typography variant="body2" alignContent="center" color="text.secondary" sx={{ minHeight: '100%' }}>No skills</Typography>;
         }
         return (
           <Box display="flex" flexWrap="wrap" gap={0.5} alignContent="center" sx={{ minHeight: '100%' }}>
@@ -148,7 +148,7 @@ export default function ResumesPage() {
 
   const handleView = (id: number) => {
     // Navigate to view resume page
-    console.log("View resume:", id);
+    router.push(`/dashboard/resumes/${id}`);
   };
 
   const handleEdit = (id: number) => {
