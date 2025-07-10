@@ -10,6 +10,12 @@ import {
   Alert,
   LinearProgress,
   Chip,
+  Card,
+  CardContent,
+  IconButton,
+  Stack,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   DataGrid,
@@ -40,6 +46,8 @@ interface Strength {
 
 export default function ResumesPage() {
   const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,36 +83,40 @@ export default function ResumesPage() {
     {
       field: "title",
       headerName: "Title",
-      flex: 1,
-      minWidth: 200,
+      width: 200,
+      minWidth: 150,
+      maxWidth: 300,
+      renderCell: (params) => (
+        <Box sx={{ width: '100%', py: 1, display: 'flex', alignItems: 'center', height: '100%' }}>
+          <Typography variant="body1" fontWeight="medium" noWrap>
+            {params.value}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "createdAt",
       headerName: "Created",
       width: 120,
+      minWidth: 100,
+      maxWidth: 150,
       renderCell: (params) => {
         const dateValue = params.value;
-        
-        // Try to get the value directly from the row
         const rowDateValue = params.row.createdAt;
-        
-        // Use the row value if params.value is undefined
         const finalDateValue = dateValue || rowDateValue;
         
-        // Handle null, undefined, or empty string
         if (!finalDateValue) {
           return (
-            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+            <Box sx={{ width: '100%', py: 1, display: 'flex', alignItems: 'center', height: '100%' }}>
               <Typography variant="body2" color="text.secondary">N/A</Typography>
             </Box>
           );
         }
         
-        // Handle Date objects directly
         if (finalDateValue instanceof Date) {
           return (
-            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
-              <Typography variant="body2">
+            <Box sx={{ width: '100%', py: 1, display: 'flex', alignItems: 'center', height: '100%' }}>
+              <Typography variant="body2" noWrap>
                 {finalDateValue.toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: '2-digit',
@@ -115,20 +127,18 @@ export default function ResumesPage() {
           );
         }
         
-        // Handle string dates
         const date = new Date(finalDateValue as string);
         if (isNaN(date.getTime())) {
           return (
-            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+            <Box sx={{ width: '100%', py: 1, display: 'flex', alignItems: 'center', height: '100%' }}>
               <Typography variant="body2" color="error">Invalid Date</Typography>
             </Box>
           );
         }
         
-        // Format as MM/DD/YYYY for better readability
         return (
-          <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
-            <Typography variant="body2">
+          <Box sx={{ width: '100%', py: 1, display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Typography variant="body2" noWrap>
               {date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: '2-digit',
@@ -143,33 +153,39 @@ export default function ResumesPage() {
       field: "strengths",
       headerName: "Skills",
       width: 200,
+      minWidth: 150,
+      maxWidth: 250,
       renderCell: (params) => {
         const strengths = params.value as Strength[];
         if (!strengths || strengths.length === 0) {
           return (
-            <Box display="flex" alignItems="center" sx={{ height: '100%' }}>
+            <Box sx={{ width: '100%', py: 1, display: 'flex', alignItems: 'center', height: '100%' }}>
               <Typography variant="body2" color="text.secondary">No skills</Typography>
             </Box>
           );
         }
         return (
-          <Box display="flex" flexWrap="wrap" gap={0.5} alignContent="center" sx={{ minHeight: '100%' }}>
-            {strengths.slice(0, 2).map((strength) => (
-              <Chip
-                key={strength.id}
-                label={`${strength.skillName} (${strength.rating}/10)`}
-                size="small"
-                color={getStrengthColor(strength.rating) as "success" | "warning" | "error"}
-                variant="outlined"
-              />
-            ))}
-            {strengths.length > 2 && (
-              <Chip
-                label={`+${strengths.length - 2} more`}
-                size="small"
-                variant="outlined"
-              />
-            )}
+          <Box sx={{ width: '100%', py: 1, display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={0.5}>
+              {strengths.slice(0, 2).map((strength) => (
+                <Chip
+                  key={strength.id}
+                  label={`${strength.skillName} (${strength.rating}/10)`}
+                  size="small"
+                  color={getStrengthColor(strength.rating) as "success" | "warning" | "error"}
+                  variant="outlined"
+                  sx={{ fontSize: '0.7rem', maxWidth: '100%' }}
+                />
+              ))}
+              {strengths.length > 2 && (
+                <Chip
+                  label={`+${strengths.length - 2} more`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontSize: '0.7rem' }}
+                />
+              )}
+            </Box>
           </Box>
         );
       },
@@ -178,7 +194,9 @@ export default function ResumesPage() {
       field: "actions",
       type: "actions",
       headerName: "Actions",
-      width: 120,
+      width: 100,
+      minWidth: 80,
+      maxWidth: 120,
       getActions: (params) => [
         <GridActionsCellItem
           key="view"
@@ -229,6 +247,109 @@ export default function ResumesPage() {
     }
   };
 
+  const formatDate = (dateValue: any) => {
+    if (!dateValue) return "N/A";
+    
+    if (dateValue instanceof Date) {
+      return dateValue.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    }
+    
+    const date = new Date(dateValue as string);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  const renderMobileCard = (resume: Resume) => (
+    <Card key={resume.id} sx={{ mb: 2, boxShadow: 2 }}>
+      <CardContent sx={{ p: 2 }}>
+        <Stack spacing={1.5}>
+          {/* Title */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" fontWeight="medium" noWrap>
+              {resume.title}
+            </Typography>
+          </Box>
+          
+          {/* Created Date */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Created: {formatDate(resume.createdAt)}
+            </Typography>
+          </Box>
+          
+          {/* Skills */}
+          <Box>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Skills:
+            </Typography>
+            {resume.strengths && resume.strengths.length > 0 ? (
+              <Stack direction="row" flexWrap="wrap" gap={0.5}>
+                {resume.strengths.slice(0, 3).map((strength) => (
+                  <Chip
+                    key={strength.id}
+                    label={`${strength.skillName} (${strength.rating}/10)`}
+                    size="small"
+                    color={getStrengthColor(strength.rating) as "success" | "warning" | "error"}
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem' }}
+                  />
+                ))}
+                {resume.strengths.length > 3 && (
+                  <Chip
+                    label={`+${resume.strengths.length - 3} more`}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem' }}
+                  />
+                )}
+              </Stack>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  No skills
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          
+          {/* Actions */}
+          <Box sx={{ display: 'flex', gap: 1, pt: 1 }}>
+            <IconButton
+              size="small"
+              onClick={() => handleView(resume.id)}
+              sx={{ color: 'primary.main' }}
+            >
+              <ViewIcon />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => handleEdit(resume.id)}
+              sx={{ color: 'primary.main' }}
+            >
+              <EditIcon />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => handleDelete(resume.id)}
+              sx={{ color: 'error.main' }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -243,7 +364,7 @@ export default function ResumesPage() {
     <DashboardLayout>
       <Box>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-          <Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Typography variant="h4" component="h1" gutterBottom>
               My Resumes
             </Typography>
@@ -267,30 +388,68 @@ export default function ResumesPage() {
           </Alert>
         )}
 
-        <Box sx={{ height: 600, width: "100%" }}>
-          <DataGrid
-            rows={resumes}
-            columns={columns}
-            pageSizeOptions={[5, 10, 25]}
-            rowHeight={70}
-            getRowId={(row) => row.id}
-            initialState={{
-              pagination: {
-                paginationModel: { page: 0, pageSize: 10 },
-              },
-            }}
-            disableRowSelectionOnClick
-            sx={{
-              "& .MuiDataGrid-cell": {
-                borderBottom: "1px solid #e0e0e0",
-              },
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#f5f5f5",
-                borderBottom: "2px solid #e0e0e0",
-              },
-            }}
-          />
-        </Box>
+        {isMobile ? (
+          // Mobile layout - stacked cards
+          <Box sx={{ width: "100%" }}>
+            {resumes.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+                <Typography variant="body1" color="text.secondary">
+                  No resumes found. Create your first resume to get started.
+                </Typography>
+              </Box>
+            ) : (
+              <Stack spacing={2}>
+                {resumes.map(renderMobileCard)}
+              </Stack>
+            )}
+          </Box>
+        ) : (
+          // Desktop layout - DataGrid
+          <Box sx={{ 
+            height: 600, 
+            width: "100%",
+            overflow: "hidden"
+          }}>
+            <DataGrid
+              rows={resumes}
+              columns={columns}
+              pageSizeOptions={[5, 10, 25]}
+              rowHeight={100}
+              getRowId={(row) => row.id}
+              initialState={{
+                pagination: {
+                  paginationModel: { page: 0, pageSize: 10 },
+                },
+              }}
+              disableRowSelectionOnClick
+              autoHeight={false}
+              sx={{
+                "& .MuiDataGrid-cell": {
+                  borderBottom: "1px solid #e0e0e0",
+                  padding: "8px 16px",
+                },
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f5f5f5",
+                  borderBottom: "2px solid #e0e0e0",
+                },
+                "& .MuiDataGrid-row": {
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
+                },
+                "& .MuiDataGrid-virtualScroller": {
+                  overflow: "auto",
+                },
+                "& .MuiDataGrid-main": {
+                  overflow: "auto",
+                },
+                "& .MuiDataGrid-virtualScrollerContent": {
+                  minWidth: "100%",
+                },
+              }}
+            />
+          </Box>
+        )}
       </Box>
     </DashboardLayout>
   );
