@@ -205,7 +205,7 @@ export default function DashboardPage() {
               <Typography variant="body2" color="text.secondary" mb={3}>
                 Create your first professional resume to get started
               </Typography>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} href="/dashboard/resumes/new">
                 Create Your First Resume
               </Button>
             </CardContent>
@@ -242,10 +242,10 @@ export default function DashboardPage() {
                   )}
 
                   <Box display="flex" gap={1}>
-                    <Button size="small" variant="outlined">
+                    <Button size="small" variant="outlined" href={`/dashboard/resumes/${resume.id}`}>
                       View
                     </Button>
-                    <Button size="small" variant="outlined">
+                    <Button size="small" variant="outlined" href={`/dashboard/resumes/${resume.id}/edit`}>
                       Edit
                     </Button>
                   </Box>
