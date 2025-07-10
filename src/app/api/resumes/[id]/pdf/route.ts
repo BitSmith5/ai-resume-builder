@@ -52,7 +52,7 @@ export async function GET(
   }
 }
 
-async function generatePDF(resume: any): Promise<Uint8Array> {
+async function generatePDF(resume: unknown): Promise<Uint8Array> {
   const htmlContent = generatePDFHTML(resume);
   
   // Launch browser
@@ -85,7 +85,7 @@ async function generatePDF(resume: any): Promise<Uint8Array> {
   }
 }
 
-function generatePDFHTML(resume: any): string {
+function generatePDFHTML(resume: unknown): string {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -101,7 +101,7 @@ function generatePDFHTML(resume: any): string {
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>${resume.title}</title>
+    <title>${(resume as any).title}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -187,58 +187,58 @@ function generatePDFHTML(resume: any): string {
 </head>
 <body>
     <div class="header">
-        <div class="name">${resume.content.personalInfo.name || 'Your Name'}</div>
-        <div class="contact-info">${resume.content.personalInfo.email || 'email@example.com'}</div>
-        <div class="contact-info">${resume.content.personalInfo.phone || 'Phone Number'}</div>
-        <div class="contact-info">${resume.content.personalInfo.address || 'Address'}</div>
+        <div class="name">${(resume as any).content.personalInfo.name || 'Your Name'}</div>
+        <div class="contact-info">${(resume as any).content.personalInfo.email || 'email@example.com'}</div>
+        <div class="contact-info">${(resume as any).content.personalInfo.phone || 'Phone Number'}</div>
+        <div class="contact-info">${(resume as any).content.personalInfo.address || 'Address'}</div>
     </div>
 
-    ${resume.content.personalInfo.summary ? `
+    ${(resume as any).content.personalInfo.summary ? `
     <div class="section">
         <div class="section-title">Professional Summary</div>
-        <div class="summary">${resume.content.personalInfo.summary}</div>
+        <div class="summary">${(resume as any).content.personalInfo.summary}</div>
     </div>
     ` : ''}
 
-    ${resume.strengths.length > 0 ? `
+    ${(resume as any).strengths.length > 0 ? `
     <div class="section">
         <div class="section-title">Skills</div>
         <div class="skills-container">
-            ${resume.strengths.map((strength: any) => `
-                <span class="skill" style="border-color: ${getStrengthColor(strength.rating)}">
-                    ${strength.skillName} (${strength.rating}/10)
+            ${(resume as any).strengths.map((strength: unknown) => `
+                <span class="skill" style="border-color: ${getStrengthColor((strength as any).rating)}">
+                    ${(strength as any).skillName} (${(strength as any).rating}/10)
                 </span>
             `).join('')}
         </div>
     </div>
     ` : ''}
 
-    ${resume.workExperience.length > 0 ? `
+    ${(resume as any).workExperience.length > 0 ? `
     <div class="section">
         <div class="section-title">Work Experience</div>
-        ${resume.workExperience.map((exp: any) => `
+        ${(resume as any).workExperience.map((exp: unknown) => `
             <div class="experience-item">
-                <div class="job-title">${exp.position}</div>
-                <div class="company">${exp.company}</div>
+                <div class="job-title">${(exp as any).position}</div>
+                <div class="company">${(exp as any).company}</div>
                 <div class="date-range">
-                    ${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate)}
+                    ${formatDate((exp as any).startDate)} - ${(exp as any).current ? 'Present' : formatDate((exp as any).endDate)}
                 </div>
-                ${exp.description ? `<div class="description">${exp.description}</div>` : ''}
+                ${(exp as any).description ? `<div class="description">${(exp as any).description}</div>` : ''}
             </div>
         `).join('')}
     </div>
     ` : ''}
 
-    ${resume.education.length > 0 ? `
+    ${(resume as any).education.length > 0 ? `
     <div class="section">
         <div class="section-title">Education</div>
-        ${resume.education.map((edu: any) => `
+        ${(resume as any).education.map((edu: unknown) => `
             <div class="education-item">
-                <div class="degree">${edu.degree} in ${edu.field}</div>
-                <div class="institution">${edu.institution}</div>
+                <div class="degree">${(edu as any).degree} in ${(edu as any).field}</div>
+                <div class="institution">${(edu as any).institution}</div>
                 <div class="date-range">
-                    ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
-                    ${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+                    ${formatDate((edu as any).startDate)} - ${(edu as any).current ? 'Present' : formatDate((edu as any).endDate)}
+                    ${(edu as any).gpa ? ` • GPA: ${(edu as any).gpa}` : ''}
                 </div>
             </div>
         `).join('')}
