@@ -250,21 +250,33 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
   };
 
   const handleDownloadPDF = async () => {
+    if (!resumeId) {
+      setError('Please save the resume first before downloading');
+      return;
+    }
+
     try {
-      // TODO: Implement PDF generation
-      setError('PDF generation not yet implemented');
-      // const blob = await generateResumePDF(resumeData);
-      // const url = URL.createObjectURL(blob);
-      // const link = document.createElement('a');
-      // link.href = url;
-      // link.download = `${resumeData.title || 'resume'}.pdf`;
-      // document.body.appendChild(link);
-      // link.click();
-      // document.body.removeChild(link);
-      // URL.revokeObjectURL(url);
+      setError('');
+      const response = await fetch(`/api/resumes/${resumeId}/pdf`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${resumeData.title || 'resume'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setSuccess('PDF downloaded successfully');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      setError('Failed to generate PDF');
+      setError('Failed to generate PDF. Please try again.');
     }
   };
 
