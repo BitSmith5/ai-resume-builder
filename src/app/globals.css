@@ -35,8 +35,42 @@ a {
   text-decoration: none;
 }
 
+/* Autofill override using a more specific approach */
+.MuiTextField-root .MuiInputBase-input:-webkit-autofill,
+.MuiTextField-root .MuiInputBase-input:-webkit-autofill:hover,
+.MuiTextField-root .MuiInputBase-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: black !important;
+  background-color: white !important;
+}
+
+/* Alternative approach for broader coverage */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: black !important;
+  background-color: white !important;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
+  }
+  
+  .MuiTextField-root .MuiInputBase-input:-webkit-autofill,
+  .MuiTextField-root .MuiInputBase-input:-webkit-autofill:hover,
+  .MuiTextField-root .MuiInputBase-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #121212 inset !important;
+    -webkit-text-fill-color: white !important;
+    background-color: #121212 !important;
+  }
+  
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #121212 inset !important;
+    -webkit-text-fill-color: white !important;
+    background-color: #121212 !important;
   }
 }

@@ -26,6 +26,21 @@ import {
 } from '@mui/icons-material';
 // import { generateResumePDF } from './ResumePDF';
 
+// Phone number formatting function
+const formatPhoneNumber = (value: string): string => {
+  // Remove all non-digit characters
+  const phoneNumber = value.replace(/\D/g, '');
+  
+  // Limit to 10 digits
+  const trimmed = phoneNumber.slice(0, 10);
+  
+  // Format as (XXX) XXX-XXXX
+  if (trimmed.length === 0) return '';
+  if (trimmed.length <= 3) return `(${trimmed}`;
+  if (trimmed.length <= 6) return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3)}`;
+  return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3, 6)}-${trimmed.slice(6)}`;
+};
+
 interface ResumeData {
   title: string;
   content: {
@@ -87,6 +102,8 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
     workExperience: [],
     education: [],
   });
+
+
 
   const loadResume = useCallback(async () => {
     setLoading(true);
@@ -276,7 +293,21 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
           label="Resume Title"
           value={resumeData.title}
           onChange={(e) => setResumeData(prev => ({ ...prev, title: e.target.value }))}
-          sx={{ minWidth: { xs: '100%', md: 300 } }}
+          sx={{ 
+            minWidth: { xs: '100%', md: 300 },
+            '& .MuiInputBase-input:-webkit-autofill': {
+              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+              WebkitTextFillColor: 'black !important',
+            },
+            '& .MuiInputBase-input:-webkit-autofill:hover': {
+              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+              WebkitTextFillColor: 'black !important',
+            },
+            '& .MuiInputBase-input:-webkit-autofill:focus': {
+              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+              WebkitTextFillColor: 'black !important',
+            },
+          }}
         />
         <Stack 
           direction={{ xs: 'column', sm: 'row' }} 
@@ -347,6 +378,20 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                           },
                         },
                       }))}
+                      sx={{
+                        '& .MuiInputBase-input:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                          WebkitTextFillColor: 'black !important',
+                        },
+                        '& .MuiInputBase-input:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                          WebkitTextFillColor: 'black !important',
+                        },
+                        '& .MuiInputBase-input:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                          WebkitTextFillColor: 'black !important',
+                        },
+                      }}
                     />
                     <Box 
                       display="flex" 
@@ -367,6 +412,20 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                             },
                           },
                         }))}
+                        sx={{
+                          '& .MuiInputBase-input:-webkit-autofill': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:hover': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:focus': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                        }}
                       />
                       <TextField
                         fullWidth
@@ -378,10 +437,24 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                             ...prev.content,
                             personalInfo: {
                               ...prev.content.personalInfo,
-                              phone: e.target.value,
+                              phone: formatPhoneNumber(e.target.value),
                             },
                           },
                         }))}
+                        sx={{
+                          '& .MuiInputBase-input:-webkit-autofill': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:hover': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:focus': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                        }}
                       />
                     </Box>
                     <TextField
@@ -398,6 +471,20 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                           },
                         },
                       }))}
+                      sx={{
+                        '& .MuiInputBase-input:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                          WebkitTextFillColor: 'black !important',
+                        },
+                        '& .MuiInputBase-input:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                          WebkitTextFillColor: 'black !important',
+                        },
+                        '& .MuiInputBase-input:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                          WebkitTextFillColor: 'black !important',
+                        },
+                      }}
                     />
                     <TextField
                       fullWidth
@@ -453,14 +540,42 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
                           label="Skill Name"
                           value={strength.skillName}
                           onChange={(e) => updateStrength(index, 'skillName', e.target.value)}
+                          sx={{
+                            '& .MuiInputBase-input:-webkit-autofill': {
+                              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                              WebkitTextFillColor: 'black !important',
+                            },
+                            '& .MuiInputBase-input:-webkit-autofill:hover': {
+                              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                              WebkitTextFillColor: 'black !important',
+                            },
+                            '& .MuiInputBase-input:-webkit-autofill:focus': {
+                              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                              WebkitTextFillColor: 'black !important',
+                            },
+                          }}
                         />
                         <TextField
-                          sx={{ width: { xs: '100%', sm: 150 } }}
                           type="number"
                           label="Rating (1-10)"
                           value={strength.rating}
                           onChange={(e) => updateStrength(index, 'rating', parseInt(e.target.value) || 5)}
                           inputProps={{ min: 1, max: 10 }}
+                          sx={{
+                            width: { xs: '100%', sm: 150 },
+                            '& .MuiInputBase-input:-webkit-autofill': {
+                              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                              WebkitTextFillColor: 'black !important',
+                            },
+                            '& .MuiInputBase-input:-webkit-autofill:hover': {
+                              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                              WebkitTextFillColor: 'black !important',
+                            },
+                            '& .MuiInputBase-input:-webkit-autofill:focus': {
+                              WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                              WebkitTextFillColor: 'black !important',
+                            },
+                          }}
                         />
                         <IconButton 
                           onClick={() => removeStrength(index)} 

@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <Box>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          AI Resume Builder
+          Resume Builder
         </Typography>
       </Toolbar>
       <List>
