@@ -24,6 +24,7 @@ import {
   Save as SaveIcon,
   Download as DownloadIcon,
 } from '@mui/icons-material';
+import ModernResumeTemplate from './ModernResumeTemplate';
 // import { generateResumePDF } from './ResumePDF';
 
 // Phone number formatting function
@@ -78,9 +79,10 @@ interface ResumeData {
 interface ResumeEditorProps {
   resumeId?: string;
   onSave?: () => void;
+  template?: string;
 }
 
-export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
+export default function ResumeEditor({ resumeId, onSave, template }: ResumeEditorProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -809,106 +811,12 @@ export default function ResumeEditor({ resumeId, onSave }: ResumeEditorProps) {
           </Paper>
         </Box>
 
-        <Box sx={{ 
-          flex: 1, 
-          display: { xs: 'none', lg: 'block' },
-          minWidth: 0 
-        }}>
-          <Paper sx={{ p: { xs: 2, md: 3 }, height: 'fit-content', position: 'sticky', top: 24 }}>
-            <Typography variant="h6" gutterBottom>Live Preview</Typography>
-            <Divider sx={{ mb: 2 }} />
-            
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h4" gutterBottom>
-                {resumeData.content.personalInfo.name || 'Your Name'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {resumeData.content.personalInfo.email || 'email@example.com'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {resumeData.content.personalInfo.phone || 'Phone Number'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {resumeData.content.personalInfo.address || 'Address'}
-              </Typography>
-            </Box>
-
-            {resumeData.content.personalInfo.summary && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Professional Summary</Typography>
-                <Typography variant="body1">
-                  {resumeData.content.personalInfo.summary}
-                </Typography>
-              </Box>
-            )}
-
-            {resumeData.strengths.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Skills</Typography>
-                <Box display="flex" flexWrap="wrap" gap={1}>
-                  {resumeData.strengths.map((strength, index) => (
-                    <Chip
-                      key={index}
-                      label={`${strength.skillName} (${strength.rating}/10)`}
-                      color={strength.rating >= 8 ? 'success' : strength.rating >= 6 ? 'warning' : 'error'}
-                      variant="outlined"
-                      size="small"
-                    />
-                  ))}
-                </Box>
-              </Box>
-            )}
-
-            {resumeData.workExperience.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Work Experience</Typography>
-                {resumeData.workExperience.map((exp, index) => (
-                  <Box key={index} sx={{ mb: 2 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {exp.position} at {exp.company}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {(() => {
-                        const startDate = exp.startDate ? new Date(exp.startDate) : null;
-                        const endDate = exp.endDate ? new Date(exp.endDate) : null;
-                        const startStr = startDate && !isNaN(startDate.getTime()) ? startDate.toISOString().split('T')[0] : 'Unknown';
-                        const endStr = exp.current ? 'Present' : (endDate && !isNaN(endDate.getTime()) ? endDate.toISOString().split('T')[0] : 'Unknown');
-                        return `${startStr} - ${endStr}`;
-                      })()}
-                    </Typography>
-                    <Typography variant="body2">
-                      {exp.description}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            )}
-
-            {resumeData.education.length > 0 && (
-              <Box>
-                <Typography variant="h6" gutterBottom>Education</Typography>
-                {resumeData.education.map((edu, index) => (
-                  <Box key={index} sx={{ mb: 2 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {edu.degree} in {edu.field}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {edu.institution}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {(() => {
-                        const startDate = edu.startDate ? new Date(edu.startDate) : null;
-                        const endDate = edu.endDate ? new Date(edu.endDate) : null;
-                        const startStr = startDate && !isNaN(startDate.getTime()) ? startDate.toISOString().split('T')[0] : 'Unknown';
-                        const endStr = edu.current ? 'Present' : (endDate && !isNaN(endDate.getTime()) ? endDate.toISOString().split('T')[0] : 'Unknown');
-                        return `${startStr} - ${endStr}${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}`;
-                      })()}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Paper>
+        {/* Live Preview */}
+        <Box sx={{ flex: 1, minWidth: 0, display: { xs: 'none', lg: 'block' } }}>
+          {template === 'modern' && (
+            <ModernResumeTemplate data={resumeData} />
+          )}
+          {/* Add more template previews here as needed */}
         </Box>
       </Box>
     </Box>
