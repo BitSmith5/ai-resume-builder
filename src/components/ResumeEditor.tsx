@@ -10,8 +10,6 @@ import {
   Button,
   Typography,
   IconButton,
-  Chip,
-  Divider,
   FormControlLabel,
   Checkbox,
   Alert,
