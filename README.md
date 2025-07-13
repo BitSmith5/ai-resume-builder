@@ -16,7 +16,7 @@ A comprehensive resume builder application built with Next.js, Prisma, and Mater
 
 ### Resume Editor Features
 
-- **Personal Information**: Name, email, phone, address, and professional summary
+- **Personal Information**: Name, email, phone, city, state, and professional summary
 - **Skills Management**: Add skills with ratings (1-10 scale)
 - **Work Experience**: Add multiple work experiences with company, position, dates, and descriptions
 - **Education**: Add educational background with institution, degree, field, dates, and GPA

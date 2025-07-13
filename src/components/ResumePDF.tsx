@@ -7,7 +7,8 @@ interface ResumeData {
       name: string;
       email: string;
       phone: string;
-      address: string;
+      city: string;
+      state: string;
       summary: string;
     };
   };
@@ -21,7 +22,9 @@ interface ResumeData {
     startDate: string;
     endDate: string;
     current: boolean;
-    description: string;
+    bulletPoints: Array<{
+      description: string;
+    }>;
   }>;
   education: Array<{
     institution: string;
@@ -42,6 +45,21 @@ export const generateResumePDF = async (resumeData: ResumeData): Promise<Blob> =
       const margin = 20;
       const pageWidth = doc.internal.pageSize.width;
       const contentWidth = pageWidth - (margin * 2);
+
+      // Function to format dates as MM/YYYY
+      const formatDate = (dateString: string): string => {
+        if (!dateString) return '';
+        try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return dateString; // Return original if invalid date
+          
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${month}/${year}`;
+        } catch {
+          return dateString; // Return original if parsing fails
+        }
+      };
 
       // Helper function to add text with word wrapping
       const addWrappedText = (text: string, y: number, fontSize: number = 12, fontStyle: string = 'normal') => {
@@ -84,8 +102,9 @@ export const generateResumePDF = async (resumeData: ResumeData): Promise<Blob> =
       if (personalInfo.phone) {
         yPosition = addWrappedText(`Phone: ${personalInfo.phone}`, yPosition);
       }
-      if (personalInfo.address) {
-        yPosition = addWrappedText(`Address: ${personalInfo.address}`, yPosition);
+      if (personalInfo.city || personalInfo.state) {
+        const location = [personalInfo.city, personalInfo.state].filter(Boolean).join(', ');
+        yPosition = addWrappedText(`Location: ${location}`, yPosition);
       }
       if (personalInfo.summary) {
         yPosition += 5;
@@ -119,14 +138,18 @@ export const generateResumePDF = async (resumeData: ResumeData): Promise<Blob> =
             const companyText = exp.company ? exp.company : '';
             const positionText = exp.position ? exp.position : '';
             const dateText = exp.current ? 
-              `${exp.startDate} - Present` : 
-              `${exp.startDate} - ${exp.endDate}`;
+              `${formatDate(exp.startDate)} - Present` : 
+              `${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}`;
             
             yPosition = addWrappedText(`${positionText} at ${companyText}`, yPosition, 12, 'bold');
             yPosition = addWrappedText(dateText, yPosition, 10);
             
-            if (exp.description) {
-              yPosition = addWrappedText(exp.description, yPosition, 10);
+            if (exp.bulletPoints.length > 0) {
+              exp.bulletPoints.forEach((bullet) => {
+                if (bullet.description) {
+                  yPosition = addWrappedText(`• ${bullet.description}`, yPosition, 10);
+                }
+              });
             }
             yPosition += 5;
           }
@@ -145,8 +168,8 @@ export const generateResumePDF = async (resumeData: ResumeData): Promise<Blob> =
             const degreeText = edu.degree ? edu.degree : '';
             const fieldText = edu.field ? edu.field : '';
             const dateText = edu.current ? 
-              `${edu.startDate} - Present` : 
-              `${edu.startDate} - ${edu.endDate}`;
+              `${formatDate(edu.startDate)} - Present` : 
+              `${formatDate(edu.startDate)} - ${formatDate(edu.endDate)}`;
             
             yPosition = addWrappedText(`${degreeText} in ${fieldText}`, yPosition, 12, 'bold');
             yPosition = addWrappedText(institutionText, yPosition, 10);

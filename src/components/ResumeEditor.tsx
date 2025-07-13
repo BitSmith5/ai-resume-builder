@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -47,8 +47,12 @@ interface ResumeData {
       name: string;
       email: string;
       phone: string;
-      address: string;
+      city: string;
+      state: string;
       summary: string;
+      website?: string;
+      linkedin?: string;
+      github?: string;
     };
   };
   strengths: Array<{
@@ -61,7 +65,9 @@ interface ResumeData {
     startDate: string;
     endDate: string;
     current: boolean;
-    description: string;
+    bulletPoints: Array<{
+      description: string;
+    }>;
   }>;
   education: Array<{
     institution: string;
@@ -86,6 +92,12 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [newSkillIndex, setNewSkillIndex] = useState<number | null>(null);
+  const [newWorkIndex, setNewWorkIndex] = useState<number | null>(null);
+  const [newEducationIndex, setNewEducationIndex] = useState<number | null>(null);
+  const skillNameRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const workCompanyRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const educationInstitutionRefs = useRef<(HTMLInputElement | null)[]>([]);
   
   const [resumeData, setResumeData] = useState<ResumeData>({
     title: '',
@@ -94,8 +106,12 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
         name: '',
         email: '',
         phone: '',
-        address: '',
+        city: '',
+        state: '',
         summary: '',
+        website: '',
+        linkedin: '',
+        github: '',
       },
     },
     strengths: [],
@@ -113,7 +129,20 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
         const resume = await response.json();
         setResumeData({
           title: resume.title,
-          content: resume.content,
+          content: {
+            ...resume.content,
+            personalInfo: {
+              name: resume.content.personalInfo?.name || '',
+              email: resume.content.personalInfo?.email || '',
+              phone: resume.content.personalInfo?.phone || '',
+              city: resume.content.personalInfo?.city || '',
+              state: resume.content.personalInfo?.state || '',
+              summary: resume.content.personalInfo?.summary || '',
+              website: resume.content.personalInfo?.website || '',
+              linkedin: resume.content.personalInfo?.linkedin || '',
+              github: resume.content.personalInfo?.github || '',
+            },
+          },
           strengths: resume.strengths,
           workExperience: resume.workExperience,
           education: resume.education,
@@ -133,6 +162,36 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
       loadResume();
     }
   }, [resumeId, loadResume]);
+
+  // Focus on new fields when items are added
+  useEffect(() => {
+    // Focus on new skill name field
+    if (newSkillIndex !== null && skillNameRefs.current[newSkillIndex]) {
+      const input = skillNameRefs.current[newSkillIndex];
+      if (input) {
+        input.focus();
+        setNewSkillIndex(null);
+      }
+    }
+    
+    // Focus on new work experience company field
+    if (newWorkIndex !== null && workCompanyRefs.current[newWorkIndex]) {
+      const input = workCompanyRefs.current[newWorkIndex];
+      if (input) {
+        input.focus();
+        setNewWorkIndex(null);
+      }
+    }
+    
+    // Focus on new education institution field
+    if (newEducationIndex !== null && educationInstitutionRefs.current[newEducationIndex]) {
+      const input = educationInstitutionRefs.current[newEducationIndex];
+      if (input) {
+        input.focus();
+        setNewEducationIndex(null);
+      }
+    }
+  }, [newSkillIndex, newWorkIndex, newEducationIndex, resumeData.strengths.length, resumeData.workExperience.length, resumeData.education.length]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -166,10 +225,14 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
   };
 
   const addStrength = () => {
-    setResumeData(prev => ({
-      ...prev,
-      strengths: [...prev.strengths, { skillName: '', rating: 5 }],
-    }));
+    setResumeData(prev => {
+      const newIndex = prev.strengths.length;
+      setNewSkillIndex(newIndex);
+      return {
+        ...prev,
+        strengths: [...prev.strengths, { skillName: '', rating: 5 }],
+      };
+    });
   };
 
   const updateStrength = (index: number, field: 'skillName' | 'rating', value: string | number) => {
@@ -189,17 +252,21 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
   };
 
   const addWorkExperience = () => {
-    setResumeData(prev => ({
-      ...prev,
-      workExperience: [...prev.workExperience, {
-        company: '',
-        position: '',
-        startDate: '',
-        endDate: '',
-        current: false,
-        description: '',
-      }],
-    }));
+    setResumeData(prev => {
+      const newIndex = prev.workExperience.length;
+      setNewWorkIndex(newIndex);
+      return {
+        ...prev,
+        workExperience: [...prev.workExperience, {
+          company: '',
+          position: '',
+          startDate: '',
+          endDate: '',
+          current: false,
+          bulletPoints: [],
+        }],
+      };
+    });
   };
 
   const updateWorkExperience = (index: number, field: string, value: string | boolean) => {
@@ -207,6 +274,44 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
       ...prev,
       workExperience: prev.workExperience.map((exp, i) => 
         i === index ? { ...exp, [field]: value } : exp
+      ),
+    }));
+  };
+
+  const addBulletPoint = (workIndex: number) => {
+    setResumeData(prev => ({
+      ...prev,
+      workExperience: prev.workExperience.map((exp, i) => 
+        i === workIndex ? { 
+          ...exp, 
+          bulletPoints: [...exp.bulletPoints, { description: '' }]
+        } : exp
+      ),
+    }));
+  };
+
+  const updateBulletPoint = (workIndex: number, bulletIndex: number, description: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      workExperience: prev.workExperience.map((exp, i) => 
+        i === workIndex ? {
+          ...exp,
+          bulletPoints: exp.bulletPoints.map((bullet, j) => 
+            j === bulletIndex ? { ...bullet, description } : bullet
+          )
+        } : exp
+      ),
+    }));
+  };
+
+  const removeBulletPoint = (workIndex: number, bulletIndex: number) => {
+    setResumeData(prev => ({
+      ...prev,
+      workExperience: prev.workExperience.map((exp, i) => 
+        i === workIndex ? {
+          ...exp,
+          bulletPoints: exp.bulletPoints.filter((_, j) => j !== bulletIndex)
+        } : exp
       ),
     }));
   };
@@ -219,18 +324,22 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
   };
 
   const addEducation = () => {
-    setResumeData(prev => ({
-      ...prev,
-      education: [...prev.education, {
-        institution: '',
-        degree: '',
-        field: '',
-        startDate: '',
-        endDate: '',
-        current: false,
-        gpa: undefined,
-      }],
-    }));
+    setResumeData(prev => {
+      const newIndex = prev.education.length;
+      setNewEducationIndex(newIndex);
+      return {
+        ...prev,
+        education: [...prev.education, {
+          institution: '',
+          degree: '',
+          field: '',
+          startDate: '',
+          endDate: '',
+          current: false,
+          gpa: undefined,
+        }],
+      };
+    });
   };
 
   const updateEducation = (index: number, field: string, value: string | boolean | number | undefined) => {
@@ -469,20 +578,151 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
                         }}
                       />
                     </Box>
+                    <Box 
+                      display="flex" 
+                      flexDirection={{ xs: 'column', sm: 'row' }}
+                      gap={2}
+                    >
+                      <TextField
+                        fullWidth
+                        label="City"
+                        value={resumeData.content.personalInfo.city}
+                        onChange={(e) => setResumeData(prev => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            personalInfo: {
+                              ...prev.content.personalInfo,
+                              city: e.target.value,
+                            },
+                          },
+                        }))}
+                        sx={{
+                          '& .MuiInputBase-input:-webkit-autofill': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:hover': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:focus': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        label="State"
+                        value={resumeData.content.personalInfo.state}
+                        onChange={(e) => setResumeData(prev => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            personalInfo: {
+                              ...prev.content.personalInfo,
+                              state: e.target.value,
+                            },
+                          },
+                        }))}
+                        sx={{
+                          '& .MuiInputBase-input:-webkit-autofill': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:hover': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:focus': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                        }}
+                      />
+                    </Box>
+                    <Box 
+                      display="flex" 
+                      flexDirection={{ xs: 'column', sm: 'row' }}
+                      gap={2}
+                    >
+                      <TextField
+                        fullWidth
+                        label="Website"
+                        value={resumeData.content.personalInfo.website || ''}
+                        onChange={(e) => setResumeData(prev => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            personalInfo: {
+                              ...prev.content.personalInfo,
+                              website: e.target.value,
+                            },
+                          },
+                        }))}
+                        placeholder="https://your-website.com"
+                        sx={{
+                          '& .MuiInputBase-input:-webkit-autofill': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:hover': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:focus': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        label="LinkedIn"
+                        value={resumeData.content.personalInfo.linkedin || ''}
+                        onChange={(e) => setResumeData(prev => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            personalInfo: {
+                              ...prev.content.personalInfo,
+                              linkedin: e.target.value,
+                            },
+                          },
+                        }))}
+                        placeholder="https://linkedin.com/in/your-profile"
+                        sx={{
+                          '& .MuiInputBase-input:-webkit-autofill': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:hover': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                          '& .MuiInputBase-input:-webkit-autofill:focus': {
+                            WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                            WebkitTextFillColor: 'black !important',
+                          },
+                        }}
+                      />
+                    </Box>
                     <TextField
                       fullWidth
-                      label="Address"
-                      value={resumeData.content.personalInfo.address}
+                      label="GitHub"
+                      value={resumeData.content.personalInfo.github || ''}
                       onChange={(e) => setResumeData(prev => ({
                         ...prev,
                         content: {
                           ...prev.content,
                           personalInfo: {
                             ...prev.content.personalInfo,
-                            address: e.target.value,
+                            github: e.target.value,
                           },
                         },
                       }))}
+                      placeholder="https://github.com/your-username"
                       sx={{
                         '& .MuiInputBase-input:-webkit-autofill': {
                           WebkitBoxShadow: '0 0 0 1000px white inset !important',
@@ -552,6 +792,9 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
                           label="Skill Name"
                           value={strength.skillName}
                           onChange={(e) => updateStrength(index, 'skillName', e.target.value)}
+                          inputRef={(el) => {
+                            skillNameRefs.current[index] = el;
+                          }}
                           sx={{
                             '& .MuiInputBase-input:-webkit-autofill': {
                               WebkitBoxShadow: '0 0 0 1000px white inset !important',
@@ -635,6 +878,9 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
                             label="Company"
                             value={exp.company}
                             onChange={(e) => updateWorkExperience(index, 'company', e.target.value)}
+                            inputRef={(el) => {
+                              workCompanyRefs.current[index] = el;
+                            }}
                           />
                           <TextField
                             fullWidth
@@ -684,14 +930,59 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
                             <DeleteIcon />
                           </IconButton>
                         </Box>
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={3}
-                          label="Description"
-                          value={exp.description}
-                          onChange={(e) => updateWorkExperience(index, 'description', e.target.value)}
-                        />
+                        {/* Bullet Points Section */}
+                        <Box>
+                          <Box 
+                            display="flex" 
+                            justifyContent="space-between" 
+                            alignItems="center" 
+                            mb={2}
+                          >
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Bullet Points ({exp.bulletPoints.length})
+                            </Typography>
+                            <Button 
+                              startIcon={<AddIcon />} 
+                              onClick={() => addBulletPoint(index)}
+                              variant="outlined"
+                              size="small"
+                            >
+                              Add Bullet Point
+                            </Button>
+                          </Box>
+                          {exp.bulletPoints.map((bullet, bulletIndex) => (
+                            <Box key={bulletIndex} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#fafafa' }}>
+                              <Box 
+                                display="flex" 
+                                gap={2} 
+                                alignItems="flex-start"
+                              >
+                                <TextField
+                                  fullWidth
+                                  multiline
+                                  rows={2}
+                                  label={`Bullet Point ${bulletIndex + 1}`}
+                                  value={bullet.description}
+                                  onChange={(e) => updateBulletPoint(index, bulletIndex, e.target.value)}
+                                  placeholder="Describe your responsibilities, achievements, or contributions..."
+                                />
+                                <IconButton 
+                                  onClick={() => removeBulletPoint(index, bulletIndex)} 
+                                  color="error"
+                                  size="small"
+                                  sx={{ flexShrink: 0 }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          ))}
+                          {exp.bulletPoints.length === 0 && (
+                            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', textAlign: 'center', py: 2 }}>
+                              No bullet points added yet. Click "Add Bullet Point" to get started.
+                            </Typography>
+                          )}
+                        </Box>
                       </Stack>
                     </Box>
                   ))}
@@ -731,6 +1022,9 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
                             label="Institution"
                             value={edu.institution}
                             onChange={(e) => updateEducation(index, 'institution', e.target.value)}
+                            inputRef={(el) => {
+                              educationInstitutionRefs.current[index] = el;
+                            }}
                           />
                           <TextField
                             fullWidth

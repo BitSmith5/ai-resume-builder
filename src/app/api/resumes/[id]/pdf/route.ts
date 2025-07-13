@@ -89,7 +89,17 @@ async function generatePDF(resume: unknown): Promise<Uint8Array> {
 
 function generatePDFHTML(resume: unknown): string {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Return original if invalid date
+      
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${month}/${year}`;
+    } catch {
+      return dateString; // Return original if parsing fails
+    }
   };
 
   const getStrengthColor = (rating: number) => {

@@ -88,7 +88,7 @@ model WorkExperience {
   startDate   DateTime
   endDate     DateTime?
   current     Boolean  @default(false)
-  description String
+  bulletPoints Json    @default("[]")
   resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 

@@ -31,7 +31,8 @@ interface ResumeData {
       name: string;
       email: string;
       phone: string;
-      address: string;
+      city: string;
+      state: string;
       summary: string;
     };
   };
@@ -47,7 +48,9 @@ interface ResumeData {
     startDate: string;
     endDate: string;
     current: boolean;
-    description: string;
+          bulletPoints: Array<{
+        description: string;
+      }>;
   }>;
   education: Array<{
     id: number;
@@ -71,6 +74,21 @@ export default function ViewResumePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
+
+  // Function to format dates as MM/YYYY
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Return original if invalid date
+      
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${month}/${year}`;
+    } catch {
+      return dateString; // Return original if parsing fails
+    }
+  };
 
   useEffect(() => {
     const loadResume = async () => {
@@ -220,7 +238,7 @@ export default function ViewResumePage() {
                   <strong>Phone:</strong> {resumeData.content.personalInfo.phone || 'Not provided'}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                  <strong>Address:</strong> {resumeData.content.personalInfo.address || 'Not provided'}
+                  <strong>Location:</strong> {[resumeData.content.personalInfo.city, resumeData.content.personalInfo.state].filter(Boolean).join(', ') || 'Not provided'}
                 </Typography>
               </Box>
             </Box>
@@ -274,18 +292,16 @@ export default function ViewResumePage() {
                         {exp.company}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {(() => {
-                          const startDate = exp.startDate ? new Date(exp.startDate) : null;
-                          const endDate = exp.endDate ? new Date(exp.endDate) : null;
-                          const startStr = startDate && !isNaN(startDate.getTime()) ? startDate.toISOString().split('T')[0] : 'Unknown';
-                          const endStr = exp.current ? 'Present' : (endDate && !isNaN(endDate.getTime()) ? endDate.toISOString().split('T')[0] : 'Unknown');
-                          return `${startStr} - ${endStr}`;
-                        })()}
+                        {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
                       </Typography>
-                      {exp.description && (
-                        <Typography variant="body2" sx={{ mt: 2 }}>
-                          {exp.description}
-                        </Typography>
+                      {exp.bulletPoints.length > 0 && (
+                        <Box sx={{ mt: 2 }}>
+                          {exp.bulletPoints.map((bullet, bulletIndex) => (
+                            <Typography key={bulletIndex} variant="body2" sx={{ mb: 1, pl: 2 }}>
+                              • {bullet.description}
+                            </Typography>
+                          ))}
+                        </Box>
                       )}
                     </CardContent>
                   </Card>
@@ -311,13 +327,7 @@ export default function ViewResumePage() {
                         {edu.institution}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {(() => {
-                          const startDate = edu.startDate ? new Date(edu.startDate) : null;
-                          const endDate = edu.endDate ? new Date(edu.endDate) : null;
-                          const startStr = startDate && !isNaN(startDate.getTime()) ? startDate.toISOString().split('T')[0] : 'Unknown';
-                          const endStr = edu.current ? 'Present' : (endDate && !isNaN(endDate.getTime()) ? endDate.toISOString().split('T')[0] : 'Unknown');
-                          return `${startStr} - ${endStr}`;
-                        })()}
+                        {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
                       </Typography>
                       {edu.gpa && (
                         <Typography variant="body2" color="text.secondary">
