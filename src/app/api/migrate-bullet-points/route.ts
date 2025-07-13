@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import type { Session } from "next-auth";
+import { Prisma } from "@prisma/client";
 
 export async function POST() {
   try {
@@ -50,13 +51,13 @@ export async function POST() {
         if (needsUpdate) {
           const updatedContent = {
             ...content,
-            workExperience: updatedWorkExperience as unknown,
+            workExperience: updatedWorkExperience,
           };
           
           // Update the resume in the database
           await prisma.resume.update({
             where: { id: resume.id },
-            data: { content: updatedContent },
+            data: { content: updatedContent as Prisma.InputJsonValue },
           });
           
           migratedCount++;
