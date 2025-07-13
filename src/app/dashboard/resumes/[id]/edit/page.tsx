@@ -35,7 +35,6 @@ export default function EditResumePage() {
             variant="body1" 
             color="text.secondary" 
             sx={{ 
-              mb: { xs: 3, md: 4 },
               fontSize: { xs: '0.875rem', md: '1rem' }
             }}
           >
@@ -43,7 +42,11 @@ export default function EditResumePage() {
           </Typography>
         </Box>
         
-        <ResumeEditor resumeId={resumeId} onSave={handleSave} />
+        <ResumeEditor 
+          resumeId={resumeId} 
+          onSave={handleSave} 
+          template="modern"
+        />
       </Container>
     </DashboardLayout>
   );
