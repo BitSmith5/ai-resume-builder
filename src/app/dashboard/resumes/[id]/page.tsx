@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -13,6 +13,10 @@ import {
   Stack,
   Card,
   CardContent,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -20,77 +24,38 @@ import {
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '@/components/DashboardLayout';
+import ResumeTemplateRegistry, { ResumeData, AVAILABLE_TEMPLATES, TemplateInfo } from '@/components/ResumeTemplateRegistry';
 import { useRouter, useParams } from 'next/navigation';
-
-
-interface ResumeData {
-  id: number;
-  title: string;
-  content: {
-    personalInfo: {
-      name: string;
-      email: string;
-      phone: string;
-      city: string;
-      state: string;
-      summary: string;
-    };
-  };
-  strengths: Array<{
-    id: number;
-    skillName: string;
-    rating: number;
-  }>;
-  workExperience: Array<{
-    id: number;
-    company: string;
-    position: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-          bulletPoints: Array<{
-        description: string;
-      }>;
-  }>;
-  education: Array<{
-    id: number;
-    institution: string;
-    degree: string;
-    field: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    gpa?: number;
-  }>;
-  createdAt: string;
-}
 
 export default function ViewResumePage() {
   const router = useRouter();
   const params = useParams();
-  const resumeId = params.id as string;
+  const resumeId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : '';
 
-  const [resumeData, setResumeData] = useState<ResumeData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [downloading, setDownloading] = useState(false);
+  const [resumeData, setResumeData] = React.useState<ResumeData | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+  const [downloading, setDownloading] = React.useState(false);
+  const [selectedTemplate, setSelectedTemplate] = React.useState('modern');
 
-  // Function to format dates as MM/YYYY
-  const formatDate = (dateString: string): string => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString; // Return original if invalid date
-      
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${month}/${year}`;
-    } catch {
-      return dateString; // Return original if parsing fails
+  // Robust React-based zooming with aspect ratio preservation
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = React.useState(1);
+  React.useEffect(() => {
+    function updateZoom() {
+      if (!wrapperRef.current) return;
+      const width = wrapperRef.current.offsetWidth;
+      const height = wrapperRef.current.offsetHeight;
+      const scaleW = width / 850;
+      const scaleH = height / 1100;
+      setZoom(Math.min(scaleW, scaleH, 1));
     }
-  };
+    updateZoom();
+    window.addEventListener('resize', updateZoom);
+    return () => window.removeEventListener('resize', updateZoom);
+  }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadResume = async () => {
       try {
         const response = await fetch(`/api/resumes/${resumeId}`);
@@ -117,7 +82,7 @@ export default function ViewResumePage() {
     
     setDownloading(true);
     try {
-      const response = await fetch(`/api/resumes/${resumeId}/pdf`);
+      const response = await fetch(`/api/resumes/${resumeId}/pdf?template=${selectedTemplate}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
@@ -147,7 +112,13 @@ export default function ViewResumePage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Box 
+          display="flex" 
+          justifyContent="center" 
+          alignItems="center" 
+          minHeight={{ xs: '300px', sm: '400px' }}
+          p={2}
+        >
           <CircularProgress />
         </Box>
       </DashboardLayout>
@@ -157,27 +128,51 @@ export default function ViewResumePage() {
   if (error || !resumeData) {
     return (
       <DashboardLayout>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error || 'Resume not found'}
-        </Alert>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => router.push('/dashboard')}
-        >
-          Back to Dashboard
-        </Button>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error || 'Resume not found'}
+          </Alert>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => router.push('/dashboard')}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
+            Back to Dashboard
+          </Button>
+        </Box>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <Box>
+      <Box sx={{
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+      }}>
         {/* Header */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box 
+          display="flex" 
+          flexDirection="row"
+          justifyContent="space-between" 
+          alignItems={{ xs: 'stretch', lg: 'center' }} 
+          mb={4}
+          gap={2}
+          sx={{ p: { xs: 1, sm: 2, md: 3 } }}
+        >
           <Box>
-            <Typography variant="h4" component="h1" gutterBottom>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              gutterBottom
+              sx={{ 
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem', lg: '2.125rem' },
+                wordBreak: 'break-word'
+              }}
+            >
               {resumeData.title}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -185,162 +180,122 @@ export default function ViewResumePage() {
             </Typography>
           </Box>
           <Stack 
-            direction={{ xs: 'column', sm: 'row' }} 
-            spacing={2}
-            sx={{ width: { xs: '40%', sm: 'auto' } }}
+            direction="column"
+            spacing={1.2}
           >
             <Button
               variant="contained"
               startIcon={downloading ? <CircularProgress size={16} /> : <DownloadIcon />}
               onClick={handleDownloadPDF}
               disabled={downloading}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
+              size="small"
+              sx={{ width: '100%' }}
             >
               {downloading ? 'Generating...' : 'Download PDF'}
             </Button>
             <Button
               variant="outlined"
-              startIcon={<ArrowBackIcon />}
-              onClick={() => router.push('/dashboard')}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
-            >
-              Back
-            </Button>
-            <Button
-              variant="outlined"
               startIcon={<EditIcon />}
               onClick={() => router.push(`/dashboard/resumes/${resumeId}/edit`)}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
+              size="small"
+              sx={{ width: '100%' }}
             >
               Edit
             </Button>
           </Stack>
         </Box>
 
-        {/* Resume Content */}
-        <Paper sx={{ p: 4 }}>
-          {/* Personal Information */}
-          <Box mb={4}>
-            <Typography variant="h5" component="h2" gutterBottom>
-              Personal Information
-            </Typography>
-            <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={3}>
-              <Box>
-                <Typography variant="body1" gutterBottom>
-                  <strong>Name:</strong> {resumeData.content.personalInfo.name || 'Not provided'}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  <strong>Email:</strong> {resumeData.content.personalInfo.email || 'Not provided'}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body1" gutterBottom>
-                  <strong>Phone:</strong> {resumeData.content.personalInfo.phone || 'Not provided'}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  <strong>Location:</strong> {[resumeData.content.personalInfo.city, resumeData.content.personalInfo.state].filter(Boolean).join(', ') || 'Not provided'}
-                </Typography>
-              </Box>
-            </Box>
-            {resumeData.content.personalInfo.summary && (
-              <Box mt={2}>
-                <Typography variant="body1" gutterBottom>
-                  <strong>Professional Summary:</strong>
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {resumeData.content.personalInfo.summary}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          <Divider sx={{ my: 3 }} />
-
-          {/* Skills */}
-          {resumeData.strengths.length > 0 && (
-            <Box mb={4}>
-              <Typography variant="h5" component="h2" gutterBottom>
-                Skills
-              </Typography>
-              <Box display="flex" flexWrap="wrap" gap={1}>
-                {resumeData.strengths.map((strength) => (
-                  <Chip
-                    key={strength.id}
-                    label={`${strength.skillName} (${strength.rating}/10)`}
-                    color={getStrengthColor(strength.rating) as "success" | "warning" | "error"}
-                    variant="outlined"
-                  />
-                ))}
-              </Box>
-            </Box>
-          )}
-
-          {/* Work Experience */}
-          {resumeData.workExperience.length > 0 && (
-            <Box mb={4}>
-              <Typography variant="h5" component="h2" gutterBottom>
-                Work Experience
-              </Typography>
-              <Stack spacing={3}>
-                {resumeData.workExperience.map((exp) => (
-                  <Card key={exp.id} variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6" component="h3" gutterBottom>
-                        {exp.position}
-                      </Typography>
-                      <Typography variant="body1" color="text.secondary" gutterBottom>
-                        {exp.company}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
-                      </Typography>
-                      {exp.bulletPoints.length > 0 && (
-                        <Box sx={{ mt: 2 }}>
-                          {exp.bulletPoints.map((bullet, bulletIndex) => (
-                            <Typography key={bulletIndex} variant="body2" sx={{ mb: 1, pl: 2 }}>
-                              • {bullet.description}
-                            </Typography>
-                          ))}
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </Stack>
-            </Box>
-          )}
-
-          {/* Education */}
-          {resumeData.education.length > 0 && (
+        {/* Template Selector */}
+        <Paper sx={{ 
+          p: { xs: 1, sm: 2, md: 3 }, 
+          mb: 3,
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}>
+          <Box 
+            display="flex" 
+            flexDirection={{ xs: 'column', sm: 'row' }}
+            justifyContent="space-between" 
+            alignItems={{ xs: 'stretch', sm: 'center' }} 
+            gap={{ xs: 1, sm: 2 }}
+          >
             <Box>
-              <Typography variant="h5" component="h2" gutterBottom>
-                Education
+              <Typography 
+                variant="h6" 
+                gutterBottom
+                sx={{ fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' } }}
+              >
+                Template Preview
               </Typography>
-              <Stack spacing={3}>
-                {resumeData.education.map((edu) => (
-                  <Card key={edu.id} variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6" component="h3" gutterBottom>
-                        {edu.degree} in {edu.field}
-                      </Typography>
-                      <Typography variant="body1" color="text.secondary" gutterBottom>
-                        {edu.institution}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
-                      </Typography>
-                      {edu.gpa && (
-                        <Typography variant="body2" color="text.secondary">
-                          GPA: {edu.gpa}
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </Stack>
+              <Typography variant="body2" color="text.secondary">
+                Choose a template to preview your resume
+              </Typography>
             </Box>
-          )}
+            <Box display="flex" gap={2} alignItems="center" sx={{ 
+              width: { xs: '100%', sm: 'auto' },
+              flexDirection: { xs: 'column', sm: 'row' }
+            }}>
+              <FormControl size="small" sx={{ 
+                minWidth: { xs: '100%', sm: 200 },
+                width: { xs: '100%', sm: 'auto' },
+                maxWidth: { xs: '100%', sm: 'none' }
+              }}>
+                <InputLabel>Template</InputLabel>
+                <Select
+                  value={selectedTemplate}
+                  label="Template"
+                  onChange={(e) => setSelectedTemplate(e.target.value)}
+                >
+                  {AVAILABLE_TEMPLATES.map((template) => (
+                    <MenuItem key={template.id} value={template.id}>
+                      {template.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
         </Paper>
+
+        {/* Resume Preview with React-based zoom and aspect ratio preservation */}
+        <Box
+          ref={wrapperRef}
+          sx={{
+            width: { xs: '90vw', sm: '90%', lg: 850 },
+            maxWidth: 850,
+            aspectRatio: '850 / 1100',
+            mx: 'auto',
+            position: 'relative',
+            background: 'transparent',
+            minHeight: 0,
+            minWidth: 0,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            borderRadius: 2,
+            px: { xs: 1, sm: 0 },
+          }}
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 850,
+              height: 1100,
+              background: '#fff',
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left',
+              transition: 'transform 0.2s',
+            }}
+          >
+            <ResumeTemplateRegistry data={resumeData} templateId={selectedTemplate} />
+          </Box>
+        </Box>
+
+        {/* Bottom spacing */}
+        <Box sx={{ p: { xs: 2, sm: 3 } }} />
+
       </Box>
     </DashboardLayout>
   );

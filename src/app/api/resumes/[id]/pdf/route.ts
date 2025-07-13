@@ -1,31 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { Session } from 'next-auth';
+import { authOptions } from '../../../../../lib/auth';
+import { prisma } from '../../../../../lib/prisma';
+import { renderResumeToHtml } from '../../../../../lib/renderResumeToHtml';
 import puppeteer from 'puppeteer';
+import type { Session } from 'next-auth';
+
+// Transform database resume data to the format expected by renderResumeToHtml
+function transformResumeData(resume: any) {
+  // Ensure content exists and has the expected structure
+  const content = resume.content || {};
+  const personalInfo = content.personalInfo || {};
+  
+  return {
+    title: resume.title,
+    content: {
+      personalInfo: {
+        name: personalInfo.name || '',
+        email: personalInfo.email || '',
+        phone: personalInfo.phone || '',
+        city: personalInfo.city || '',
+        state: personalInfo.state || '',
+        summary: personalInfo.summary || '',
+        website: personalInfo.website || '',
+        linkedin: personalInfo.linkedin || '',
+        github: personalInfo.github || '',
+      },
+    },
+    strengths: resume.strengths.map((strength: any) => ({
+      skillName: strength.skillName,
+      rating: strength.rating,
+    })),
+    workExperience: resume.workExperience.map((work: any) => ({
+      company: work.company,
+      position: work.position,
+      startDate: work.startDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+      endDate: work.endDate ? work.endDate.toISOString().split('T')[0] : '',
+      current: work.current,
+      bulletPoints: Array.isArray(work.bulletPoints) 
+        ? work.bulletPoints.map((bullet: any) => ({ description: bullet.description || bullet }))
+        : [],
+    })),
+    education: resume.education.map((edu: any) => ({
+      institution: edu.institution,
+      degree: edu.degree,
+      field: edu.field,
+      startDate: edu.startDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+      endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
+      current: edu.current,
+      gpa: edu.gpa,
+    })),
+  };
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
+    const { searchParams } = new URL(request.url);
+    const template = searchParams.get('template') || 'modern';
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await getServerSession(authOptions as any) as Session;
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
+    
+    if (!user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params;
-    const resumeId = parseInt(id);
-    if (isNaN(resumeId)) {
-      return NextResponse.json({ error: 'Invalid resume ID' }, { status: 400 });
-    }
-
+    // Fetch resume data from database
     const resume = await prisma.resume.findFirst({
       where: {
-        id: resumeId,
-        userId: session.user.id,
+        id: parseInt(resolvedParams.id),
+        userId: user.id,
       },
       include: {
         strengths: true,
@@ -35,238 +84,45 @@ export async function GET(
     });
 
     if (!resume) {
-      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }
 
-    // Generate PDF using Puppeteer
-    const pdfBuffer = await generatePDF(resume);
+    // Transform the resume data to match the expected format
+    const transformedResume = transformResumeData(resume);
 
-    // Return PDF content
+    // Render HTML using the utility
+    const html = renderResumeToHtml(transformedResume, template);
+
+    // Generate PDF with puppeteer
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ 
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '0.5in',
+        right: '0.5in',
+        bottom: '0.5in',
+        left: '0.5in'
+      }
+    });
+    await browser.close();
+
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${resume.title.replace(/\s+/g, '_')}.pdf"`,
+        'Content-Disposition': `inline; filename=resume-${resolvedParams.id}.pdf`,
       },
     });
   } catch (error) {
     console.error('Error generating PDF:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate PDF" },
+      { status: 500 }
+    );
   }
-}
-
-async function generatePDF(resume: unknown): Promise<Uint8Array> {
-  const htmlContent = generatePDFHTML(resume);
-  
-  // Launch browser
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  
-  try {
-    const page = await browser.newPage();
-    
-    // Set content and wait for it to load
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    
-    // Generate PDF
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '20mm',
-        right: '20mm',
-        bottom: '20mm',
-        left: '20mm'
-      }
-    });
-    
-    return pdfBuffer;
-  } finally {
-    await browser.close();
-  }
-}
-
-function generatePDFHTML(resume: unknown): string {
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString; // Return original if invalid date
-      
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${month}/${year}`;
-    } catch {
-      return dateString; // Return original if parsing fails
-    }
-  };
-
-  const getStrengthColor = (rating: number) => {
-    if (rating >= 8) return '#4caf50';
-    if (rating >= 6) return '#ff9800';
-    return '#f44336';
-  };
-
-  // Helper function to safely access nested properties
-  const safeGet = (obj: unknown, path: string): unknown => {
-    return path.split('.').reduce((current, key) => {
-      if (current && typeof current === 'object' && key in current) {
-        return (current as Record<string, unknown>)[key];
-      }
-      return undefined;
-    }, obj);
-  };
-
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>${(resume as Record<string, unknown>).title}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-            color: #333;
-        }
-        .header {
-            border-bottom: 2px solid #2c3e50;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .name {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .contact-info {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .section {
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2c3e50;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-        }
-        .summary {
-            font-size: 12px;
-            color: #333;
-            margin-bottom: 15px;
-        }
-        .experience-item, .education-item {
-            margin-bottom: 15px;
-        }
-        .job-title, .degree {
-            font-size: 14px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 3px;
-        }
-        .company, .institution {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 3px;
-        }
-        .date-range {
-            font-size: 11px;
-            color: #888;
-            margin-bottom: 5px;
-        }
-        .description {
-            font-size: 11px;
-            color: #333;
-            margin-top: 5px;
-        }
-        .skills-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        .skill {
-            background-color: #f8f9fa;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 10px;
-            border: 1px solid #ddd;
-        }
-        @media print {
-            body { margin: 0; }
-            .section { page-break-inside: avoid; }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="name">${safeGet(resume, 'content.personalInfo.name') || 'Your Name'}</div>
-        <div class="contact-info">${safeGet(resume, 'content.personalInfo.email') || 'email@example.com'}</div>
-        <div class="contact-info">${safeGet(resume, 'content.personalInfo.phone') || 'Phone Number'}</div>
-        <div class="contact-info">${safeGet(resume, 'content.personalInfo.address') || 'Address'}</div>
-    </div>
-
-    ${safeGet(resume, 'content.personalInfo.summary') ? `
-    <div class="section">
-        <div class="section-title">Professional Summary</div>
-        <div class="summary">${safeGet(resume, 'content.personalInfo.summary')}</div>
-    </div>
-    ` : ''}
-
-    ${(safeGet(resume, 'strengths') as unknown[])?.length > 0 ? `
-    <div class="section">
-        <div class="section-title">Skills</div>
-        <div class="skills-container">
-            ${(safeGet(resume, 'strengths') as unknown[]).map((strength: unknown) => `
-                <span class="skill" style="border-color: ${getStrengthColor(safeGet(strength, 'rating') as number)}">
-                    ${safeGet(strength, 'skillName')} (${safeGet(strength, 'rating')}/10)
-                </span>
-            `).join('')}
-        </div>
-    </div>
-    ` : ''}
-
-    ${(safeGet(resume, 'workExperience') as unknown[])?.length > 0 ? `
-    <div class="section">
-        <div class="section-title">Work Experience</div>
-        ${(safeGet(resume, 'workExperience') as unknown[]).map((exp: unknown) => `
-            <div class="experience-item">
-                <div class="job-title">${safeGet(exp, 'position')}</div>
-                <div class="company">${safeGet(exp, 'company')}</div>
-                <div class="date-range">
-                    ${formatDate(safeGet(exp, 'startDate') as string)} - ${safeGet(exp, 'current') ? 'Present' : formatDate(safeGet(exp, 'endDate') as string)}
-                </div>
-                ${safeGet(exp, 'description') ? `<div class="description">${safeGet(exp, 'description')}</div>` : ''}
-            </div>
-        `).join('')}
-    </div>
-    ` : ''}
-
-    ${(safeGet(resume, 'education') as unknown[])?.length > 0 ? `
-    <div class="section">
-        <div class="section-title">Education</div>
-        ${(safeGet(resume, 'education') as unknown[]).map((edu: unknown) => `
-            <div class="education-item">
-                <div class="degree">${safeGet(edu, 'degree')} in ${safeGet(edu, 'field')}</div>
-                <div class="institution">${safeGet(edu, 'institution')}</div>
-                <div class="date-range">
-                    ${formatDate(safeGet(edu, 'startDate') as string)} - ${safeGet(edu, 'current') ? 'Present' : formatDate(safeGet(edu, 'endDate') as string)}
-                    ${safeGet(edu, 'gpa') ? ` • GPA: ${safeGet(edu, 'gpa')}` : ''}
-                </div>
-            </div>
-        `).join('')}
-    </div>
-    ` : ''}
-</body>
-</html>
-  `;
 } 

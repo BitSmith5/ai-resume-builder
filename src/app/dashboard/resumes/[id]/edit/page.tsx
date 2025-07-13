@@ -9,7 +9,7 @@ import { useParams } from 'next/navigation';
 export default function EditResumePage() {
   const router = useRouter();
   const params = useParams();
-  const resumeId = params.id as string;
+  const resumeId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : '';
 
   const handleSave = () => {
     // Redirect to resumes list after successful save
