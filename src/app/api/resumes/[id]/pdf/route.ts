@@ -28,10 +28,6 @@ interface BulletPoint {
   description: string;
 }
 
-interface WorkExperienceWithBulletPoints extends WorkExperience {
-  bulletPoints: BulletPoint[];
-}
-
 // Transform database resume data to the format expected by renderResumeToHtml
 function transformResumeData(resume: Resume & {
   strengths: Strength[];
@@ -61,16 +57,19 @@ function transformResumeData(resume: Resume & {
       skillName: strength.skillName,
       rating: strength.rating,
     })),
-    workExperience: resume.workExperience.map((work: WorkExperience) => ({
-      company: work.company,
-      position: work.position,
-      startDate: work.startDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
-      endDate: work.endDate ? work.endDate.toISOString().split('T')[0] : '',
-      current: work.current,
-      bulletPoints: Array.isArray((work as WorkExperienceWithBulletPoints).bulletPoints) 
-        ? (work as WorkExperienceWithBulletPoints).bulletPoints.map((bullet: BulletPoint) => ({ description: bullet.description }))
-        : [],
-    })),
+    workExperience: resume.workExperience.map((work: WorkExperience) => {
+      const bulletPoints = Array.isArray((work as { bulletPoints?: unknown }).bulletPoints)
+        ? ((work as { bulletPoints?: unknown }).bulletPoints as { description: string }[]).map(bullet => ({ description: bullet.description }))
+        : [];
+      return {
+        company: work.company,
+        position: work.position,
+        startDate: work.startDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+        endDate: work.endDate ? work.endDate.toISOString().split('T')[0] : '',
+        current: work.current,
+        bulletPoints,
+      };
+    }),
     education: resume.education.map((edu: Education) => ({
       institution: edu.institution,
       degree: edu.degree,
