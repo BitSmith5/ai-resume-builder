@@ -24,10 +24,6 @@ interface ResumeContent {
   personalInfo?: PersonalInfo;
 }
 
-interface BulletPoint {
-  description: string;
-}
-
 // Transform database resume data to the format expected by renderResumeToHtml
 function transformResumeData(resume: Resume & {
   strengths: Strength[];
