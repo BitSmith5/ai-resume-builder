@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -8,11 +8,7 @@ import {
   Button,
   CircularProgress,
   Alert,
-  Divider,
-  Chip,
   Stack,
-  Card,
-  CardContent,
   Select,
   MenuItem,
   FormControl,
@@ -24,7 +20,7 @@ import {
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '@/components/DashboardLayout';
-import ResumeTemplateRegistry, { ResumeData, AVAILABLE_TEMPLATES, TemplateInfo } from '@/components/ResumeTemplateRegistry';
+import ResumeTemplateRegistry, { ResumeData, AVAILABLE_TEMPLATES } from '@/components/ResumeTemplateRegistry';
 import { useRouter, useParams } from 'next/navigation';
 
 export default function ViewResumePage() {
@@ -103,11 +99,7 @@ export default function ViewResumePage() {
     }
   };
 
-  const getStrengthColor = (rating: number) => {
-    if (rating >= 8) return "success";
-    if (rating >= 6) return "warning";
-    return "error";
-  };
+
 
   if (loading) {
     return (

@@ -5,11 +5,41 @@ import { prisma } from '../../../../../lib/prisma';
 import { renderResumeToHtml } from '../../../../../lib/renderResumeToHtml';
 import puppeteer from 'puppeteer';
 import type { Session } from 'next-auth';
+import type { Resume, Strength, WorkExperience, Education } from '@prisma/client';
+
+// Type definitions for JSON content
+interface PersonalInfo {
+  name?: string;
+  email?: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  summary?: string;
+  website?: string;
+  linkedin?: string;
+  github?: string;
+}
+
+interface ResumeContent {
+  personalInfo?: PersonalInfo;
+}
+
+interface BulletPoint {
+  description: string;
+}
+
+interface WorkExperienceWithBulletPoints extends WorkExperience {
+  bulletPoints: BulletPoint[];
+}
 
 // Transform database resume data to the format expected by renderResumeToHtml
-function transformResumeData(resume: any) {
+function transformResumeData(resume: Resume & {
+  strengths: Strength[];
+  workExperience: WorkExperience[];
+  education: Education[];
+}) {
   // Ensure content exists and has the expected structure
-  const content = resume.content || {};
+  const content = resume.content as ResumeContent || {};
   const personalInfo = content.personalInfo || {};
   
   return {
@@ -27,28 +57,28 @@ function transformResumeData(resume: any) {
         github: personalInfo.github || '',
       },
     },
-    strengths: resume.strengths.map((strength: any) => ({
+    strengths: resume.strengths.map((strength: Strength) => ({
       skillName: strength.skillName,
       rating: strength.rating,
     })),
-    workExperience: resume.workExperience.map((work: any) => ({
+    workExperience: resume.workExperience.map((work: WorkExperience) => ({
       company: work.company,
       position: work.position,
       startDate: work.startDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
       endDate: work.endDate ? work.endDate.toISOString().split('T')[0] : '',
       current: work.current,
-      bulletPoints: Array.isArray(work.bulletPoints) 
-        ? work.bulletPoints.map((bullet: any) => ({ description: bullet.description || bullet }))
+      bulletPoints: Array.isArray((work as WorkExperienceWithBulletPoints).bulletPoints) 
+        ? (work as WorkExperienceWithBulletPoints).bulletPoints.map((bullet: BulletPoint) => ({ description: bullet.description }))
         : [],
     })),
-    education: resume.education.map((edu: any) => ({
+    education: resume.education.map((edu: Education) => ({
       institution: edu.institution,
       degree: edu.degree,
       field: edu.field,
       startDate: edu.startDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
       endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       current: edu.current,
-      gpa: edu.gpa,
+      gpa: edu.gpa ?? undefined,
     })),
   };
 }
