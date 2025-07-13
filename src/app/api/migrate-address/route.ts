@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
@@ -6,8 +6,7 @@ import type { Session } from "next-auth";
 
 export async function POST() {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await getServerSession(authOptions as any) as Session;
+    const session = await getServerSession(authOptions) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
     
     if (!user?.id) {
@@ -28,12 +27,13 @@ export async function POST() {
     let migratedCount = 0;
 
     for (const resume of resumes) {
-      const content = resume.content as any;
+      const content = resume.content as Record<string, unknown>;
       
       // Check if this resume has the old address field
-      if (content?.personalInfo?.address && !content?.personalInfo?.city && !content?.personalInfo?.state) {
+      const personalInfo = content?.personalInfo as Record<string, unknown> | undefined;
+      if (personalInfo?.address && !personalInfo?.city && !personalInfo?.state) {
         // Extract city and state from address (simple split by comma)
-        const address = content.personalInfo.address;
+        const address = personalInfo.address as string;
         const parts = address.split(',').map((part: string) => part.trim());
         
         let city = '';
@@ -51,7 +51,7 @@ export async function POST() {
         const updatedContent = {
           ...content,
           personalInfo: {
-            ...content.personalInfo,
+            ...(content.personalInfo as Record<string, unknown>),
             city,
             state,
             address: undefined, // Remove the old address field

@@ -979,7 +979,7 @@ export default function ResumeEditor({ resumeId, onSave, template }: ResumeEdito
                           ))}
                           {exp.bulletPoints.length === 0 && (
                             <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', textAlign: 'center', py: 2 }}>
-                              No bullet points added yet. Click "Add Bullet Point" to get started.
+                              No bullet points added yet. Click &quot;Add Bullet Point&quot; to get started.
                             </Typography>
                           )}
                         </Box>
