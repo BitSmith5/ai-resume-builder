@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth';
 import type { Session } from 'next-auth';
 import type { Prisma } from '@prisma/client';
-import '@/types/next-auth';
+
 
 export interface ResumeData {
   title: string;
