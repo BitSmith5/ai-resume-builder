@@ -69,6 +69,7 @@ model Resume {
   user           User             @relation(fields: [userId], references: [id])
   strengths      Strength[]
   workExperience WorkExperience[]
+  courses        Course[]
 }
 
 model Strength {
@@ -102,4 +103,12 @@ model Education {
   current     Boolean   @default(false)
   gpa         Float?
   resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id        Int    @id @default(autoincrement())
+  resumeId  Int
+  title     String
+  provider  String
+  resume    Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }

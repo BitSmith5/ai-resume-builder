@@ -85,6 +85,10 @@ interface ResumeData {
     current: boolean;
     gpa?: number;
   }>;
+  courses: Array<{
+    title: string;
+    provider: string;
+  }>;
 }
 
 interface ResumeEditorProps {
@@ -112,9 +116,11 @@ export default function ResumeEditor({
   const [newEducationIndex, setNewEducationIndex] = useState<number | null>(
     null,
   );
+  const [newCourseIndex, setNewCourseIndex] = useState<number | null>(null);
   const skillNameRefs = useRef<(HTMLInputElement | null)[]>([]);
   const workCompanyRefs = useRef<(HTMLInputElement | null)[]>([]);
   const educationInstitutionRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const courseTitleRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Robust React-based zooming with aspect ratio preservation
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -152,6 +158,7 @@ export default function ResumeEditor({
     strengths: [],
     workExperience: [],
     education: [],
+    courses: [],
   });
 
   const loadResume = useCallback(async () => {
@@ -179,6 +186,7 @@ export default function ResumeEditor({
           strengths: resume.strengths,
           workExperience: resume.workExperience,
           education: resume.education,
+          courses: resume.courses || [],
         });
       } else {
         setError("Failed to load resume");
@@ -227,13 +235,24 @@ export default function ResumeEditor({
         setNewEducationIndex(null);
       }
     }
+
+    // Focus on new course title field
+    if (newCourseIndex !== null && courseTitleRefs.current[newCourseIndex]) {
+      const input = courseTitleRefs.current[newCourseIndex];
+      if (input) {
+        input.focus();
+        setNewCourseIndex(null);
+      }
+    }
   }, [
     newSkillIndex,
     newWorkIndex,
     newEducationIndex,
+    newCourseIndex,
     resumeData.strengths.length,
     resumeData.workExperience.length,
     resumeData.education.length,
+    resumeData.courses.length,
   ]);
 
   const handleSave = async () => {
@@ -431,6 +450,43 @@ export default function ResumeEditor({
     }));
   };
 
+  const addCourse = () => {
+    setResumeData((prev) => {
+      const newIndex = prev.courses.length;
+      setNewCourseIndex(newIndex);
+      return {
+        ...prev,
+        courses: [
+          ...prev.courses,
+          {
+            title: "",
+            provider: "",
+          },
+        ],
+      };
+    });
+  };
+
+  const updateCourse = (
+    index: number,
+    field: "title" | "provider",
+    value: string,
+  ) => {
+    setResumeData((prev) => ({
+      ...prev,
+      courses: prev.courses.map((course, i) =>
+        i === index ? { ...course, [field]: value } : course,
+      ),
+    }));
+  };
+
+  const removeCourse = (index: number) => {
+    setResumeData((prev) => ({
+      ...prev,
+      courses: prev.courses.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleDownloadPDF = async () => {
     if (!resumeId) {
       setError("Please save the resume first before downloading");
@@ -619,6 +675,7 @@ export default function ResumeEditor({
               <Tab label="Skills" />
               <Tab label="Work Experience" />
               <Tab label="Education" />
+              <Tab label="Courses" />
             </Tabs>
 
             <Box sx={{ mt: 3 }}>
@@ -1411,6 +1468,123 @@ export default function ResumeEditor({
                   ))}
                 </Box>
               )}
+
+              {activeTab === 4 && (
+                <Box>
+                  <Box
+                    display="flex"
+                    flexDirection={{ xs: "column", sm: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: "stretch", sm: "center" }}
+                    gap={2}
+                    mb={2}
+                  >
+                    <Typography variant="h6">Courses & Trainings</Typography>
+                    <Button
+                      startIcon={<AddIcon />}
+                      onClick={addCourse}
+                      variant="outlined"
+                      size="small"
+                    >
+                      Add Course
+                    </Button>
+                  </Box>
+                  {resumeData.courses.map((course, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        mb: 3,
+                        p: 2,
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Stack spacing={2}>
+                        <Box
+                          display="flex"
+                          flexDirection={{ xs: "column", sm: "row" }}
+                          gap={2}
+                        >
+                          <TextField
+                            fullWidth
+                            label="Course Title"
+                            value={course.title}
+                            onChange={(e) =>
+                              updateCourse(index, "title", e.target.value)
+                            }
+                            inputRef={(el) => {
+                              courseTitleRefs.current[index] = el;
+                            }}
+                            sx={{
+                              "& .MuiInputBase-input:-webkit-autofill": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:hover": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:focus": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                            }}
+                          />
+                          <TextField
+                            fullWidth
+                            label="Provider"
+                            value={course.provider}
+                            onChange={(e) =>
+                              updateCourse(index, "provider", e.target.value)
+                            }
+                            placeholder="e.g., Coursera, Udemy, University Name"
+                            sx={{
+                              "& .MuiInputBase-input:-webkit-autofill": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:hover": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:focus": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                            }}
+                          />
+                          <IconButton
+                            onClick={() => removeCourse(index)}
+                            color="error"
+                            sx={{ alignSelf: { xs: "flex-end", sm: "center" } }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  ))}
+                  {resumeData.courses.length === 0 && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        fontStyle: "italic",
+                        textAlign: "center",
+                        py: 4,
+                      }}
+                    >
+                      No courses added yet. Click &quot;Add Course&quot; to get started.
+                    </Typography>
+                  )}
+                </Box>
+              )}
             </Box>
           </Paper>
         </Box>
@@ -1473,6 +1647,11 @@ export default function ResumeEditor({
                   endDate: edu.endDate,
                   current: edu.current,
                   gpa: edu.gpa,
+                })),
+                courses: resumeData.courses.map((course, index) => ({
+                  id: index,
+                  title: course.title,
+                  provider: course.provider,
                 })),
                 createdAt: new Date().toISOString(),
               }}

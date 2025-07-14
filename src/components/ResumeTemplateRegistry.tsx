@@ -44,6 +44,11 @@ export interface ResumeData {
     current: boolean;
     gpa?: number;
   }>;
+  courses?: Array<{
+    id: number;
+    title: string;
+    provider: string;
+  }>;
   createdAt: string;
 }
 
@@ -106,6 +111,10 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
       endDate: edu.endDate,
       current: edu.current,
       gpa: edu.gpa
+    })),
+    courses: data.courses?.map(course => ({
+      title: course.title,
+      provider: course.provider
     }))
   };
 

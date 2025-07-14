@@ -29,6 +29,10 @@ export interface ResumeData {
     current: boolean;
     gpa?: number;
   }>;
+  courses: Array<{
+    title: string;
+    provider: string;
+  }>;
 }
 
 export const getResumes = async () => {
@@ -45,6 +49,7 @@ export const getResumes = async () => {
       strengths: true,
       workExperience: true,
       education: true,
+      courses: true,
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -67,6 +72,7 @@ export const getResume = async (id: string) => {
       strengths: true,
       workExperience: true,
       education: true,
+      courses: true,
     },
   });
 };
@@ -93,11 +99,15 @@ export const createResume = async (data: ResumeData) => {
       education: {
         create: data.education || [],
       },
+      courses: {
+        create: data.courses || [],
+      },
     },
     include: {
       strengths: true,
       workExperience: true,
       education: true,
+      courses: true,
     },
   });
 };
@@ -120,6 +130,9 @@ export const updateResume = async (id: string, data: ResumeData) => {
   await prisma.education.deleteMany({
     where: { resumeId: parseInt(id) },
   });
+  await prisma.course.deleteMany({
+    where: { resumeId: parseInt(id) },
+  });
 
   return await prisma.resume.update({
     where: { 
@@ -138,11 +151,15 @@ export const updateResume = async (id: string, data: ResumeData) => {
       education: {
         create: data.education || [],
       },
+      courses: {
+        create: data.courses || [],
+      },
     },
     include: {
       strengths: true,
       workExperience: true,
       education: true,
+      courses: true,
     },
   });
 };

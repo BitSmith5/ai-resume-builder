@@ -27,6 +27,7 @@ export async function GET(
         strengths: true,
         workExperience: true,
         education: true,
+        courses: true,
       },
     });
 
@@ -59,7 +60,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, content, strengths, workExperience, education } = body;
+    const { title, content, strengths, workExperience, education, courses } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -100,6 +101,14 @@ export async function PUT(
       return rest;
     });
 
+    // Filter out id and resumeId fields from courses
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processedCourses = (courses || []).map((course: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, resumeId, ...rest } = course;
+      return rest;
+    });
+
     // Delete existing related data
     await prisma.strength.deleteMany({
       where: { resumeId: parseInt(resolvedParams.id) },
@@ -108,6 +117,9 @@ export async function PUT(
       where: { resumeId: parseInt(resolvedParams.id) },
     });
     await prisma.education.deleteMany({
+      where: { resumeId: parseInt(resolvedParams.id) },
+    });
+    await prisma.course.deleteMany({
       where: { resumeId: parseInt(resolvedParams.id) },
     });
 
@@ -128,11 +140,15 @@ export async function PUT(
         education: {
           create: processedEducation,
         },
+        courses: {
+          create: processedCourses,
+        },
       },
       include: {
         strengths: true,
         workExperience: true,
         education: true,
+        courses: true,
       },
     });
 

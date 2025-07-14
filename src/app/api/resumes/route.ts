@@ -28,6 +28,7 @@ export async function GET() {
         strengths: true,
         workExperience: true,
         education: true,
+        courses: true,
       },
       orderBy: {
         id: "desc",
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, content, strengths, workExperience, education } = body;
+    const { title, content, strengths, workExperience, education, courses } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -96,6 +97,14 @@ export async function POST(request: NextRequest) {
       return rest;
     });
 
+    // Filter out id and resumeId fields from courses
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processedCourses = (courses || []).map((course: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, resumeId, ...rest } = course;
+      return rest;
+    });
+
     const resume = await prisma.resume.create({
       data: {
         title,
@@ -110,6 +119,9 @@ export async function POST(request: NextRequest) {
         education: {
           create: processedEducation,
         },
+        courses: {
+          create: processedCourses,
+        },
       },
       select: {
         id: true,
@@ -121,6 +133,7 @@ export async function POST(request: NextRequest) {
         strengths: true,
         workExperience: true,
         education: true,
+        courses: true,
       },
     });
 
