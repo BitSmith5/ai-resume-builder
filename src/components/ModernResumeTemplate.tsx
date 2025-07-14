@@ -27,6 +27,8 @@ interface ResumeData {
     startDate: string;
     endDate: string;
     current: boolean;
+    city?: string;
+    state?: string;
     bulletPoints: Array<{
       description: string;
     }>;
@@ -303,26 +305,59 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             fontWeight: 700, 
             fontSize: 'clamp(14px, 2.2vw, 18px)', 
             color: '#c94f4f', 
-            marginBottom: 8 
+            marginBottom: 4 
           }}>WORK EXPERIENCE</div>
+          <div style={{ 
+            width: '100%', 
+            height: 2, 
+            background: '#c94f4f', 
+            margin: '4px 0 12px 0' 
+          }} />
           {data.workExperience.map((exp, i) => (
-            <div key={i} style={{ marginBottom: 16 }}>
+            <div key={i} style={{ marginBottom: 12 }}>
               <div style={{ 
-                fontWeight: 600, 
-                fontSize: 'clamp(13px, 2vw, 16px)',
+                fontWeight: 700, 
+                fontSize: '16px',
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
-                lineHeight: '1.3'
-              }}>{exp.position} <span style={{ color: '#888', fontWeight: 400 }}>@ {exp.company}</span></div>
+                color: '#c94f4f',
+              }}>{exp.position}</div>
               <div style={{ 
-                fontSize: 'clamp(11px, 1.6vw, 13px)', 
-                color: '#888', 
-                marginBottom: 4,
+                fontWeight: 600, 
+                fontSize: '14px',
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
-                whiteSpace: 'normal'
-              }}>{formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}</div>
+                whiteSpace: 'normal',
+                lineHeight: '1',
+                marginBottom: 8
+              }}>{exp.company}</div>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div style={{ 
+                  fontSize: '10px', 
+                  color: '#c94f4f', 
+                  marginBottom: 4,
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  fontStyle: 'italic'
+                }}>{formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}</div>
+                {(exp.city || exp.state) && (
+                  <div style={{ 
+                    fontSize: 'clamp(10px, 1.5vw, 12px)', 
+                    color: '#c94f4f',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    whiteSpace: 'normal',
+                    fontStyle: 'italic'
+                  }}>{[exp.city, exp.state].filter(Boolean).join(', ')}</div>
+                )}
+              </div>
               {exp.bulletPoints.length > 0 && (
                 <div style={{ 
                   fontSize: 'clamp(11px, 1.8vw, 14px)',
@@ -333,8 +368,16 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 }}>
                   {exp.bulletPoints.map((bullet, bulletIndex) => (
                     <div key={bulletIndex} style={{ marginBottom: 4, flex: 1, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-                      <div style={{ color: '#c94f4f', marginRight: 2 }}>•</div>
-                      <div style={{ flex: 1, wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{bullet.description}</div>
+                      <div style={{ 
+                        width: 5, 
+                        height: 5, 
+                        border: '1px solid #c94f4f', 
+                        backgroundColor: 'transparent', 
+                        marginRight: 4,
+                        flexShrink: 0,
+                        marginTop: 6
+                      }}></div>
+                      <div style={{ flex: 1, wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal', fontSize: 12, textAlign: 'justify' }}>{bullet.description}</div>
                     </div>
                   ))}
                 </div>
