@@ -13,15 +13,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -41,14 +40,14 @@ model User {
   emailVerified DateTime?
   image         String?
   bio           String?
+  linkedinUrl   String?
   location      String?
   phone         String?
-  linkedinUrl   String?
   portfolioUrl  String?
   preferences   Json?
   accounts      Account[]
-  sessions      Session[]
   resumes       Resume[]
+  sessions      Session[]
 }
 
 model VerificationToken {
@@ -60,47 +59,47 @@ model VerificationToken {
 }
 
 model Resume {
-  id        Int      @id @default(autoincrement())
-  userId    String
-  title     String
-  content   Json
-  strengths Strength[]
+  id             Int              @id @default(autoincrement())
+  userId         String
+  title          String
+  content        Json
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  education      Education[]
+  user           User             @relation(fields: [userId], references: [id])
+  strengths      Strength[]
   workExperience WorkExperience[]
-  education Education[]
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Strength {
-  id        Int      @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   resumeId  Int
   skillName String
   rating    Int
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resume    Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model WorkExperience {
-  id          Int      @id @default(autoincrement())
-  resumeId    Int
-  company     String
-  position    String
-  startDate   DateTime
-  endDate     DateTime?
-  current     Boolean  @default(false)
-  bulletPoints Json    @default("[]")
-  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  id           Int       @id @default(autoincrement())
+  resumeId     Int
+  company      String
+  position     String
+  startDate    DateTime
+  endDate      DateTime?
+  current      Boolean   @default(false)
+  bulletPoints Json      @default("[]")
+  resume       Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Education {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   resumeId    Int
   institution String
   degree      String
   field       String
   startDate   DateTime
   endDate     DateTime?
-  current     Boolean  @default(false)
+  current     Boolean   @default(false)
   gpa         Float?
-  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
