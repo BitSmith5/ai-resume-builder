@@ -46,6 +46,10 @@ interface ResumeData {
     title: string;
     provider: string;
   }>;
+  interests?: Array<{
+    name: string;
+    icon?: string;
+  }>;
 }
 
 interface ModernResumeTemplateProps {
@@ -54,6 +58,8 @@ interface ModernResumeTemplateProps {
 
 const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => {
   const { personalInfo } = data.content;
+  const [titleWidth, setTitleWidth] = React.useState(0);
+  const titleRef = React.useRef<HTMLDivElement>(null);
   
   // Function to format URLs by removing http/https prefix
   const formatUrl = (url: string): string => {
@@ -75,6 +81,21 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       return dateString; // Return original if parsing fails
     }
   };
+
+  // Measure title width on mount and when title changes
+  React.useEffect(() => {
+    if (titleRef.current) {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (context) {
+        // Get the computed font style from the element
+        const computedStyle = window.getComputedStyle(titleRef.current);
+        context.font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+        const textWidth = context.measureText(data.title || '[Job Title]').width;
+        setTitleWidth(textWidth);
+      }
+    }
+  }, [data.title]);
   
   return (
     <div
@@ -95,7 +116,6 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
     >
       {/* Left Column */}
       <div style={{ 
-        background: '#f8f8fa', 
         width: '221px', // 26% of 850px
         padding: '24px',
         display: 'flex', 
@@ -104,19 +124,14 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       }}>
         {/* Avatar Placeholder */}
         <div style={{ 
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%', 
+          width: '160px',
+          height: '160px',
+          borderRadius: '10%', 
           background: '#e0e0e0', 
           marginBottom: '20px' 
         }} />
         {/* Contact Info */}
-          <div style={{ width: '100%', maxWidth: '180px', marginBottom: '24px' }}>
-            <div style={{ 
-              fontWeight: 600, 
-              fontSize: 'clamp(14px, 2.5vw, 18px)', 
-              marginBottom: 8 
-            }}>{personalInfo.name}</div>
+          <div style={{ width: '160px', marginBottom: '24px' }}>
             {personalInfo.email && (
               <div style={{ 
                 display: 'flex', 
@@ -209,98 +224,129 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           )}
         </div>
         {/* Technical Skills */}
-        <div style={{ width: '100%', maxWidth: '180px', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
-            <div style={{ 
-              fontWeight: 700, 
-              fontSize: '16px', 
-              color: '#c94f4f' 
-            }}>TECHNICAL SKILLS</div>
-            <div style={{ width: '100%', height: 2, background: '#c94f4f', margin: '2px 0 0 0' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
-              {[...Array(4)].map((_, i) => (
-                <div key={i} style={{ width: 2, height: 5, background: '#c94f4f', borderRadius: 0 }} />
-              ))}
-            </div>
-          </div>
-          {data.strengths.map((s, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
+        {data.strengths && data.strengths.length > 0 &&
+          <div style={{ width: '100%', maxWidth: '180px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
               <div style={{ 
-                fontSize: 'clamp(10px, 1.5vw, 12px)', 
-                marginBottom: 4, 
-                wordWrap: 'break-word', 
-                overflowWrap: 'break-word', 
-                whiteSpace: 'normal',
-                lineHeight: '1.2'
-              }}>{s.skillName}</div>
-              <div style={{ 
-                width: '100%', 
-                height: 10, 
-                backgroundColor: 'transparent', 
-                border: '2px solid #c94f4f',
-                borderRadius: 0,
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  width: `${(s.rating / 10) * 100}%`,
-                  height: '100%',
-                  backgroundColor: '#c94f4f',
-                  borderRadius: 0
-                }} />
+                fontWeight: 700, 
+                fontSize: '16px', 
+                color: '#c94f4f' 
+              }}>TECHNICAL SKILLS</div>
+              <div style={{ width: '100%', height: 2, background: '#c94f4f', margin: '2px 0 0 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} style={{ width: 2, height: 5, background: '#c94f4f', borderRadius: 0 }} />
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-        {/* Interests Placeholder */}
-        <div style={{ width: '100%', maxWidth: '180px' }}>
-          <div style={{ 
-            fontWeight: 700, 
-            fontSize: 'clamp(12px, 2vw, 16px)', 
-            marginBottom: 8, 
-            color: '#c94f4f' 
-          }}>INTERESTS</div>
-          <div style={{ 
-            fontSize: 'clamp(11px, 1.8vw, 14px)', 
-            marginBottom: 4 
-          }}>[Interests go here]</div>
-        </div>
+            {data.strengths.map((s, i) => (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div style={{ 
+                  fontSize: 'clamp(10px, 1.5vw, 12px)', 
+                  marginBottom: 4, 
+                  wordWrap: 'break-word', 
+                  overflowWrap: 'break-word', 
+                  whiteSpace: 'normal',
+                  lineHeight: '1.2'
+                }}>{s.skillName}</div>
+                <div style={{ 
+                  width: '100%', 
+                  height: 10, 
+                  backgroundColor: 'transparent', 
+                  border: '2px solid #c94f4f',
+                  borderRadius: 0,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    width: `${(s.rating / 10) * 100}%`,
+                    height: '100%',
+                    backgroundColor: '#c94f4f',
+                    borderRadius: 0
+                  }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+        {/* Interests */}
+        {data.interests && data.interests.length > 0 &&
+          <div style={{ width: '100%', maxWidth: '180px' }}>
+            <div style={{ 
+              fontWeight: 700, 
+              fontSize: 'clamp(12px, 2vw, 16px)', 
+              marginBottom: 8, 
+              color: '#c94f4f' 
+            }}>INTERESTS</div>
+            {data.interests.map((interest, i) => (
+              <div key={i} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                marginBottom: 6,
+                gap: 8
+              }}>
+                <div style={{ 
+                  width: 12, 
+                  height: 12, 
+                  borderRadius: '50%', 
+                  backgroundColor: '#c94f4f',
+                  flexShrink: 0
+                }} />
+                <div style={{ 
+                  fontSize: 'clamp(11px, 1.8vw, 14px)', 
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  lineHeight: '1.2'
+                }}>{interest.name}</div>
+              </div>
+            ))}
+          </div>
+        }
       </div>
       {/* Right Column */}
       <div style={{ 
         width: '629px', // 850px - 221px
-        padding: '40px',
+        margin: '24px 24px 0 0',
         overflow: 'hidden' 
       }}>
         {/* Header */}
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 16, background: '#c94f4f', padding: '12px' }}>
           <div style={{ 
-            fontSize: 'clamp(24px, 4vw, 32px)', 
-            fontWeight: 700, 
-            color: '#c94f4f',
-            wordWrap: 'break-word',
-            overflowWrap: 'break-word',
-            whiteSpace: 'normal',
-            lineHeight: '1.1'
-          }}>{personalInfo.name}</div>
-          <div style={{ 
-            fontSize: 'clamp(16px, 2.5vw, 20px)', 
+            fontSize: '30px', 
             fontWeight: 500, 
-            color: '#555',
+            color: 'white',
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
             whiteSpace: 'normal',
-            lineHeight: '1.2'
-          }}>{data.title || '[Job Title]'}</div>
-        </div>
-        {/* Summary */}
-        <div style={{ marginBottom: 'clamp(16px, 3vw, 32px)' }}>
+            lineHeight: '1',
+            marginBottom: 4
+          }}>{personalInfo.name}</div>
+          <div 
+            ref={titleRef}
+            style={{ 
+              fontSize: '16px', 
+              fontWeight: 500, 
+              color: 'white',
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              whiteSpace: 'normal',
+              lineHeight: '1.2'
+            }}
+          >{data.title || '[Job Title]'}</div>
           <div style={{ 
-            fontSize: 'clamp(12px, 1.8vw, 15px)', 
-            color: '#444',
+            width: titleWidth > 0 ? `${titleWidth + 20}px` : '30%', 
+            height: 1, 
+            background: 'white', 
+            margin: '6px 0 12px 0' 
+          }} />
+          <div style={{ 
+            fontSize: '12px', 
+            color: 'white',
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
             whiteSpace: 'normal',
-            lineHeight: '1.4'
+            lineHeight: '1',
+            marginRight: '14px'
           }}>{personalInfo.summary}</div>
         </div>
         {/* Work Experience */}
@@ -390,21 +436,21 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           ))}
         </div>
         {/* Courses & Trainings Placeholder */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ 
-            fontWeight: 700, 
-            fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: '#c94f4f', 
-            marginBottom: 8 
-          }}>COURSES & TRAININGS</div>
-          <div style={{ 
-            width: '100%', 
-            height: 2, 
-            background: '#c94f4f', 
-            margin: '4px 0 12px 0' 
-          }} />
-          {data.courses && data.courses.length > 0 ? (
-            data.courses.map((course, i) => (
+        {data.courses && data.courses.length > 0 &&
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ 
+              fontWeight: 700, 
+              fontSize: 'clamp(14px, 2.2vw, 18px)', 
+              color: '#c94f4f', 
+              marginBottom: 8 
+            }}>COURSES & TRAININGS</div>
+            <div style={{ 
+              width: '100%', 
+              height: 2, 
+              background: '#c94f4f', 
+              margin: '4px 0 12px 0' 
+            }} />
+            {data.courses.map((course, i) => (
               <div key={i} style={{ marginBottom: 8 }}>
                 <div style={{ 
                   fontSize: '14px',
@@ -424,77 +470,75 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   fontStyle: 'italic'
                 }}>{course.provider}</div>
               </div>
-            ))
-          ) : (
-            <div style={{ 
-              fontSize: 'clamp(11px, 1.8vw, 14px)',
-              color: '#888',
-              fontStyle: 'italic'
-            }}>No courses added yet</div>
-          )}
-        </div>
+            ))}
+          </div>
+        }
         {/* Education */}
-        <div style={{ marginBottom: 'clamp(16px, 3vw, 32px)' }}>
-          <div style={{ 
-            fontWeight: 700, 
-            fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: '#c94f4f', 
-            marginBottom: 8 
-          }}>EDUCATION</div>
-          <div style={{ 
-            width: '100%', 
-            height: 2, 
-            background: '#c94f4f', 
-            margin: '4px 0 12px 0' 
-          }} />
-          {data.education.map((edu, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
-              <div style={{ 
-                fontWeight: 600, 
-                fontSize: '16px',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                whiteSpace: 'normal',
-                color: '#c94f4f',
-                lineHeight: '1',
-                marginBottom: 4
-              }}>{edu.degree} in {edu.field}</div>
-              <div style={{ 
-                fontSize: '14px', 
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                whiteSpace: 'normal',
-                lineHeight: '0.7',
-                marginBottom: 7
-              }}>{edu.institution}</div>
-              <div style={{ 
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
+        {data.education && data.education.length > 0 &&
+          <div style={{ marginBottom: 'clamp(16px, 3vw, 32px)' }}>
+            <div style={{ 
+              fontWeight: 700, 
+              fontSize: 'clamp(14px, 2.2vw, 18px)', 
+              color: '#c94f4f', 
+              marginBottom: 8 
+            }}>EDUCATION</div>
+            <div style={{ 
+              width: '100%', 
+              height: 2, 
+              background: '#c94f4f', 
+              margin: '4px 0 12px 0' 
+            }} />
+            {data.education.map((edu, i) => (
+              <div key={i} style={{ marginBottom: 12 }}>
                 <div style={{ 
-                  fontSize: '10px', 
-                  color: '#c94f4f',
+                  fontWeight: 600, 
+                  fontSize: '16px',
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'normal',
-                  lineHeight: '1.3',
-                  fontStyle: 'italic'
-                }}>{formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}</div>
-                <div style={{ 
-                  fontSize: '10px', 
                   color: '#c94f4f',
+                  lineHeight: '1',
+                  marginBottom: 4
+                }}>{edu.degree} in {edu.field}</div>
+                <div style={{ 
+                  fontSize: '14px', 
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'normal',
-                  lineHeight: '1.3',
-                  fontStyle: 'italic'
-                }}>{edu.gpa ? `GPA: ${edu.gpa}` : ''}</div>
+                  lineHeight: '0.7',
+                  marginBottom: 7
+                }}>{edu.institution}</div>
+                <div style={{ 
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}>
+                  <div style={{ 
+                    fontSize: '10px', 
+                    color: '#c94f4f',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    whiteSpace: 'normal',
+                    lineHeight: '1.3',
+                    fontStyle: 'italic'
+                  }}>{formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}</div>
+                  {edu.gpa &&
+                    <div style={{ 
+                      fontSize: '10px', 
+                      color: '#c94f4f',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'normal',
+                      lineHeight: '1.3',
+                      fontStyle: 'italic'
+                    }}>{edu.gpa ? `GPA: ${edu.gpa}` : ''}</div>
+                  }
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        }
       </div>
     </div>
   );
