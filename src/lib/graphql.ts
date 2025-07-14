@@ -32,6 +32,7 @@ export interface ResumeData {
   courses: Array<{
     title: string;
     provider: string;
+    link?: string;
   }>;
 }
 

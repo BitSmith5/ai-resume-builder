@@ -110,5 +110,6 @@ model Course {
   resumeId  Int
   title     String
   provider  String
+  link      String?
   resume    Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }

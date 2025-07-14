@@ -88,6 +88,7 @@ interface ResumeData {
   courses: Array<{
     title: string;
     provider: string;
+    link?: string;
   }>;
 }
 
@@ -461,6 +462,7 @@ export default function ResumeEditor({
           {
             title: "",
             provider: "",
+            link: "",
           },
         ],
       };
@@ -469,7 +471,7 @@ export default function ResumeEditor({
 
   const updateCourse = (
     index: number,
-    field: "title" | "provider",
+    field: "title" | "provider" | "link",
     value: string,
   ) => {
     setResumeData((prev) => ({
@@ -1502,63 +1504,97 @@ export default function ResumeEditor({
                       <Stack spacing={2}>
                         <Box
                           display="flex"
-                          flexDirection={{ xs: "column", sm: "row" }}
+                          flexDirection="row"
+                          justifyContent="space-between"
                           gap={2}
                         >
-                          <TextField
-                            fullWidth
-                            label="Course Title"
-                            value={course.title}
-                            onChange={(e) =>
-                              updateCourse(index, "title", e.target.value)
-                            }
-                            inputRef={(el) => {
-                              courseTitleRefs.current[index] = el;
-                            }}
-                            sx={{
-                              "& .MuiInputBase-input:-webkit-autofill": {
-                                WebkitBoxShadow:
-                                  "0 0 0 1000px white inset !important",
-                                WebkitTextFillColor: "black !important",
-                              },
-                              "& .MuiInputBase-input:-webkit-autofill:hover": {
-                                WebkitBoxShadow:
-                                  "0 0 0 1000px white inset !important",
-                                WebkitTextFillColor: "black !important",
-                              },
-                              "& .MuiInputBase-input:-webkit-autofill:focus": {
-                                WebkitBoxShadow:
-                                  "0 0 0 1000px white inset !important",
-                                WebkitTextFillColor: "black !important",
-                              },
-                            }}
-                          />
-                          <TextField
-                            fullWidth
-                            label="Provider"
-                            value={course.provider}
-                            onChange={(e) =>
-                              updateCourse(index, "provider", e.target.value)
-                            }
-                            placeholder="e.g., Coursera, Udemy, University Name"
-                            sx={{
-                              "& .MuiInputBase-input:-webkit-autofill": {
-                                WebkitBoxShadow:
-                                  "0 0 0 1000px white inset !important",
-                                WebkitTextFillColor: "black !important",
-                              },
-                              "& .MuiInputBase-input:-webkit-autofill:hover": {
-                                WebkitBoxShadow:
-                                  "0 0 0 1000px white inset !important",
-                                WebkitTextFillColor: "black !important",
-                              },
-                              "& .MuiInputBase-input:-webkit-autofill:focus": {
-                                WebkitBoxShadow:
-                                  "0 0 0 1000px white inset !important",
-                                WebkitTextFillColor: "black !important",
-                              },
-                            }}
-                          />
+                          <Box 
+                            display="flex"
+                            flexDirection="column"
+                            gap={2}
+                            width="100%"
+                          >
+                            <TextField
+                              fullWidth
+                              label="Course Title"
+                              value={course.title}
+                              onChange={(e) =>
+                                updateCourse(index, "title", e.target.value)
+                              }
+                              inputRef={(el) => {
+                                courseTitleRefs.current[index] = el;
+                              }}
+                              sx={{
+                                "& .MuiInputBase-input:-webkit-autofill": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                                "& .MuiInputBase-input:-webkit-autofill:hover": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                                "& .MuiInputBase-input:-webkit-autofill:focus": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                              }}
+                            />
+                            <TextField
+                              fullWidth
+                              label="Provider"
+                              value={course.provider}
+                              onChange={(e) =>
+                                updateCourse(index, "provider", e.target.value)
+                              }
+                              placeholder="e.g., Coursera, Udemy, University Name"
+                              sx={{
+                                "& .MuiInputBase-input:-webkit-autofill": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                                "& .MuiInputBase-input:-webkit-autofill:hover": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                                "& .MuiInputBase-input:-webkit-autofill:focus": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                              }}
+                            />
+                            <TextField
+                              fullWidth
+                              label="Link (optional)"
+                              value={course.link || ""}
+                              onChange={(e) =>
+                                updateCourse(index, "link", e.target.value)
+                              }
+                              placeholder="https://course-url.com"
+                              sx={{
+                                "& .MuiInputBase-input:-webkit-autofill": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                                "& .MuiInputBase-input:-webkit-autofill:hover": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                                "& .MuiInputBase-input:-webkit-autofill:focus": {
+                                  WebkitBoxShadow:
+                                    "0 0 0 1000px white inset !important",
+                                  WebkitTextFillColor: "black !important",
+                                },
+                              }}
+                            />
+                          </Box>
                           <IconButton
                             onClick={() => removeCourse(index)}
                             color="error"
@@ -1652,6 +1688,7 @@ export default function ResumeEditor({
                   id: index,
                   title: course.title,
                   provider: course.provider,
+                  link: course.link,
                 })),
                 createdAt: new Date().toISOString(),
               }}

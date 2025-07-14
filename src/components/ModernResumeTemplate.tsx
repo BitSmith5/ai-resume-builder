@@ -1,5 +1,5 @@
 import React from 'react';
-import { MdEmail, MdPhone, MdLocationOn, MdLanguage } from 'react-icons/md';
+import { MdEmail, MdPhone, MdLocationOn, MdLanguage, MdLink } from 'react-icons/md';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 
 interface ResumeData {
@@ -45,6 +45,7 @@ interface ResumeData {
   courses?: Array<{
     title: string;
     provider: string;
+    link?: string;
   }>;
   interests?: Array<{
     name: string;
@@ -453,13 +454,36 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             {data.courses.map((course, i) => (
               <div key={i} style={{ marginBottom: 8 }}>
                 <div style={{ 
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
-                  whiteSpace: 'normal',
-                  lineHeight: '1.3'
-                }}>{course.title}</div>
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 2
+                }}>
+                  <div style={{ 
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    whiteSpace: 'normal',
+                    lineHeight: '1.3',
+                    flex: 1
+                  }}>{course.title}</div>
+                  {course.link && (
+                    <a 
+                      href={course.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ 
+                        color: '#c94f4f',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <MdLink size={16} />
+                    </a>
+                  )}
+                </div>
                 <div style={{ 
                   fontSize: '10px',
                   color: '#888',

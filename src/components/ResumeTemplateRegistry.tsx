@@ -48,6 +48,7 @@ export interface ResumeData {
     id: number;
     title: string;
     provider: string;
+    link?: string;
   }>;
   createdAt: string;
 }
@@ -114,7 +115,8 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
     })),
     courses: data.courses?.map(course => ({
       title: course.title,
-      provider: course.provider
+      provider: course.provider,
+      link: course.link
     }))
   };
 
