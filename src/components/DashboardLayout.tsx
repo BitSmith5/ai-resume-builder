@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -38,8 +38,13 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mounted, setMounted] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Show loading state while session is loading
   if (status === "loading") {
@@ -128,7 +133,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 display: { xs: 'none', sm: 'block' }
               }}
             >
-              {session?.user?.name || "User"}
+              {mounted ? (session?.user?.name || "User") : "..."}
             </Typography>
             <IconButton
               size="large"
@@ -139,7 +144,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={handleProfileMenuOpen}
               color="inherit"
             >
-              {session?.user?.image ? (
+              {mounted && session?.user?.image ? (
                 <Avatar src={session.user.image} sx={{ width: 32, height: 32 }} />
               ) : (
                 <AccountCircle />

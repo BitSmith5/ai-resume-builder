@@ -41,6 +41,11 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -74,6 +79,15 @@ export default function DashboardPage() {
     return "error";
   };
 
+  const formatDate = (dateString: string) => {
+    if (!mounted) return "Loading...";
+    try {
+      return new Date(dateString).toISOString().split('T')[0];
+    } catch {
+      return 'Unknown';
+    }
+  };
+
   // Show loading state while session is loading
   if (status === "loading") {
     return (
@@ -96,7 +110,7 @@ export default function DashboardPage() {
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
           <Box>
             <Typography variant="h4" component="h1" gutterBottom>
-              Welcome back, {session?.user?.name}!
+              Welcome back, {mounted ? session?.user?.name : "..."}!
             </Typography>
             <Typography variant="body1" color="text.secondary">
               Manage your professional resumes and track your progress
@@ -145,7 +159,7 @@ export default function DashboardPage() {
                 </Avatar>
                 <Box>
                   <Typography variant="h4" component="div">
-                    {resumes.length > 0 ? getAverageStrengthRating(resumes.flatMap(r => r.strengths)) : 0}
+                    {resumes.length > 0 ? getAverageStrengthRating(resumes.flatMap((r: Resume) => r.strengths)) : 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Avg. Strength Rating
@@ -162,7 +176,7 @@ export default function DashboardPage() {
                 </Avatar>
                 <Box>
                   <Typography variant="h4" component="div">
-                    {resumes.length > 0 ? resumes.flatMap(r => r.strengths).length : 0}
+                    {resumes.length > 0 ? resumes.flatMap((r: Resume) => r.strengths).length : 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Skills Tracked
@@ -179,7 +193,7 @@ export default function DashboardPage() {
                 </Avatar>
                 <Box>
                   <Typography variant="h4" component="div">
-                    {resumes.filter(r => r.strengths.length > 0).length}
+                    {resumes.filter((r: Resume) => r.strengths.length > 0).length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Resumes with Skills
@@ -212,14 +226,14 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={3}>
-            {resumes.slice(0, 6).map((resume) => (
+            {resumes.slice(0, 6).map((resume: Resume) => (
               <Card key={resume.id} sx={{ height: "100%" }}>
                 <CardContent>
                   <Typography variant="h6" component="h3" gutterBottom>
                     {resume.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" mb={2}>
-                    Created {resume.createdAt ? new Date(resume.createdAt).toISOString().split('T')[0] : 'Unknown'}
+                    Created {resume.createdAt ? formatDate(resume.createdAt) : 'Unknown'}
                   </Typography>
                   
                   {resume.strengths.length > 0 && (
@@ -228,7 +242,7 @@ export default function DashboardPage() {
                         Top Skills:
                       </Typography>
                       <Box display="flex" flexWrap="wrap" gap={0.5}>
-                        {resume.strengths.slice(0, 3).map((strength) => (
+                        {resume.strengths.slice(0, 3).map((strength: Strength) => (
                           <Chip
                             key={strength.id}
                             label={`${strength.skillName} (${strength.rating}/10)`}
