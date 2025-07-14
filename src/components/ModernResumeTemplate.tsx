@@ -42,6 +42,10 @@ interface ResumeData {
     current: boolean;
     gpa?: number;
   }>;
+  courses?: Array<{
+    title: string;
+    provider: string;
+  }>;
 }
 
 interface ModernResumeTemplateProps {
@@ -385,6 +389,50 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             </div>
           ))}
         </div>
+        {/* Courses & Trainings Placeholder */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ 
+            fontWeight: 700, 
+            fontSize: 'clamp(14px, 2.2vw, 18px)', 
+            color: '#c94f4f', 
+            marginBottom: 8 
+          }}>COURSES & TRAININGS</div>
+          <div style={{ 
+            width: '100%', 
+            height: 2, 
+            background: '#c94f4f', 
+            margin: '4px 0 12px 0' 
+          }} />
+          {data.courses && data.courses.length > 0 ? (
+            data.courses.map((course, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ 
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  lineHeight: '1.3'
+                }}>{course.title}</div>
+                <div style={{ 
+                  fontSize: '10px',
+                  color: '#888',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  lineHeight: '1.2',
+                  fontStyle: 'italic'
+                }}>{course.provider}</div>
+              </div>
+            ))
+          ) : (
+            <div style={{ 
+              fontSize: 'clamp(11px, 1.8vw, 14px)',
+              color: '#888',
+              fontStyle: 'italic'
+            }}>No courses added yet</div>
+          )}
+        </div>
         {/* Education */}
         <div style={{ marginBottom: 'clamp(16px, 3vw, 32px)' }}>
           <div style={{ 
@@ -393,38 +441,59 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             color: '#c94f4f', 
             marginBottom: 8 
           }}>EDUCATION</div>
+          <div style={{ 
+            width: '100%', 
+            height: 2, 
+            background: '#c94f4f', 
+            margin: '4px 0 12px 0' 
+          }} />
           {data.education.map((edu, i) => (
             <div key={i} style={{ marginBottom: 12 }}>
               <div style={{ 
                 fontWeight: 600, 
-                fontSize: 'clamp(12px, 1.9vw, 15px)',
+                fontSize: '16px',
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
-                lineHeight: '1.3'
+                color: '#c94f4f',
+                lineHeight: '1',
+                marginBottom: 4
               }}>{edu.degree} in {edu.field}</div>
               <div style={{ 
-                fontSize: 'clamp(11px, 1.6vw, 13px)', 
-                color: '#888',
+                fontSize: '14px', 
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
-                lineHeight: '1.3'
-              }}>{edu.institution} | {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)} {edu.gpa ? `| GPA: ${edu.gpa}` : ''}</div>
+                lineHeight: '0.7',
+                marginBottom: 7
+              }}>{edu.institution}</div>
+              <div style={{ 
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div style={{ 
+                  fontSize: '10px', 
+                  color: '#c94f4f',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  lineHeight: '1.3',
+                  fontStyle: 'italic'
+                }}>{formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}</div>
+                <div style={{ 
+                  fontSize: '10px', 
+                  color: '#c94f4f',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  lineHeight: '1.3',
+                  fontStyle: 'italic'
+                }}>{edu.gpa ? `GPA: ${edu.gpa}` : ''}</div>
+              </div>
             </div>
           ))}
-        </div>
-        {/* Courses & Trainings Placeholder */}
-        <div>
-          <div style={{ 
-            fontWeight: 700, 
-            fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: '#c94f4f', 
-            marginBottom: 8 
-          }}>COURSES & TRAININGS</div>
-          <div style={{ 
-            fontSize: 'clamp(11px, 1.8vw, 14px)' 
-          }}>[Courses & Trainings go here]</div>
         </div>
       </div>
     </div>
