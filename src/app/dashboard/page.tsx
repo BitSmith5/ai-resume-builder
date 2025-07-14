@@ -21,7 +21,7 @@ import {
   Person as PersonIcon,
 } from "@mui/icons-material";
 import DashboardLayout from "@/components/DashboardLayout";
-import { StoreDemo } from "@/components/StoreDemo";
+// import { StoreDemo } from "@/components/StoreDemo";
 
 interface Resume {
   id: number;
@@ -257,7 +257,7 @@ export default function DashboardPage() {
 
         {/* Zustand Store Demo */}
         <Box mt={6}>
-          <StoreDemo />
+          {/* <StoreDemo /> */}
         </Box>
       </Box>
     </DashboardLayout>
