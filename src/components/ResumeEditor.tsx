@@ -15,6 +15,10 @@ import {
   Alert,
   CircularProgress,
   Stack,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -23,6 +27,9 @@ import {
   Download as DownloadIcon,
 } from "@mui/icons-material";
 import ModernResumeTemplate from "./ModernResumeTemplate";
+import ResumeTemplateRegistry, {
+  AVAILABLE_TEMPLATES,
+} from "./ResumeTemplateRegistry";
 // import { generateResumePDF } from './ResumePDF';
 
 // Phone number formatting function
@@ -98,6 +105,9 @@ export default function ResumeEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState(
+    template || "modern",
+  );
   const [newSkillIndex, setNewSkillIndex] = useState<number | null>(null);
   const [newWorkIndex, setNewWorkIndex] = useState<number | null>(null);
   const [newEducationIndex, setNewEducationIndex] = useState<number | null>(
@@ -533,6 +543,61 @@ export default function ResumeEditor({
           </Button>
         </Stack>
       </Box>
+
+      {/* Template Selector */}
+      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 }, mb: 3 }}>
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", sm: "row" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "stretch", sm: "center" }}
+          gap={{ xs: 1, sm: 2 }}
+        >
+          <Box>
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" } }}
+            >
+              Template Preview
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Choose a template to preview your resume
+            </Typography>
+          </Box>
+          <Box
+            display="flex"
+            gap={2}
+            alignItems="center"
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              flexDirection: { xs: "column", sm: "row" },
+            }}
+          >
+            <FormControl
+              size="small"
+              sx={{
+                minWidth: { xs: "100%", sm: 200 },
+                width: { xs: "100%", sm: "auto" },
+                maxWidth: { xs: "100%", sm: "none" },
+              }}
+            >
+              <InputLabel>Template</InputLabel>
+              <Select
+                value={selectedTemplate}
+                label="Template"
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+              >
+                {AVAILABLE_TEMPLATES.map((template) => (
+                  <MenuItem key={template.id} value={template.id}>
+                    {template.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+      </Paper>
 
       {/* Editor Form and Preview Container */}
       <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
@@ -1381,10 +1446,39 @@ export default function ResumeEditor({
               transition: "transform 0.2s",
             }}
           >
-            {template === "modern" && (
-              <ModernResumeTemplate data={resumeData} />
-            )}
-            {/* Add more template previews here as needed */}
+            <ResumeTemplateRegistry
+              data={{
+                id: 0,
+                title: resumeData.title,
+                content: resumeData.content,
+                strengths: resumeData.strengths.map((s, index) => ({
+                  id: index,
+                  skillName: s.skillName,
+                  rating: s.rating,
+                })),
+                workExperience: resumeData.workExperience.map((exp, index) => ({
+                  id: index,
+                  company: exp.company,
+                  position: exp.position,
+                  startDate: exp.startDate,
+                  endDate: exp.endDate,
+                  current: exp.current,
+                  bulletPoints: exp.bulletPoints,
+                })),
+                education: resumeData.education.map((edu, index) => ({
+                  id: index,
+                  institution: edu.institution,
+                  degree: edu.degree,
+                  field: edu.field,
+                  startDate: edu.startDate,
+                  endDate: edu.endDate,
+                  current: edu.current,
+                  gpa: edu.gpa,
+                })),
+                createdAt: new Date().toISOString(),
+              }}
+              templateId={selectedTemplate}
+            />
           </Box>
         </Box>
       </Box>
