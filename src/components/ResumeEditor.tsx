@@ -26,7 +26,6 @@ import {
   Save as SaveIcon,
   Download as DownloadIcon,
 } from "@mui/icons-material";
-import ModernResumeTemplate from "./ModernResumeTemplate";
 import ResumeTemplateRegistry, {
   AVAILABLE_TEMPLATES,
 } from "./ResumeTemplateRegistry";
