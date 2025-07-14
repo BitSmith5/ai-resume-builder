@@ -332,8 +332,9 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   lineHeight: '1.4'
                 }}>
                   {exp.bulletPoints.map((bullet, bulletIndex) => (
-                    <div key={bulletIndex} style={{ marginBottom: 4, paddingLeft: 16 }}>
-                      • {bullet.description}
+                    <div key={bulletIndex} style={{ marginBottom: 4, flex: 1, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                      <div style={{ color: '#c94f4f', marginRight: 2 }}>•</div>
+                      <div style={{ flex: 1, wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{bullet.description}</div>
                     </div>
                   ))}
                 </div>
