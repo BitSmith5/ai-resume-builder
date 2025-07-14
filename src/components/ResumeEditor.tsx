@@ -87,7 +87,7 @@ interface ResumeEditorProps {
   showPreview?: boolean;
 }
 
-export default function ResumeEditor({ resumeId, onSave, template, showPreview = false }: ResumeEditorProps) {
+export default function ResumeEditor({ resumeId, onSave, template }: ResumeEditorProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -458,7 +458,7 @@ export default function ResumeEditor({ resumeId, onSave, template, showPreview =
 
       <Box 
         display="flex" 
-        flexDirection={showPreview ? { xs: 'column', md: 'row' } : { xs: 'column', lg: 'row' }}
+        flexDirection={{ xs: 'column', lg: 'row' }}
         gap={3}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -1108,7 +1108,8 @@ export default function ResumeEditor({ resumeId, onSave, template, showPreview =
         <Box sx={{ 
           flex: 1, 
           minWidth: 0, 
-          display: showPreview ? 'block' : { xs: 'none', lg: 'block' } 
+          display: 'block',
+          width: { xs: '90%', lg: '90%' },
         }}>
           {template === 'modern' && (
             <ModernResumeTemplate data={resumeData} />
