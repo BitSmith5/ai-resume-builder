@@ -5,6 +5,7 @@ import { prisma } from "../../../../lib/prisma";
 import type { Session } from "next-auth";
 import fs from "fs";
 import path from "path";
+import { Prisma } from "@prisma/client";
 
 export async function GET(
   request: NextRequest,
@@ -192,7 +193,7 @@ export async function PUT(
         interests: {
           create: processedInterests,
         },
-      } as any,
+      } as Prisma.ResumeUpdateInput,
       include: {
         strengths: true,
         workExperience: true,
