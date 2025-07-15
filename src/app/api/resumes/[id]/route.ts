@@ -36,7 +36,22 @@ export async function GET(
       return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }
 
-    return NextResponse.json(resume);
+    // Convert dates to YYYY-MM-DD format for HTML date inputs
+    const processedResume = {
+      ...resume,
+      workExperience: resume.workExperience.map((exp) => ({
+        ...exp,
+        startDate: exp.startDate ? exp.startDate.toISOString().split('T')[0] : '',
+        endDate: exp.endDate ? exp.endDate.toISOString().split('T')[0] : '',
+      })),
+      education: resume.education.map((edu) => ({
+        ...edu,
+        startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
+        endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
+      })),
+    };
+
+    return NextResponse.json(processedResume);
   } catch (error) {
     console.error("Error fetching resume:", error);
     return NextResponse.json(
@@ -159,7 +174,7 @@ export async function PUT(
         interests: {
           create: processedInterests,
         },
-      },
+      } as any,
       include: {
         strengths: true,
         workExperience: true,
@@ -169,7 +184,22 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(resume);
+    // Convert dates to YYYY-MM-DD format for HTML date inputs
+    const processedResume = {
+      ...resume,
+      workExperience: resume.workExperience.map((exp) => ({
+        ...exp,
+        startDate: exp.startDate ? exp.startDate.toISOString().split('T')[0] : '',
+        endDate: exp.endDate ? exp.endDate.toISOString().split('T')[0] : '',
+      })),
+      education: resume.education.map((edu) => ({
+        ...edu,
+        startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
+        endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
+      })),
+    };
+
+    return NextResponse.json(processedResume);
   } catch (error) {
     console.error("Error updating resume:", error);
     return NextResponse.json(

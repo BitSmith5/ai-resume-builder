@@ -36,7 +36,22 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(resumes);
+    // Convert dates to YYYY-MM-DD format for HTML date inputs
+    const processedResumes = resumes.map((resume) => ({
+      ...resume,
+      workExperience: resume.workExperience.map((exp) => ({
+        ...exp,
+        startDate: exp.startDate ? exp.startDate.toISOString().split('T')[0] : '',
+        endDate: exp.endDate ? exp.endDate.toISOString().split('T')[0] : '',
+      })),
+      education: resume.education.map((edu) => ({
+        ...edu,
+        startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
+        endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
+      })),
+    }));
+
+    return NextResponse.json(processedResumes);
   } catch (error) {
     console.error("Error fetching resumes:", error);
     return NextResponse.json(
@@ -135,7 +150,7 @@ export async function POST(request: NextRequest) {
         interests: {
           create: processedInterests,
         },
-      },
+      } as any,
       select: {
         id: true,
         title: true,
@@ -151,7 +166,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(resume, { status: 201 });
+    // Convert dates to YYYY-MM-DD format for HTML date inputs
+    const processedResume = {
+      ...resume,
+      workExperience: resume.workExperience.map((exp) => ({
+        ...exp,
+        startDate: exp.startDate ? exp.startDate.toISOString().split('T')[0] : '',
+        endDate: exp.endDate ? exp.endDate.toISOString().split('T')[0] : '',
+      })),
+      education: resume.education.map((edu) => ({
+        ...edu,
+        startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
+        endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
+      })),
+    };
+
+    return NextResponse.json(processedResume, { status: 201 });
   } catch (error) {
     console.error("Error creating resume:", error);
     return NextResponse.json(
