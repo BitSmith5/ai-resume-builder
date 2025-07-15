@@ -3,6 +3,7 @@ import { formatDate, formatUrl } from '@/lib/utils';
 
 interface ResumeData {
   title: string;
+  profilePicture?: string;
   content: {
     personalInfo: {
       name: string;
@@ -128,7 +129,7 @@ function renderModernTemplate(data: ResumeData): string {
     <body>
       <div class="resume">
         <div class="sidebar">
-          <div style="width: 80px; height: 80px; border-radius: 50%; background: #e0e0e0; margin-bottom: 20px;"></div>
+          ${data.profilePicture ? `<div style="width: 80px; height: 80px; border-radius: 50%; background-image: url(${data.profilePicture}); background-size: cover; background-position: center; margin-bottom: 20px;"></div>` : ''}
           <div style="font-weight: 600; font-size: 18px; margin-bottom: 16px;">${personalInfo.name}</div>
           ${contactInfo}
           <div class="section-title" style="margin-top: 24px;">Skills</div>

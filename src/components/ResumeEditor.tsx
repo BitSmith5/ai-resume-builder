@@ -820,49 +820,56 @@ export default function ResumeEditor({
                           />
                         )}
                         <Box sx={{ flex: 1}}>
-                          <Button
-                            variant="outlined"
-                            component="label"
-                            disabled={uploadingProfilePic}
-                            sx={{
-                              marginRight: 2,
-                            }}
-                          >
-                            {uploadingProfilePic ? "Uploading..." : "Upload Image"}
-                            <input
-                              type="file"
-                              accept="image/png, image/jpeg, image/heic, image/heif"
-                              hidden
-                              onChange={async (e) => {
-                                setProfilePicError("");
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                if (!["image/png", "image/jpeg", "image/heic", "image/heif"].includes(file.type)) {
-                                  setProfilePicError("Only PNG, JPG, or HEIC/HEIF allowed");
-                                  return;
-                                }
-                                setUploadingProfilePic(true);
-                                const formData = new FormData();
-                                formData.append("file", file);
-                                try {
-                                  const res = await fetch("/api/resumes/upload-profile-picture", {
-                                    method: "POST",
-                                    body: formData,
-                                  });
-                                  const data = await res.json();
-                                  if (res.ok && data.filePath) {
-                                    setResumeData((prev) => ({ ...prev, profilePicture: data.filePath }));
-                                  } else {
-                                    setProfilePicError(data.error || "Upload failed");
+                          <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+                            <Button
+                              variant="outlined"
+                              component="label"
+                              disabled={uploadingProfilePic}
+                            >
+                              {uploadingProfilePic ? "Uploading..." : "Upload Image"}
+                              <input
+                                type="file"
+                                accept="image/png, image/jpeg, image/heic, image/heif"
+                                hidden
+                                onChange={async (e) => {
+                                  setProfilePicError("");
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  if (!["image/png", "image/jpeg", "image/heic", "image/heif"].includes(file.type)) {
+                                    setProfilePicError("Only PNG, JPG, or HEIC/HEIF allowed");
+                                    return;
                                   }
-                                } catch {
-                                  setProfilePicError("Upload failed");
-                                } finally {
-                                  setUploadingProfilePic(false);
-                                }
-                              }}
-                            />
-                          </Button>
+                                  setUploadingProfilePic(true);
+                                  const formData = new FormData();
+                                  formData.append("file", file);
+                                  try {
+                                    const res = await fetch("/api/resumes/upload-profile-picture", {
+                                      method: "POST",
+                                      body: formData,
+                                    });
+                                    const data = await res.json();
+                                    if (res.ok && data.filePath) {
+                                      setResumeData((prev) => ({ ...prev, profilePicture: data.filePath }));
+                                    } else {
+                                      setProfilePicError(data.error || "Upload failed");
+                                    }
+                                  } catch {
+                                    setProfilePicError("Upload failed");
+                                  } finally {
+                                    setUploadingProfilePic(false);
+                                  }
+                                }}
+                              />
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              onClick={() => setResumeData((prev) => ({ ...prev, profilePicture: "" }))}
+                              disabled={uploadingProfilePic}
+                            >
+                              Remove
+                            </Button>
+                          </Box>
                           {profilePicError && (
                             <Typography color="error" variant="caption">{profilePicError}</Typography>
                           )}

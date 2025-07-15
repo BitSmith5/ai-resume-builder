@@ -124,8 +124,8 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
         flexDirection: 'column', 
         alignItems: 'center' 
       }}>
-        {/* Avatar Placeholder */}
-        {data.profilePicture ? (
+        {/* Profile Picture */}
+        {data.profilePicture && (
           <div style={{ 
             width: '160px',
             height: '160px',
@@ -133,14 +133,6 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             backgroundImage: `url(${data.profilePicture})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            marginBottom: '20px' 
-          }} />
-        ) : (
-          <div style={{ 
-            width: '160px',
-            height: '160px',
-            borderRadius: '10%', 
-            background: '#e0e0e0', 
             marginBottom: '20px' 
           }} />
         )}
