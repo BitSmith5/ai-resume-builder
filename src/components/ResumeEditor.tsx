@@ -686,7 +686,12 @@ export default function ResumeEditor({
   }
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ 
+      width: {xs: "100%", md: "100%"}, 
+      display: {xs: "flex", md: "block"},
+      flexDirection: {xs: "column", md: "row"},
+      alignItems: {xs: "center", md: "stretch"}
+    }}>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -701,6 +706,7 @@ export default function ResumeEditor({
       <Box
         display="flex"
         flexDirection={{ xs: "column", md: "row" }}
+        width="100%"
         justifyContent="space-between"
         alignItems={{ xs: "stretch", md: "center" }}
         gap={{ xs: 2, md: 3 }}
@@ -754,7 +760,7 @@ export default function ResumeEditor({
       </Box>
 
       {/* Template Selector */}
-      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 }, mb: 3 }}>
+      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 }, mb: 3, width: "100%" }}>
         <Box
           display="flex"
           flexDirection={{ xs: "column", sm: "row" }}
@@ -809,7 +815,7 @@ export default function ResumeEditor({
       </Paper>
 
       {/* Editor Form and Preview Container */}
-      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
+      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3} width="100%">
         {/* Editor Form */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Paper sx={{ p: { xs: 2, md: 3 } }}>

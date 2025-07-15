@@ -194,7 +194,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, md: 3 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
         }}
       >

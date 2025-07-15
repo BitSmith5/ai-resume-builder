@@ -18,7 +18,7 @@ export default function EditResumePage() {
 
   return (
     <DashboardLayout>
-      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 } }}>
+      <Box maxWidth="xl" sx={{ py: { xs: 2, md: 3 }, px: {xs: 2, md: 3}, overflow: "hidden", maxWidth: "100vw", scrollbarGutter: "stable" }}>
         <Box sx={{ mb: { xs: 3, md: 4 } }}>
           <Typography 
             variant="h4" 
@@ -47,7 +47,7 @@ export default function EditResumePage() {
           onSave={handleSave} 
           template="modern"
         />
-      </Container>
+      </Box>
     </DashboardLayout>
   );
 } 
