@@ -150,6 +150,7 @@ export async function POST(request: NextRequest) {
         interests: {
           create: processedInterests,
         },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       select: {
         id: true,

@@ -174,6 +174,7 @@ export async function PUT(
         interests: {
           create: processedInterests,
         },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       include: {
         strengths: true,

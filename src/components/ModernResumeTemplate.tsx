@@ -260,14 +260,13 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   height: 10, 
                   backgroundColor: 'transparent', 
                   border: '2px solid #c94f4f',
-                  borderRadius: 0,
                   overflow: 'hidden'
                 }}>
                   <div style={{
                     width: `${(s.rating / 10) * 100}%`,
                     height: '100%',
                     backgroundColor: '#c94f4f',
-                    borderRadius: 0
+                    padding: 1
                   }} />
                 </div>
               </div>
