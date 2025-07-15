@@ -2044,19 +2044,15 @@ export default function ResumeEditor({
             mx: { xs: "auto", md: 0 },
             position: "relative",
             background: "transparent",
-            minHeight: 0,
             minWidth: 0,
             px: { xs: 1, sm: 0 },
             mt: { xs: 3, md: 0 },
-            overflow: "auto", // Allow vertical scrolling for multiple pages
-            overflowX: "hidden", // Prevent horizontal scrolling
+            overflow: "visible", // Allow content to expand naturally
           }}
         >
           <Box
             sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
+              position: "relative",
               width: 850,
               background: "#fff",
               transform: `scale(${zoom})`,
