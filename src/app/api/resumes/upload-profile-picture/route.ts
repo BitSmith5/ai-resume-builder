@@ -6,6 +6,7 @@ import { IncomingForm } from "formidable";
 import type { Fields, Files, File } from "formidable";
 import fs from "fs";
 import path from "path";
+import { Readable } from "stream";
 
 export const config = {
   api: {
@@ -15,7 +16,7 @@ export const config = {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = (await getServerSession(authOptions as any)) as Session;
+    const session = (await getServerSession(authOptions)) as Session;
     const user = session?.user as { id: string };
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,16 +35,20 @@ export async function POST(request: NextRequest) {
 
     // formidable doesn't work natively with Next.js API routes, so we need to wrap it
     const buffer = await request.arrayBuffer();
-    const req = new (require("stream").Readable)();
+    const req = new Readable();
     req.push(Buffer.from(buffer));
     req.push(null);
-    req.headers = Object.fromEntries(request.headers.entries());
-    req.method = request.method;
-    req.url = request.url;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (req as any).headers = Object.fromEntries(request.headers.entries());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (req as any).method = request.method;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (req as any).url = request.url;
 
     const parseForm = () =>
       new Promise<{ fields: Fields; files: Files }>((resolve, reject) => {
-        form.parse(req, (err: any, fields: Fields, files: Files) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        form.parse(req as any, (err: any, fields: Fields, files: Files) => {
           if (err) reject(err);
           else resolve({ fields, files });
         });
