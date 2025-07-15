@@ -708,6 +708,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             }}>
               {data.profilePicture.startsWith('data:') ? (
                 // Handle base64 data URLs with regular img tag
+                // eslint-disable-next-line @next/next/no-img-element
                 <img 
                   src={data.profilePicture}
                   alt="Profile"

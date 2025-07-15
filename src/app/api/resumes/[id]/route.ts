@@ -88,8 +88,7 @@ export async function PUT(
     }
 
     // Convert string dates to Date objects for workExperience and remove id/resumeId fields
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedWorkExperience = (workExperience || []).map((exp: any) => {
+    const processedWorkExperience = (workExperience || []).map((exp: { id?: number; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = exp;
       return {
@@ -100,8 +99,7 @@ export async function PUT(
     });
 
     // Convert string dates to Date objects for education and remove id/resumeId fields
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedEducation = (education || []).map((edu: any) => {
+    const processedEducation = (education || []).map((edu: { id?: number; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = edu;
       return {
@@ -112,24 +110,21 @@ export async function PUT(
     });
 
     // Filter out id and resumeId fields from strengths
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedStrengths = (strengths || []).map((strength: any) => {
+    const processedStrengths = (strengths || []).map((strength: { id?: number; resumeId?: number; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = strength;
       return rest;
     });
 
     // Filter out id and resumeId fields from courses
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedCourses = (courses || []).map((course: any) => {
+    const processedCourses = (courses || []).map((course: { id?: number; resumeId?: number; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = course;
       return rest;
     });
 
     // Filter out id and resumeId fields from interests
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedInterests = (interests || []).map((interest: any) => {
+    const processedInterests = (interests || []).map((interest: { id?: number; resumeId?: number; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = interest;
       return rest;
@@ -144,9 +139,9 @@ export async function PUT(
     });
 
     // Delete old profile picture if it's being replaced or removed
-    if (currentResume && (currentResume as any).profilePicture && (currentResume as any).profilePicture !== profilePicture) {
+    if (currentResume && (currentResume as { profilePicture?: string }).profilePicture && (currentResume as { profilePicture?: string }).profilePicture !== profilePicture) {
       try {
-        const absolutePath = path.join(process.cwd(), 'public', (currentResume as any).profilePicture);
+        const absolutePath = path.join(process.cwd(), 'public', (currentResume as { profilePicture?: string }).profilePicture!);
         if (fs.existsSync(absolutePath)) {
           fs.unlinkSync(absolutePath);
         }
@@ -197,7 +192,6 @@ export async function PUT(
         interests: {
           create: processedInterests,
         },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       include: {
         strengths: true,
@@ -239,8 +233,7 @@ export async function DELETE(
 ) {
   try {
     const resolvedParams = await params;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await getServerSession(authOptions as any) as Session;
+    const session = await getServerSession(authOptions) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
     
     if (!user?.id) {
@@ -260,9 +253,9 @@ export async function DELETE(
     }
 
     // Delete the profile picture file if it exists
-    if ((resume as any).profilePicture) {
+    if ((resume as { profilePicture?: string }).profilePicture) {
       try {
-        const absolutePath = path.join(process.cwd(), 'public', (resume as any).profilePicture);
+        const absolutePath = path.join(process.cwd(), 'public', (resume as { profilePicture?: string }).profilePicture!);
         
         if (fs.existsSync(absolutePath)) {
           fs.unlinkSync(absolutePath);
