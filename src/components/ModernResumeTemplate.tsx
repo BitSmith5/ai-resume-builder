@@ -103,9 +103,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
   const [titleWidth, setTitleWidth] = React.useState(0);
   const titleRef = React.useRef<HTMLDivElement>(null);
   
-  // Debug: Log profile picture data
-  console.log('Profile picture data:', data.profilePicture);
-  console.log('Full data object:', data);
+
   
   // Function to format URLs by removing http/https prefix
   const formatUrl = (url: string): string => {
@@ -708,23 +706,43 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               overflow: 'hidden',
               flexShrink: 0
             }}>
-              <Image 
-                src={data.profilePicture.startsWith('http') ? data.profilePicture : `${window.location.origin}${data.profilePicture}`}
-                alt="Profile"
-                width={160}
-                height={160}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '10%',
-                  display: 'block'
-                }}
-                onError={(e) => {
-                  console.error('Profile picture failed to load:', data.profilePicture);
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              {data.profilePicture.startsWith('data:') ? (
+                // Handle base64 data URLs with regular img tag
+                <img 
+                  src={data.profilePicture}
+                  alt="Profile"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '10%',
+                    display: 'block'
+                  }}
+                  onError={(e) => {
+                    console.error('Profile picture failed to load:', data.profilePicture);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                // Handle regular URLs with Next.js Image component
+                <Image 
+                  src={data.profilePicture.startsWith('http') ? data.profilePicture : `${window.location.origin}${data.profilePicture}`}
+                  alt="Profile"
+                  width={160}
+                  height={160}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '10%',
+                    display: 'block'
+                  }}
+                  onError={(e) => {
+                    console.error('Profile picture failed to load:', data.profilePicture);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
             </div>
           )}
           

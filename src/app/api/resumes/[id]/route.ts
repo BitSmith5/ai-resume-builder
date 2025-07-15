@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import { prisma } from "../../../../lib/prisma";
 import type { Session } from "next-auth";
+import fs from "fs";
+import path from "path";
 
 export async function GET(
   request: NextRequest,
@@ -133,6 +135,27 @@ export async function PUT(
       return rest;
     });
 
+    // Get the current resume to check for profile picture changes
+    const currentResume = await prisma.resume.findFirst({
+      where: {
+        id: parseInt(resolvedParams.id),
+        userId: user.id,
+      },
+    });
+
+    // Delete old profile picture if it's being replaced or removed
+    if (currentResume && (currentResume as any).profilePicture && (currentResume as any).profilePicture !== profilePicture) {
+      try {
+        const absolutePath = path.join(process.cwd(), 'public', (currentResume as any).profilePicture);
+        if (fs.existsSync(absolutePath)) {
+          fs.unlinkSync(absolutePath);
+        }
+      } catch (fileError) {
+        console.error("Error deleting old profile picture file:", fileError);
+        // Continue with update even if file deletion fails
+      }
+    }
+
     // Delete existing related data
     await prisma.strength.deleteMany({
       where: { resumeId: parseInt(resolvedParams.id) },
@@ -224,6 +247,33 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get the resume first to check if it has a profile picture
+    const resume = await prisma.resume.findFirst({
+      where: {
+        id: parseInt(resolvedParams.id),
+        userId: user.id,
+      },
+    });
+
+    if (!resume) {
+      return NextResponse.json({ error: "Resume not found" }, { status: 404 });
+    }
+
+    // Delete the profile picture file if it exists
+    if ((resume as any).profilePicture) {
+      try {
+        const absolutePath = path.join(process.cwd(), 'public', (resume as any).profilePicture);
+        
+        if (fs.existsSync(absolutePath)) {
+          fs.unlinkSync(absolutePath);
+        }
+      } catch (fileError) {
+        console.error("Error deleting profile picture file:", fileError);
+        // Continue with resume deletion even if file deletion fails
+      }
+    }
+
+    // Delete the resume from database
     await prisma.resume.delete({
       where: {
         id: parseInt(resolvedParams.id),

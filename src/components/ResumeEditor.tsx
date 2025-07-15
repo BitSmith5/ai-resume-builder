@@ -182,6 +182,7 @@ export default function ResumeEditor({
   const interestNameRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   const [profilePicError, setProfilePicError] = useState("");
+  const [localProfilePicture, setLocalProfilePicture] = useState<string | null>(null);
 
   // Robust React-based zooming with aspect ratio preservation
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -269,6 +270,14 @@ export default function ResumeEditor({
     }
   }, [resumeId, loadResume]);
 
+  // Cleanup effect for local profile picture
+  useEffect(() => {
+    return () => {
+      // Clear local profile picture when component unmounts
+      setLocalProfilePicture(null);
+    };
+  }, []);
+
   // Focus on new fields when items are added
   useEffect(() => {
     // Focus on new skill name field
@@ -337,6 +346,40 @@ export default function ResumeEditor({
     setSuccess("");
 
     try {
+      let finalProfilePicture = resumeData.profilePicture;
+      
+      // If there's a local profile picture, upload it first
+      if (localProfilePicture) {
+        try {
+          // Convert base64 to blob
+          const response = await fetch(localProfilePicture);
+          const blob = await response.blob();
+          
+          // Create FormData and upload
+          const formData = new FormData();
+          formData.append("file", blob, "profile-picture.jpg");
+          
+          const uploadResponse = await fetch("/api/resumes/upload-profile-picture", {
+            method: "POST",
+            body: formData,
+          });
+          
+          const uploadData = await uploadResponse.json();
+          if (uploadResponse.ok && uploadData.filePath) {
+            finalProfilePicture = uploadData.filePath;
+            // Clear local image after successful upload
+            setLocalProfilePicture(null);
+          } else {
+            throw new Error(uploadData.error || "Failed to upload profile picture");
+          }
+        } catch (uploadError) {
+          console.error("Error uploading profile picture:", uploadError);
+          setError("Failed to upload profile picture. Please try again.");
+          setSaving(false);
+          return;
+        }
+      }
+
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
       const method = resumeId ? "PUT" : "POST";
 
@@ -345,11 +388,16 @@ export default function ResumeEditor({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(resumeData),
+        body: JSON.stringify({
+          ...resumeData,
+          profilePicture: finalProfilePicture,
+        }),
       });
 
       if (response.ok) {
         setSuccess("Resume saved successfully!");
+        // Update the resume data with the uploaded profile picture
+        setResumeData((prev) => ({ ...prev, profilePicture: finalProfilePicture }));
         onSave?.();
       } else {
         const errorData = await response.json();
@@ -805,13 +853,13 @@ export default function ResumeEditor({
                         gap={2}
                         alignItems={{ xs: "stretch", sm: "center" }}
                       >
-                        {resumeData.profilePicture && (
+                        {(localProfilePicture || resumeData.profilePicture) && (
                           <Box
                             sx={{
                               width: 100,
                               height: 100,
                               borderRadius: "10%",
-                              backgroundImage: `url(${resumeData.profilePicture})`,
+                              backgroundImage: `url(${localProfilePicture || resumeData.profilePicture})`,
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                               border: "2px solid #e0e0e0",
@@ -826,12 +874,12 @@ export default function ResumeEditor({
                               component="label"
                               disabled={uploadingProfilePic}
                             >
-                              {uploadingProfilePic ? "Uploading..." : "Upload Image"}
+                              {uploadingProfilePic ? "Processing..." : "Select Image"}
                               <input
                                 type="file"
                                 accept="image/png, image/jpeg, image/heic, image/heif"
                                 hidden
-                                onChange={async (e) => {
+                                                                onChange={async (e) => {
                                   setProfilePicError("");
                                   const file = e.target.files?.[0];
                                   if (!file) return;
@@ -839,24 +887,36 @@ export default function ResumeEditor({
                                     setProfilePicError("Only PNG, JPG, or HEIC/HEIF allowed");
                                     return;
                                   }
+                                  
+                                  // Check file size (5MB limit)
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    setProfilePicError("File size must be less than 5MB");
+                                    return;
+                                  }
+                                  
                                   setUploadingProfilePic(true);
-                                  const formData = new FormData();
-                                  formData.append("file", file);
+                                  
                                   try {
-                                    const res = await fetch("/api/resumes/upload-profile-picture", {
-                                      method: "POST",
-                                      body: formData,
-                                    });
-                                    const data = await res.json();
-                                    if (res.ok && data.filePath) {
-                                      setResumeData((prev) => ({ ...prev, profilePicture: data.filePath }));
-                                    } else {
-                                      setProfilePicError(data.error || "Upload failed");
-                                    }
-                                  } catch {
-                                    setProfilePicError("Upload failed");
-                                  } finally {
+                                    // Convert file to base64 for local storage
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                      const base64 = event.target?.result as string;
+                                      setLocalProfilePicture(base64);
+                                      setUploadingProfilePic(false);
+                                      // Reset the file input so it can be used again
+                                      e.target.value = "";
+                                    };
+                                    reader.onerror = () => {
+                                      setProfilePicError("Failed to read image file");
+                                      setUploadingProfilePic(false);
+                                      e.target.value = "";
+                                    };
+                                    reader.readAsDataURL(file);
+                                  } catch (error) {
+                                    console.error("Error processing image:", error);
+                                    setProfilePicError("Failed to process image");
                                     setUploadingProfilePic(false);
+                                    e.target.value = "";
                                   }
                                 }}
                               />
@@ -864,7 +924,31 @@ export default function ResumeEditor({
                             <Button
                               variant="outlined"
                               color="error"
-                              onClick={() => setResumeData((prev) => ({ ...prev, profilePicture: "" }))}
+                              onClick={async () => {
+                                const currentProfilePicture = resumeData.profilePicture;
+                                if (currentProfilePicture) {
+                                  try {
+                                    const response = await fetch("/api/resumes/delete-profile-picture", {
+                                      method: "POST",
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: JSON.stringify({ 
+                                        filePath: currentProfilePicture,
+                                        source: "remove-button" 
+                                      }),
+                                    });
+                                    
+                                    if (!response.ok) {
+                                      console.error("Failed to delete profile picture from server");
+                                    }
+                                  } catch (error) {
+                                    console.error("Error deleting profile picture:", error);
+                                  }
+                                }
+                                setResumeData((prev) => ({ ...prev, profilePicture: "" }));
+                                setLocalProfilePicture(null);
+                              }}
                               disabled={uploadingProfilePic}
                             >
                               Remove
@@ -874,7 +958,7 @@ export default function ResumeEditor({
                             <Typography color="error" variant="caption">{profilePicError}</Typography>
                           )}
                           <Typography variant="caption" color="text.secondary">
-                            Max 5MB. PNG, JPG, or HEIC/HEIF (Apple Photos) allowed.
+                            Max 5MB. PNG, JPG, or HEIC/HEIF (Apple Photos) allowed. Image will be uploaded when you save the resume.
                           </Typography>
                         </Box>
                       </Box>
@@ -1988,7 +2072,7 @@ export default function ResumeEditor({
               data={{
                 id: 0,
                 title: resumeData.title,
-                profilePicture: resumeData.profilePicture,
+                profilePicture: localProfilePicture || resumeData.profilePicture,
                 content: resumeData.content,
                 strengths: resumeData.strengths.map((s, index) => ({
                   id: index,
