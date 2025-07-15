@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { MdEmail, MdPhone, MdLocationOn, MdLanguage, MdLink } from 'react-icons/md';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 
@@ -144,19 +145,18 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
     };
     
     let currentHeight = 0;
-    let currentLeftHeight = 0;
     const headerHeight = 120; // Header section height (only on first page)
     const sectionSpacing = 32; // Spacing between sections
     const itemSpacing = 12; // Spacing between items
     
     // Helper function to estimate content height
-    const estimateContentHeight = (content: any, type: 'work' | 'education' | 'course'): number => {
+    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0], type: 'work' | 'education' | 'course'): number => {
       let height = 0;
       
       switch (type) {
         case 'work':
           height = 90; // Adjusted base height for work experience item
-          if (content.bulletPoints && content.bulletPoints.length > 0) {
+          if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
             height += content.bulletPoints.length * 25; // Each bullet point adds ~25px
           }
           break;
@@ -184,7 +184,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
     };
     
     // Helper function to add section to current page
-    const addSectionToPage = (section: any[], type: 'work' | 'education' | 'course') => {
+    const addSectionToPage = (section: ResumeData['workExperience'] | ResumeData['education'] | NonNullable<ResumeData['courses']>, type: 'work' | 'education' | 'course') => {
       const sectionHeight = 50; // Section header height
       
       // Check if we need a new page for this section
@@ -200,7 +200,6 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           }
         };
         currentHeight = 0; // No header on subsequent pages
-        currentLeftHeight = 0; // Reset left column height
       }
       
       currentHeight += sectionHeight;
@@ -221,18 +220,17 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             }
           };
           currentHeight = sectionHeight; // Include section header on new page
-          currentLeftHeight = 0; // Reset left column height
         }
         
         switch (type) {
           case 'work':
-            currentPage.workExperience.push(item);
+            currentPage.workExperience.push(item as ResumeData['workExperience'][0]);
             break;
           case 'education':
-            currentPage.education.push(item);
+            currentPage.education.push(item as ResumeData['education'][0]);
             break;
           case 'course':
-            currentPage.courses.push(item);
+            currentPage.courses.push(item as NonNullable<ResumeData['courses']>[0]);
             break;
         }
         
@@ -710,9 +708,11 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               overflow: 'hidden',
               flexShrink: 0
             }}>
-              <img 
+              <Image 
                 src={data.profilePicture.startsWith('http') ? data.profilePicture : `${window.location.origin}${data.profilePicture}`}
                 alt="Profile"
+                width={160}
+                height={160}
                 style={{
                   width: '100%',
                   height: '100%',
