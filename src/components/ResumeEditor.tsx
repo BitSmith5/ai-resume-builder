@@ -192,10 +192,8 @@ export default function ResumeEditor({
     function updateZoom() {
       if (!wrapperRef.current) return;
       const width = wrapperRef.current.offsetWidth;
-      const height = wrapperRef.current.offsetHeight;
       const scaleW = width / 850;
-      const scaleH = height / 1100;
-      setZoom(Math.min(scaleW, scaleH, 1));
+      setZoom(Math.min(scaleW, 1));
     }
     updateZoom();
     window.addEventListener("resize", updateZoom);
@@ -818,11 +816,9 @@ export default function ResumeEditor({
             <Tabs
               value={activeTab}
               onChange={(_, newValue) => setActiveTab(newValue)}
-              variant="scrollable"
-              scrollButtons="auto"
+              variant="fullWidth"
               sx={{
                 "& .MuiTab-root": {
-                  minWidth: { xs: "auto", sm: 120 },
                   fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 },
               }}
@@ -2045,7 +2041,6 @@ export default function ResumeEditor({
             flex: { md: 1 },
             width: { xs: "90vw", sm: "90%", md: "100%" },
             maxWidth: { xs: 850, md: "none" },
-            aspectRatio: "850 / 1100",
             mx: { xs: "auto", md: 0 },
             position: "relative",
             background: "transparent",
@@ -2053,6 +2048,8 @@ export default function ResumeEditor({
             minWidth: 0,
             px: { xs: 1, sm: 0 },
             mt: { xs: 3, md: 0 },
+            overflow: "auto", // Allow vertical scrolling for multiple pages
+            overflowX: "hidden", // Prevent horizontal scrolling
           }}
         >
           <Box
@@ -2061,7 +2058,6 @@ export default function ResumeEditor({
               top: 0,
               left: 0,
               width: 850,
-              height: 1100,
               background: "#fff",
               transform: `scale(${zoom})`,
               transformOrigin: "top left",
