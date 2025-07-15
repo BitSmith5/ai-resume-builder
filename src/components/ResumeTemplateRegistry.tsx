@@ -50,6 +50,11 @@ export interface ResumeData {
     provider: string;
     link?: string;
   }>;
+  interests?: Array<{
+    id: number;
+    name: string;
+    icon: string;
+  }>;
   createdAt: string;
 }
 
@@ -117,6 +122,10 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
       title: course.title,
       provider: course.provider,
       link: course.link
+    })),
+    interests: data.interests?.map(interest => ({
+      name: interest.name,
+      icon: interest.icon
     }))
   };
 

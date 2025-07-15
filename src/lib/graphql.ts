@@ -34,6 +34,10 @@ export interface ResumeData {
     provider: string;
     link?: string;
   }>;
+  interests: Array<{
+    name: string;
+    icon: string;
+  }>;
 }
 
 export const getResumes = async () => {
@@ -51,6 +55,7 @@ export const getResumes = async () => {
       workExperience: true,
       education: true,
       courses: true,
+      interests: true,
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -74,6 +79,7 @@ export const getResume = async (id: string) => {
       workExperience: true,
       education: true,
       courses: true,
+      interests: true,
     },
   });
 };
@@ -103,12 +109,16 @@ export const createResume = async (data: ResumeData) => {
       courses: {
         create: data.courses || [],
       },
+      interests: {
+        create: data.interests || [],
+      },
     },
     include: {
       strengths: true,
       workExperience: true,
       education: true,
       courses: true,
+      interests: true,
     },
   });
 };
@@ -134,6 +144,10 @@ export const updateResume = async (id: string, data: ResumeData) => {
   await prisma.course.deleteMany({
     where: { resumeId: parseInt(id) },
   });
+  // Delete existing interests
+  await prisma.interest.deleteMany({
+    where: { resumeId: parseInt(id) },
+  });
 
   return await prisma.resume.update({
     where: { 
@@ -155,12 +169,16 @@ export const updateResume = async (id: string, data: ResumeData) => {
       courses: {
         create: data.courses || [],
       },
+      interests: {
+        create: data.interests || [],
+      },
     },
     include: {
       strengths: true,
       workExperience: true,
       education: true,
       courses: true,
+      interests: true,
     },
   });
 };

@@ -31,6 +31,57 @@ import ResumeTemplateRegistry, {
 } from "./ResumeTemplateRegistry";
 // import { generateResumePDF } from './ResumePDF';
 
+// Available icons for interests
+const AVAILABLE_ICONS = [
+  { value: '🎵', label: 'Music' },
+  { value: '📚', label: 'Reading' },
+  { value: '🏃‍♂️', label: 'Running' },
+  { value: '🏋️‍♂️', label: 'Gym' },
+  { value: '🎨', label: 'Art' },
+  { value: '📷', label: 'Photography' },
+  { value: '🎮', label: 'Gaming' },
+  { value: '🍳', label: 'Cooking' },
+  { value: '✈️', label: 'Travel' },
+  { value: '🎬', label: 'Movies' },
+  { value: '🎭', label: 'Theater' },
+  { value: '🏊‍♂️', label: 'Swimming' },
+  { value: '🚴‍♂️', label: 'Cycling' },
+  { value: '🎯', label: 'Target Shooting' },
+  { value: '🧘‍♀️', label: 'Yoga' },
+  { value: '🎲', label: 'Board Games' },
+  { value: '🎸', label: 'Guitar' },
+  { value: '🎹', label: 'Piano' },
+  { value: '🎤', label: 'Singing' },
+  { value: '💻', label: 'Programming' },
+  { value: '🔬', label: 'Science' },
+  { value: '🌱', label: 'Gardening' },
+  { value: '🐕', label: 'Dogs' },
+  { value: '🐱', label: 'Cats' },
+  { value: '🏔️', label: 'Hiking' },
+  { value: '🏖️', label: 'Beach' },
+  { value: '🎿', label: 'Skiing' },
+  { value: '🏄‍♂️', label: 'Surfing' },
+  { value: '🎾', label: 'Tennis' },
+  { value: '⚽', label: 'Soccer' },
+  { value: '🏀', label: 'Basketball' },
+  { value: '🏈', label: 'Football' },
+  { value: '⚾', label: 'Baseball' },
+  { value: '🎳', label: 'Bowling' },
+  { value: '♟️', label: 'Chess' },
+  { value: '✏️', label: 'Drawing' },
+  { value: '📝', label: 'Writing' },
+  { value: '📊', label: 'Data Analysis' },
+  { value: '🔍', label: 'Research' },
+  { value: '🌍', label: 'Languages' },
+  { value: '📈', label: 'Investing' },
+  { value: '🏛️', label: 'History' },
+  { value: '🌌', label: 'Astronomy' },
+  { value: '🧬', label: 'Biology' },
+  { value: '⚗️', label: 'Chemistry' },
+  { value: '⚡', label: 'Physics' },
+  { value: '🧮', label: 'Mathematics' }
+];
+
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
   // Remove all non-digit characters
@@ -90,6 +141,10 @@ interface ResumeData {
     provider: string;
     link?: string;
   }>;
+  interests: Array<{
+    name: string;
+    icon: string;
+  }>;
 }
 
 interface ResumeEditorProps {
@@ -118,10 +173,12 @@ export default function ResumeEditor({
     null,
   );
   const [newCourseIndex, setNewCourseIndex] = useState<number | null>(null);
+  const [newInterestIndex, setNewInterestIndex] = useState<number | null>(null);
   const skillNameRefs = useRef<(HTMLInputElement | null)[]>([]);
   const workCompanyRefs = useRef<(HTMLInputElement | null)[]>([]);
   const educationInstitutionRefs = useRef<(HTMLInputElement | null)[]>([]);
   const courseTitleRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const interestNameRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Robust React-based zooming with aspect ratio preservation
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -160,6 +217,7 @@ export default function ResumeEditor({
     workExperience: [],
     education: [],
     courses: [],
+    interests: [],
   });
 
   const loadResume = useCallback(async () => {
@@ -188,6 +246,7 @@ export default function ResumeEditor({
           workExperience: resume.workExperience,
           education: resume.education,
           courses: resume.courses || [],
+          interests: resume.interests || [],
         });
       } else {
         setError("Failed to load resume");
@@ -245,15 +304,26 @@ export default function ResumeEditor({
         setNewCourseIndex(null);
       }
     }
+
+    // Focus on new interest name field
+    if (newInterestIndex !== null && interestNameRefs.current[newInterestIndex]) {
+      const input = interestNameRefs.current[newInterestIndex];
+      if (input) {
+        input.focus();
+        setNewInterestIndex(null);
+      }
+    }
   }, [
     newSkillIndex,
     newWorkIndex,
     newEducationIndex,
     newCourseIndex,
+    newInterestIndex,
     resumeData.strengths.length,
     resumeData.workExperience.length,
     resumeData.education.length,
     resumeData.courses.length,
+    resumeData.interests.length,
   ]);
 
   const handleSave = async () => {
@@ -489,6 +559,37 @@ export default function ResumeEditor({
     }));
   };
 
+  const addInterest = () => {
+    setResumeData((prev) => {
+      const newIndex = prev.interests.length;
+      setNewInterestIndex(newIndex);
+      return {
+        ...prev,
+        interests: [...prev.interests, { name: "", icon: "🎵" }],
+      };
+    });
+  };
+
+  const updateInterest = (
+    index: number,
+    field: "name" | "icon",
+    value: string,
+  ) => {
+    setResumeData((prev) => ({
+      ...prev,
+      interests: prev.interests.map((interest, i) =>
+        i === index ? { ...interest, [field]: value } : interest,
+      ),
+    }));
+  };
+
+  const removeInterest = (index: number) => {
+    setResumeData((prev) => ({
+      ...prev,
+      interests: prev.interests.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleDownloadPDF = async () => {
     if (!resumeId) {
       setError("Please save the resume first before downloading");
@@ -678,6 +779,7 @@ export default function ResumeEditor({
               <Tab label="Work Experience" />
               <Tab label="Education" />
               <Tab label="Courses" />
+              <Tab label="Interests" />
             </Tabs>
 
             <Box sx={{ mt: 3 }}>
@@ -1621,6 +1723,143 @@ export default function ResumeEditor({
                   )}
                 </Box>
               )}
+
+              {activeTab === 5 && (
+                <Box>
+                  <Box
+                    display="flex"
+                    flexDirection={{ xs: "column", sm: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: "stretch", sm: "center" }}
+                    gap={2}
+                    mb={2}
+                  >
+                    <Typography variant="h6">Interests & Hobbies</Typography>
+                    <Button
+                      startIcon={<AddIcon />}
+                      onClick={addInterest}
+                      variant="outlined"
+                      size="small"
+                    >
+                      Add Interest
+                    </Button>
+                  </Box>
+                  {resumeData.interests.map((interest, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        mb: 3,
+                        p: 2,
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Stack spacing={2}>
+                        <Box
+                          display="flex"
+                          flexDirection={{ xs: "column", sm: "row" }}
+                          gap={2}
+                          alignItems={{ xs: "stretch", sm: "center" }}
+                        >
+                          <TextField
+                            fullWidth
+                            label="Interest Name"
+                            value={interest.name}
+                            onChange={(e) =>
+                              updateInterest(index, "name", e.target.value)
+                            }
+                            inputRef={(el) => {
+                              interestNameRefs.current[index] = el;
+                            }}
+                            placeholder="e.g., Photography, Chess, Hiking"
+                            sx={{
+                              "& .MuiInputBase-input:-webkit-autofill": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:hover": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:focus": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                            }}
+                          />
+                          <FormControl
+                            sx={{
+                              width: { xs: "100%", sm: 200 },
+                              "& .MuiInputBase-input:-webkit-autofill": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:hover": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                              "& .MuiInputBase-input:-webkit-autofill:focus": {
+                                WebkitBoxShadow:
+                                  "0 0 0 1000px white inset !important",
+                                WebkitTextFillColor: "black !important",
+                              },
+                            }}
+                          >
+                            <InputLabel>Icon</InputLabel>
+                            <Select
+                              value={interest.icon}
+                              label="Icon"
+                              onChange={(e) =>
+                                updateInterest(index, "icon", e.target.value)
+                              }
+                              renderValue={(value) => (
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                  <span style={{ fontSize: "1.2em" }}>{value}</span>
+                                  <span>{AVAILABLE_ICONS.find(icon => icon.value === value)?.label || "Custom"}</span>
+                                </Box>
+                              )}
+                            >
+                              {AVAILABLE_ICONS.map((icon) => (
+                                <MenuItem key={icon.value} value={icon.value}>
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <span style={{ fontSize: "1.2em" }}>{icon.value}</span>
+                                    <span>{icon.label}</span>
+                                  </Box>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <IconButton
+                            onClick={() => removeInterest(index)}
+                            color="error"
+                            sx={{ alignSelf: { xs: "flex-end", sm: "center" } }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  ))}
+                  {resumeData.interests.length === 0 && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        fontStyle: "italic",
+                        textAlign: "center",
+                        py: 4,
+                      }}
+                    >
+                      No interests added yet. Click &quot;Add Interest&quot; to get started.
+                    </Typography>
+                  )}
+                </Box>
+              )}
             </Box>
           </Paper>
         </Box>
@@ -1689,6 +1928,11 @@ export default function ResumeEditor({
                   title: course.title,
                   provider: course.provider,
                   link: course.link,
+                })),
+                interests: resumeData.interests.map((interest, index) => ({
+                  id: index,
+                  name: interest.name,
+                  icon: interest.icon,
                 })),
                 createdAt: new Date().toISOString(),
               }}

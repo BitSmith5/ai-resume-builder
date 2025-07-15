@@ -38,6 +38,15 @@ interface ResumeData {
     current: boolean;
     gpa?: number;
   }>;
+  courses?: Array<{
+    title: string;
+    provider: string;
+    link?: string;
+  }>;
+  interests?: Array<{
+    name: string;
+    icon: string;
+  }>;
 }
 
 interface ClassicResumeTemplateProps {

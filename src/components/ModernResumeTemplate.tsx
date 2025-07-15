@@ -49,7 +49,7 @@ interface ResumeData {
   }>;
   interests?: Array<{
     name: string;
-    icon?: string;
+    icon: string;
   }>;
 }
 
@@ -286,12 +286,13 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 gap: 8
               }}>
                 <div style={{ 
-                  width: 12, 
-                  height: 12, 
-                  borderRadius: '50%', 
-                  backgroundColor: '#c94f4f',
-                  flexShrink: 0
-                }} />
+                  fontSize: '16px',
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  filter: 'grayscale(100%) brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(80%)'
+                }}>{interest.icon}</div>
                 <div style={{ 
                   fontSize: 'clamp(11px, 1.8vw, 14px)', 
                   wordWrap: 'break-word',

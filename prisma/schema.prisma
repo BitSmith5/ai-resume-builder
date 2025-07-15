@@ -70,6 +70,7 @@ model Resume {
   strengths      Strength[]
   workExperience WorkExperience[]
   courses        Course[]
+  interests      Interest[]
 }
 
 model Strength {
@@ -112,4 +113,12 @@ model Course {
   provider  String
   link      String?
   resume    Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Interest {
+  id       Int    @id @default(autoincrement())
+  resumeId Int
+  name     String
+  icon     String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
