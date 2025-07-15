@@ -61,7 +61,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, content, strengths, workExperience, education, courses, interests } = body;
+    const { title, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -143,6 +143,7 @@ export async function PUT(
       data: {
         title,
         content,
+        profilePicture: profilePicture || null,
         strengths: {
           create: processedStrengths,
         },

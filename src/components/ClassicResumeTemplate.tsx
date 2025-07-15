@@ -2,6 +2,7 @@ import React from 'react';
 
 interface ResumeData {
   title: string;
+  profilePicture?: string;
   content: {
     personalInfo: {
       name: string;
@@ -86,6 +87,18 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '30px', borderBottom: '2px solid #000', paddingBottom: '20px' }}>
+        {data.profilePicture && (
+          <div style={{ 
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%', 
+            backgroundImage: `url(${data.profilePicture})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            margin: '0 auto 15px auto',
+            border: '3px solid #000'
+          }} />
+        )}
         <h1 style={{ 
           fontSize: '32px', 
           fontWeight: 'bold', 

@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, content, strengths, workExperience, education, courses, interests } = body;
+    const { title, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         content: content,
+        profilePicture: profilePicture || null,
         userId: user.id,
         strengths: {
           create: processedStrengths,

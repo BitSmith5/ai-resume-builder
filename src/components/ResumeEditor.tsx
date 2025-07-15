@@ -100,6 +100,7 @@ const formatPhoneNumber = (value: string): string => {
 
 interface ResumeData {
   title: string;
+  profilePicture?: string;
   content: {
     personalInfo: {
       name: string;
@@ -179,6 +180,8 @@ export default function ResumeEditor({
   const educationInstitutionRefs = useRef<(HTMLInputElement | null)[]>([]);
   const courseTitleRefs = useRef<(HTMLInputElement | null)[]>([]);
   const interestNameRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
+  const [profilePicError, setProfilePicError] = useState("");
 
   // Robust React-based zooming with aspect ratio preservation
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -200,6 +203,7 @@ export default function ResumeEditor({
 
   const [resumeData, setResumeData] = useState<ResumeData>({
     title: "",
+    profilePicture: "",
     content: {
       personalInfo: {
         name: "",
@@ -228,6 +232,7 @@ export default function ResumeEditor({
         const resume = await response.json();
         setResumeData({
           title: resume.title,
+          profilePicture: resume.profilePicture || "",
           content: {
             ...resume.content,
             personalInfo: {
@@ -789,6 +794,84 @@ export default function ResumeEditor({
                     Personal Information
                   </Typography>
                   <Stack spacing={2}>
+                    {/* Profile Picture Upload */}
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Profile Picture
+                      </Typography>
+                      <Box
+                        display="flex"
+                        flexDirection={{ xs: "column", sm: "row" }}
+                        gap={2}
+                        alignItems={{ xs: "stretch", sm: "center" }}
+                      >
+                        {resumeData.profilePicture && (
+                          <Box
+                            sx={{
+                              width: 100,
+                              height: 100,
+                              borderRadius: "10%",
+                              backgroundImage: `url(${resumeData.profilePicture})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              border: "2px solid #e0e0e0",
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                        <Box sx={{ flex: 1}}>
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            disabled={uploadingProfilePic}
+                            sx={{
+                              marginRight: 2,
+                            }}
+                          >
+                            {uploadingProfilePic ? "Uploading..." : "Upload Image"}
+                            <input
+                              type="file"
+                              accept="image/png, image/jpeg, image/heic, image/heif"
+                              hidden
+                              onChange={async (e) => {
+                                setProfilePicError("");
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (!["image/png", "image/jpeg", "image/heic", "image/heif"].includes(file.type)) {
+                                  setProfilePicError("Only PNG, JPG, or HEIC/HEIF allowed");
+                                  return;
+                                }
+                                setUploadingProfilePic(true);
+                                const formData = new FormData();
+                                formData.append("file", file);
+                                try {
+                                  const res = await fetch("/api/resumes/upload-profile-picture", {
+                                    method: "POST",
+                                    body: formData,
+                                  });
+                                  const data = await res.json();
+                                  if (res.ok && data.filePath) {
+                                    setResumeData((prev) => ({ ...prev, profilePicture: data.filePath }));
+                                  } else {
+                                    setProfilePicError(data.error || "Upload failed");
+                                  }
+                                } catch {
+                                  setProfilePicError("Upload failed");
+                                } finally {
+                                  setUploadingProfilePic(false);
+                                }
+                              }}
+                            />
+                          </Button>
+                          {profilePicError && (
+                            <Typography color="error" variant="caption">{profilePicError}</Typography>
+                          )}
+                          <Typography variant="caption" color="text.secondary">
+                            Max 5MB. PNG, JPG, or HEIC/HEIF (Apple Photos) allowed.
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
                     <TextField
                       fullWidth
                       label="Full Name"
@@ -1898,6 +1981,7 @@ export default function ResumeEditor({
               data={{
                 id: 0,
                 title: resumeData.title,
+                profilePicture: resumeData.profilePicture,
                 content: resumeData.content,
                 strengths: resumeData.strengths.map((s, index) => ({
                   id: index,

@@ -63,6 +63,7 @@ model Resume {
   userId         String
   title          String
   content        Json
+  profilePicture String?          // Stores file path like "uploads/profile-pictures/filename.jpg"
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   education      Education[]
@@ -107,12 +108,12 @@ model Education {
 }
 
 model Course {
-  id        Int    @id @default(autoincrement())
-  resumeId  Int
-  title     String
-  provider  String
-  link      String?
-  resume    Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  id       Int     @id @default(autoincrement())
+  resumeId Int
+  title    String
+  provider String
+  link     String?
+  resume   Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Interest {

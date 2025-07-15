@@ -4,6 +4,7 @@ import { FaLinkedin, FaGithub } from 'react-icons/fa';
 
 interface ResumeData {
   title: string;
+  profilePicture?: string;
   content: {
     personalInfo: {
       name: string;
@@ -124,13 +125,25 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
         alignItems: 'center' 
       }}>
         {/* Avatar Placeholder */}
-        <div style={{ 
-          width: '160px',
-          height: '160px',
-          borderRadius: '10%', 
-          background: '#e0e0e0', 
-          marginBottom: '20px' 
-        }} />
+        {data.profilePicture ? (
+          <div style={{ 
+            width: '160px',
+            height: '160px',
+            borderRadius: '10%', 
+            backgroundImage: `url(${data.profilePicture})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            marginBottom: '20px' 
+          }} />
+        ) : (
+          <div style={{ 
+            width: '160px',
+            height: '160px',
+            borderRadius: '10%', 
+            background: '#e0e0e0', 
+            marginBottom: '20px' 
+          }} />
+        )}
         {/* Contact Info */}
           <div style={{ width: '160px', marginBottom: '24px' }}>
             {personalInfo.email && (
