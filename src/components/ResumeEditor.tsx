@@ -25,7 +25,6 @@ import {
   Delete as DeleteIcon,
   Save as SaveIcon,
   Download as DownloadIcon,
-  Padding,
 } from "@mui/icons-material";
 import ResumeTemplateRegistry, {
   AVAILABLE_TEMPLATES,
