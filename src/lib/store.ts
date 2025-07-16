@@ -12,6 +12,7 @@ export interface User {
 export interface ResumeDraft {
   id?: number;
   title: string;
+  jobTitle?: string;
   content: unknown;
   strengths?: Array<{
     skillName: string;

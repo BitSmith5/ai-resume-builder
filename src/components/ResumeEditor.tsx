@@ -100,6 +100,7 @@ const formatPhoneNumber = (value: string): string => {
 
 interface ResumeData {
   title: string;
+  jobTitle?: string;
   profilePicture?: string;
   content: {
     personalInfo: {
@@ -230,6 +231,7 @@ export default function ResumeEditor({
 
   const [resumeData, setResumeData] = useState<ResumeData>({
     title: "",
+    jobTitle: "",
     profilePicture: "",
     content: {
       personalInfo: {
@@ -259,6 +261,7 @@ export default function ResumeEditor({
         const resume = await response.json();
         setResumeData({
           title: resume.title,
+          jobTitle: resume.jobTitle || "",
           profilePicture: resume.profilePicture || "",
           content: {
             ...resume.content,
@@ -1288,6 +1291,35 @@ export default function ResumeEditor({
                     />
                     <TextField
                       fullWidth
+                      label="Job Title"
+                      value={resumeData.jobTitle || ""}
+                      onChange={(e) =>
+                        setResumeData((prev) => ({
+                          ...prev,
+                          jobTitle: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., Senior Software Engineer, Marketing Manager"
+                      sx={{
+                        "& .MuiInputBase-input:-webkit-autofill": {
+                          WebkitBoxShadow:
+                            "0 0 0 1000px white inset !important",
+                          WebkitTextFillColor: "black !important",
+                        },
+                        "& .MuiInputBase-input:-webkit-autofill:hover": {
+                          WebkitBoxShadow:
+                            "0 0 0 1000px white inset !important",
+                          WebkitTextFillColor: "black !important",
+                        },
+                        "& .MuiInputBase-input:-webkit-autofill:focus": {
+                          WebkitBoxShadow:
+                            "0 0 0 1000px white inset !important",
+                          WebkitTextFillColor: "black !important",
+                        },
+                      }}
+                    />
+                    <TextField
+                      fullWidth
                       multiline
                       rows={4}
                       label="Professional Summary"
@@ -2101,6 +2133,7 @@ export default function ResumeEditor({
               data={{
                 id: 0,
                 title: resumeData.title,
+                jobTitle: resumeData.jobTitle,
                 profilePicture: localProfilePicture || resumeData.profilePicture,
                 content: resumeData.content,
                 strengths: resumeData.strengths.map((s, index) => ({

@@ -21,6 +21,7 @@ export async function GET() {
       select: {
         id: true,
         title: true,
+        jobTitle: true,
         content: true,
         createdAt: true,
         updatedAt: true,
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
+    const { title, jobTitle, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -132,6 +133,7 @@ export async function POST(request: NextRequest) {
     const resume = await prisma.resume.create({
       data: {
         title,
+        jobTitle,
         content: content,
         profilePicture: profilePicture || null,
         userId: user.id,

@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 
 interface ResumeData {
   title: string;
+  jobTitle?: string;
   content: {
     personalInfo: {
       name: string;
@@ -86,7 +87,7 @@ export const generateResumePDF = async (resumeData: ResumeData): Promise<Blob> =
       };
 
       // Title
-      yPosition = addWrappedText(resumeData.title || 'Resume', yPosition, 20, 'bold');
+      yPosition = addWrappedText(resumeData.jobTitle || resumeData.title || 'Resume', yPosition, 20, 'bold');
       yPosition += 10;
 
       // Personal Information

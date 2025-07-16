@@ -5,6 +5,7 @@ import { FaLinkedin, FaGithub } from 'react-icons/fa';
 
 interface ResumeData {
   title: string;
+  jobTitle?: string;
   profilePicture?: string;
   content: {
     personalInfo: {
@@ -377,11 +378,11 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
         // Get the computed font style from the element
         const computedStyle = window.getComputedStyle(titleRef.current);
         context.font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
-        const textWidth = context.measureText(data.title || '[Job Title]').width;
+        const textWidth = context.measureText(data.jobTitle || '[Job Title]').width;
         setTitleWidth(textWidth);
       }
     }
-  }, [data.title]);
+  }, [data.jobTitle]);
 
   // Calculate pages
   const pages = calculatePages();
@@ -410,7 +411,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           whiteSpace: 'normal',
           lineHeight: '1.2'
         }}
-      >{data.title || '[Job Title]'}</div>
+      >{data.jobTitle || '[Job Title]'}</div>
       <div style={{ 
         width: titleWidth > 0 ? `${titleWidth + 20}px` : '30%', 
         height: 1, 
@@ -436,8 +437,8 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       margin: '24px 24px 90px 0', // Balanced bottom margin
       boxSizing: 'border-box'
     }}>
-      {/* Header - only on first page */}
-      {isFirstPage && renderHeader()}
+      {/* Header - only on first page and only if job title exists */}
+      {isFirstPage && data.jobTitle && renderHeader()}
       
       {/* Work Experience */}
       {pageContent.workExperience.length > 0 && (

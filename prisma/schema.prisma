@@ -62,6 +62,7 @@ model Resume {
   id             Int              @id @default(autoincrement())
   userId         String
   title          String
+  jobTitle       String?          // Job title to display on the resume
   content        Json
   profilePicture String?          // Stores file path like "uploads/profile-pictures/filename.jpg"
   createdAt      DateTime         @default(now())

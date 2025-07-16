@@ -5,6 +5,7 @@ import ClassicResumeTemplate from './ClassicResumeTemplate';
 export interface ResumeData {
   id: number;
   title: string;
+  jobTitle?: string;
   profilePicture?: string;
   content: {
     personalInfo: {
@@ -97,6 +98,7 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
   // Transform the data to match the template interface
   const transformedData = {
     title: data.title,
+    jobTitle: data.jobTitle,
     profilePicture: data.profilePicture,
     content: data.content,
     strengths: data.strengths.map(s => ({

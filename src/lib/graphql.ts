@@ -7,6 +7,7 @@ import type { Prisma } from '@prisma/client';
 
 export interface ResumeData {
   title: string;
+  jobTitle?: string;
   content: Prisma.InputJsonValue;
   strengths: Array<{
     skillName: string;
@@ -95,6 +96,7 @@ export const createResume = async (data: ResumeData) => {
   return await prisma.resume.create({
     data: {
       title: data.title,
+      jobTitle: data.jobTitle,
       content: data.content,
       userId,
       strengths: {
@@ -156,6 +158,7 @@ export const updateResume = async (id: string, data: ResumeData) => {
     },
     data: {
       title: data.title,
+      jobTitle: data.jobTitle,
       content: data.content,
       strengths: {
         create: data.strengths || [],
