@@ -363,7 +363,7 @@ export default function ResumesPage() {
   return (
     <DashboardLayout>
       <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} p={{xs: 2, md: 3}}>
           <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Typography variant="h4" component="h1" gutterBottom>
               My Resumes
@@ -390,7 +390,7 @@ export default function ResumesPage() {
 
         {isMobile ? (
           // Mobile layout - stacked cards
-          <Box sx={{ width: "100%" }}>
+          <Box sx={{ width: "100%" }} p={{xs: 2, md: 3}}>
             {resumes.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
                 <Typography variant="body1" color="text.secondary">
@@ -408,7 +408,8 @@ export default function ResumesPage() {
           <Box sx={{ 
             height: 600, 
             width: "100%",
-            overflow: "hidden"
+            overflow: "hidden",
+            p: {xs: 2, md: 3}
           }}>
             <DataGrid
               rows={resumes}
