@@ -2081,18 +2081,21 @@ export default function ResumeEditor({
             background: "transparent",
             minWidth: 0,
             px: { xs: 0, sm: 0 },
-            mt: { xs: 3, md: 0 },
-            overflow: "hidden", // Prevent horizontal overflow
+            mt: { xs: 0, md: 0 },
+            overflow: "visible", // Allow shadow to be visible
           }}
         >
           <Box
             sx={{
               position: "relative",
               width: 850,
+              height: "fit-content",
               background: "#fff",
               transform: `scale(${zoom})`,
               transformOrigin: "top left",
               transition: "transform 0.2s",
+              // Add padding to accommodate shadow
+              boxSizing: "border-box",
             }}
           >
             <ResumeTemplateRegistry
