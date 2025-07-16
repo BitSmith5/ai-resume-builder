@@ -144,6 +144,7 @@ export default function ViewResumePage() {
         maxWidth: '100%',
         boxSizing: 'border-box',
         overflow: 'hidden',
+        p: {xs: 2, md: 3}
       }}>
         {/* Header */}
         <Box 
