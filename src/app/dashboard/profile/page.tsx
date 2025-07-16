@@ -176,7 +176,7 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <Box>
+      <Box m={2}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
           <Box>
             <Typography variant="h4" component="h1" gutterBottom>
@@ -332,7 +332,7 @@ export default function ProfilePage() {
             </Card>
 
             {/* Preferences */}
-            <Card>
+            {/* <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={3}>
                   <SettingsIcon sx={{ mr: 1, color: "primary.main" }} />
@@ -382,7 +382,7 @@ export default function ProfilePage() {
                   />
                 </Stack>
               </CardContent>
-            </Card>
+            </Card> */}
           </Box>
         </Box>
 
