@@ -44,10 +44,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     setMounted(true);
+    console.log("DashboardLayout mounted, status:", status, "session:", session);
   }, []);
+
+  useEffect(() => {
+    console.log("DashboardLayout status changed:", status, "session:", session);
+  }, [status, session]);
 
   // Show loading state while session is loading
   if (status === "loading") {
+    console.log("DashboardLayout: Showing loading state");
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <CircularProgress />
@@ -57,9 +63,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Redirect if not authenticated
   if (status === "unauthenticated") {
+    console.log("DashboardLayout: Redirecting to login");
     router.push("/login");
     return null;
   }
+
+  console.log("DashboardLayout: Rendering main layout");
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

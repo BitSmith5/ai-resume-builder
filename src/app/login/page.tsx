@@ -12,12 +12,50 @@ import {
   Typography,
   Divider,
   Alert,
+  TextField,
+  FormControl,
+  InputLabel,
+  OutlinedInput,
+  InputAdornment,
+  IconButton,
+  Tabs,
+  Tab,
 } from "@mui/material";
-import { Google as GoogleIcon, GitHub as GitHubIcon } from "@mui/icons-material";
+import { Google as GoogleIcon, GitHub as GitHubIcon, Visibility, VisibilityOff } from "@mui/icons-material";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`auth-tabpanel-${index}`}
+      aria-labelledby={`auth-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [tabValue, setTabValue] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    name: "",
+  });
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -27,6 +65,15 @@ export default function LoginPage() {
       router.push("/dashboard");
     }
   }, [session, status, router]);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+    setError("");
+  };
+
+  const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: event.target.value }));
+  };
 
   const handleSignIn = async (provider: "google" | "github") => {
     setIsLoading(true);
@@ -45,6 +92,78 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Sign in error:", error);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCredentialsSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn("credentials", {
+        username: formData.username,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid username or password.");
+      } else if (result?.ok) {
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      console.log("Starting registration process...");
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log("Registration response:", data);
+
+      if (!response.ok) {
+        setError(data.error || "Registration failed.");
+      } else {
+        console.log("Registration successful, attempting auto-sign-in...");
+        // Auto-sign in after successful registration
+        const result = await signIn("credentials", {
+          username: formData.username,
+          password: formData.password,
+          redirect: false,
+        });
+
+        console.log("Auto-sign-in result:", result);
+
+        if (result?.ok) {
+          console.log("Auto-sign-in successful, redirecting to dashboard...");
+          router.push("/dashboard");
+        } else {
+          console.error("Auto-sign-in failed:", result?.error);
+          setError("Registration successful but auto-sign-in failed. Please sign in manually.");
+        }
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -96,6 +215,118 @@ export default function LoginPage() {
             </Alert>
           )}
 
+          <Tabs value={tabValue} onChange={handleTabChange} centered sx={{ mb: 2 }}>
+            <Tab label="Sign In" />
+            <Tab label="Sign Up" />
+          </Tabs>
+
+          <TabPanel value={tabValue} index={0}>
+            <Box component="form" onSubmit={handleCredentialsSignIn} display="flex" flexDirection="column" gap={2}>
+              <TextField
+                label="Username or Email"
+                value={formData.username}
+                onChange={handleInputChange("username")}
+                required
+                fullWidth
+                disabled={isLoading}
+              />
+              <FormControl fullWidth required>
+                <InputLabel>Password</InputLabel>
+                <OutlinedInput
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange("password")}
+                  disabled={isLoading}
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                  label="Password"
+                />
+              </FormControl>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={isLoading}
+                sx={{ py: 1.5 }}
+              >
+                Sign In
+              </Button>
+            </Box>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <Box component="form" onSubmit={handleSignUp} display="flex" flexDirection="column" gap={2}>
+              <TextField
+                label="Name"
+                value={formData.name}
+                onChange={handleInputChange("name")}
+                required
+                fullWidth
+                disabled={isLoading}
+              />
+              <TextField
+                label="Username"
+                value={formData.username}
+                onChange={handleInputChange("username")}
+                required
+                fullWidth
+                disabled={isLoading}
+              />
+              <TextField
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange("email")}
+                required
+                fullWidth
+                disabled={isLoading}
+              />
+              <FormControl fullWidth required>
+                <InputLabel>Password</InputLabel>
+                <OutlinedInput
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange("password")}
+                  disabled={isLoading}
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                  label="Password"
+                />
+              </FormControl>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={isLoading}
+                sx={{ py: 1.5 }}
+              >
+                Sign Up
+              </Button>
+            </Box>
+          </TabPanel>
+
+          <Divider sx={{ my: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              or continue with
+            </Typography>
+          </Divider>
+
           <Box display="flex" flexDirection="column" gap={2}>
             <Button
               variant="outlined"
@@ -115,12 +346,6 @@ export default function LoginPage() {
             >
               Continue with Google
             </Button>
-
-            <Divider sx={{ my: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                or
-              </Typography>
-            </Divider>
 
             <Button
               variant="outlined"

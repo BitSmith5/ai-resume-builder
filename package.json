@@ -19,6 +19,8 @@
     "@mui/material": "^7.2.0",
     "@mui/x-data-grid": "^8.8.0",
     "@prisma/client": "^6.11.1",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.2",
     "formidable": "^3.5.4",
     "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
