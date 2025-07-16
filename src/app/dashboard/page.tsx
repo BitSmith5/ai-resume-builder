@@ -47,14 +47,14 @@ export default function DashboardPage() {
   useEffect(() => {
     setMounted(true);
     console.log("Dashboard mounted, status:", status, "session:", session);
-  }, []);
+  }, [status, session]);
 
   useEffect(() => {
     console.log("Status changed:", status, "session:", session);
     if (status === "authenticated") {
       fetchResumes();
     }
-  }, [status]);
+  }, [status, session]);
 
   const fetchResumes = async () => {
     try {

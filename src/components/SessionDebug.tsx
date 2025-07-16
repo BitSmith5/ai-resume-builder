@@ -23,7 +23,7 @@ export default function SessionDebug() {
           <strong>Authenticated:</strong> {status === "authenticated" ? "Yes" : "No"}
         </Typography>
         <Typography variant="body2">
-          <strong>User ID:</strong> {(session?.user as any)?.id || "Not set"}
+          <strong>User ID:</strong> {(session?.user as { id?: string })?.id || "Not set"}
         </Typography>
         <Typography variant="body2">
           <strong>User Name:</strong> {session?.user?.name || "Not set"}
@@ -32,7 +32,7 @@ export default function SessionDebug() {
           <strong>User Email:</strong> {session?.user?.email || "Not set"}
         </Typography>
         <Typography variant="body2">
-          <strong>Username:</strong> {(session?.user as any)?.username || "Not set"}
+          <strong>Username:</strong> {(session?.user as { username?: string })?.username || "Not set"}
         </Typography>
       </Box>
     </Paper>

@@ -4,14 +4,12 @@ import { authOptions } from "../../../lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const { username, password } = await req.json();
+    await req.json(); // Just consume the request body
     
     // Test the authorize function directly
-    const credentialsProvider = authOptions.providers.find(p => p.id === 'credentials') as any;
-    const authorizeResult = credentialsProvider?.authorize?.({ username, password }, req);
+    const credentialsProvider = authOptions.providers.find(p => p.id === 'credentials');
     
     return NextResponse.json({ 
-      authorizeResult,
       hasCredentialsProvider: !!credentialsProvider,
       providers: authOptions.providers.map(p => p.id)
     });
@@ -21,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     

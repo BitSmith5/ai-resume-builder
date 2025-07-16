@@ -12,10 +12,7 @@ import {
   Avatar,
   Alert,
   CircularProgress,
-  Switch,
-  FormControlLabel,
   Chip,
-  Stack,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -24,7 +21,6 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
   Security as SecurityIcon,
-  Settings as SettingsIcon,
   LinkedIn as LinkedInIcon,
   Language as LanguageIcon,
 } from "@mui/icons-material";
@@ -148,15 +144,7 @@ export default function ProfilePage() {
     loadProfileData();
   };
 
-  const handlePreferenceChange = (key: keyof ProfileData['preferences']) => {
-    setProfileData(prev => ({
-      ...prev,
-      preferences: {
-        ...prev.preferences,
-        [key]: !prev.preferences[key],
-      },
-    }));
-  };
+
 
   // Show loading state while session is loading
   if (status === "loading") {

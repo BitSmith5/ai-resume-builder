@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     setMounted(true);
     console.log("DashboardLayout mounted, status:", status, "session:", session);
-  }, []);
+  }, [status, session]);
 
   useEffect(() => {
     console.log("DashboardLayout status changed:", status, "session:", session);

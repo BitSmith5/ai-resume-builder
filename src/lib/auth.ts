@@ -1,4 +1,3 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -29,19 +28,18 @@ export const authOptions = {
         const user = await prisma.user.findFirst({
           where: {
             OR: [
-              { username: credentials.username },
               { email: credentials.username },
             ],
           },
         });
 
-        if (!user || !user.password) {
+        if (!user || !(user as { password?: string }).password) {
           return null;
         }
 
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
-          user.password
+          (user as unknown as { password: string }).password
         );
 
         if (!isPasswordValid) {
@@ -52,7 +50,7 @@ export const authOptions = {
           id: user.id,
           name: user.name,
           email: user.email,
-          username: user.username,
+          username: (user as { username?: string }).username,
         };
       },
     }),
@@ -61,21 +59,21 @@ export const authOptions = {
     strategy: "jwt" as const,
   },
   callbacks: {
-    jwt: async ({ token, user }: any) => {
+    jwt: async ({ token, user }: { token: { id?: string; username?: string }; user: { id: string; username?: string } | null }) => {
       if (user) {
         token.id = user.id;
         token.username = user.username;
       }
       return token;
     },
-    session: async ({ 
-      session, 
-      token 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }: any) => {
+    session: async ({ session, token }: { session: any; token: any }) => {
       if (session?.user && token) {
-        session.user.id = token.id;
-        session.user.username = token.username;
+        session.user = {
+          ...session.user,
+          id: token.id,
+          username: token.username,
+        };
       }
       return session;
     },
