@@ -18,7 +18,14 @@ export default function EditResumePage() {
 
   return (
     <DashboardLayout>
-      <Box maxWidth="xl" sx={{ py: { xs: 2, md: 3 }, px: {xs: 2, md: 3}, overflow: "hidden", maxWidth: "100vw", scrollbarGutter: "stable" }}>
+      <Box sx={{ 
+        py: { xs: 2, md: 3 }, 
+        px: {xs: 2, md: 3}, 
+        overflow: "auto", 
+        maxWidth: "100%", 
+        height: "auto",
+        minHeight: "200vh" // Ensure enough height for multi-page resume
+      }}>
         <Box sx={{ mb: { xs: 3, md: 4 } }}>
           <Typography 
             variant="h4" 
@@ -47,6 +54,9 @@ export default function EditResumePage() {
           onSave={handleSave} 
           template="modern"
         />
+        
+        {/* Add extra space at the bottom to ensure content can be fully scrolled */}
+        <Box sx={{ height: "100vh" }} />
       </Box>
     </DashboardLayout>
   );

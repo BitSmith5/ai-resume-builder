@@ -37,19 +37,33 @@ export default function ViewResumePage() {
   // Robust React-based zooming with aspect ratio preservation
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = React.useState(1);
+  
+  const updateZoom = React.useCallback(() => {
+    if (!wrapperRef.current) return;
+    const width = wrapperRef.current.offsetWidth;
+    const height = wrapperRef.current.offsetHeight;
+    const scaleW = width / 850;
+    const scaleH = height / 1100;
+    setZoom(Math.min(scaleW, scaleH, 1));
+  }, []);
+
   React.useEffect(() => {
-    function updateZoom() {
-      if (!wrapperRef.current) return;
-      const width = wrapperRef.current.offsetWidth;
-      const height = wrapperRef.current.offsetHeight;
-      const scaleW = width / 850;
-      const scaleH = height / 1100;
-      setZoom(Math.min(scaleW, scaleH, 1));
-    }
+    // Initial zoom calculation
     updateZoom();
+    
+    // Add resize listener
     window.addEventListener('resize', updateZoom);
     return () => window.removeEventListener('resize', updateZoom);
-  }, []);
+  }, [updateZoom]);
+
+  // Additional effect to recalculate zoom when resume data loads
+  React.useEffect(() => {
+    if (resumeData && !loading) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(updateZoom, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [resumeData, loading, updateZoom]);
 
   React.useEffect(() => {
     const loadResume = async () => {
@@ -143,7 +157,7 @@ export default function ViewResumePage() {
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'auto',
         p: {xs: 2, md: 3}
       }}>
         {/* Header */}
@@ -252,37 +266,41 @@ export default function ViewResumePage() {
           </Box>
         </Paper>
 
-        {/* Resume Preview with React-based zoom and aspect ratio preservation */}
+        {/* Resume Preview with individual page containers */}
         <Box
-          ref={wrapperRef}
           sx={{
-            width: { xs: '90vw', sm: '90%', lg: 850 },
-            maxWidth: 850,
-            aspectRatio: '850 / 1100',
-            mx: 'auto',
-            position: 'relative',
-            background: 'transparent',
-            minHeight: 0,
-            minWidth: 0,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            borderRadius: 2,
-            px: { xs: 1, sm: 0 },
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 3,
+            width: '100%',
+            maxWidth: '100%',
           }}
         >
+          {/* Individual page containers */}
           <Box
+            ref={wrapperRef}
             sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: 850,
-              height: 1100,
-              background: '#fff',
-              transform: `scale(${zoom})`,
-              transformOrigin: 'top left',
-              transition: 'transform 0.2s',
+              width: { xs: '90vw', sm: '90%', lg: 850 },
+              maxWidth: 850,
+              mx: 'auto',
+              position: 'relative',
+              background: 'transparent',
+              minHeight: 0,
+              minWidth: 0,
             }}
           >
-            <ResumeTemplateRegistry data={resumeData} templateId={selectedTemplate} />
+            <Box
+              sx={{
+                width: 850,
+                background: '#fff',
+                transform: `scale(${zoom})`,
+                transformOrigin: 'top left',
+                transition: 'transform 0.2s',
+              }}
+            >
+              <ResumeTemplateRegistry data={resumeData} templateId={selectedTemplate} />
+            </Box>
           </Box>
         </Box>
 
