@@ -29,7 +29,7 @@ export default function NewResumePage() {
   if (!selectedTemplate) {
     return (
       <DashboardLayout>
-        <Box>
+        <Box m={2}>
           <Typography variant="h4" component="h1" gutterBottom>
             Select a Resume Template
           </Typography>
@@ -55,7 +55,7 @@ export default function NewResumePage() {
 
   return (
     <DashboardLayout>
-      <Box>
+      <Box m={2} sx={{ scrollbarGutter: 'stable', maxWidth: "100%", overflow: "visible", overflowX: "auto" }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Create New Resume
         </Typography>
