@@ -106,8 +106,8 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+      <Box m={2}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box>
             <Typography variant="h4" component="h1" gutterBottom>
               Welcome back, {mounted ? session?.user?.name : "..."}!
@@ -133,7 +133,7 @@ export default function DashboardPage() {
         )}
 
         {/* Stats Cards */}
-        <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={3} mb={4}>
+        <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={3} mb={4} mt={4}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center">
@@ -268,11 +268,6 @@ export default function DashboardPage() {
             ))}
           </Box>
         )}
-
-        {/* Zustand Store Demo */}
-        <Box mt={6}>
-          {/* <StoreDemo /> */}
-        </Box>
       </Box>
     </DashboardLayout>
   );
