@@ -194,7 +194,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          width: { xs: "100vw", md: `calc(100% - ${drawerWidth}px)` },
+          maxWidth: { xs: "100vw", md: "none" },
+          overflow: "visible",
         }}
       >
         <Toolbar />

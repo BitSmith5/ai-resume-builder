@@ -25,6 +25,7 @@ import {
   Delete as DeleteIcon,
   Save as SaveIcon,
   Download as DownloadIcon,
+  Padding,
 } from "@mui/icons-material";
 import ResumeTemplateRegistry, {
   AVAILABLE_TEMPLATES,
@@ -193,12 +194,40 @@ export default function ResumeEditor({
       if (!wrapperRef.current) return;
       const width = wrapperRef.current.offsetWidth;
       const scaleW = width / 850;
-      setZoom(Math.min(scaleW, 1));
+      // Ensure we scale down on small screens, but not too much
+      const newZoom = Math.max(Math.min(scaleW, 1), 0.3);
+      setZoom(newZoom);
     }
+    
+    // Initial calculation
     updateZoom();
+    
+    // Use requestAnimationFrame to ensure DOM is ready
+    const rafId = requestAnimationFrame(() => {
+      updateZoom();
+    });
+    
+    // Also use a small delay to catch any late layout changes
+    const timeoutId = setTimeout(updateZoom, 100);
+    
+    // Use ResizeObserver to detect container size changes
+    let resizeObserver: ResizeObserver | null = null;
+    if (wrapperRef.current) {
+      resizeObserver = new ResizeObserver(updateZoom);
+      resizeObserver.observe(wrapperRef.current);
+    }
+    
     window.addEventListener("resize", updateZoom);
-    return () => window.removeEventListener("resize", updateZoom);
-  }, []);
+    
+    return () => {
+      window.removeEventListener("resize", updateZoom);
+      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [selectedTemplate]); // Recalculate when template changes
 
   const [resumeData, setResumeData] = useState<ResumeData>({
     title: "",
@@ -687,10 +716,10 @@ export default function ResumeEditor({
 
   return (
     <Box sx={{ 
-      width: {xs: "100%", md: "100%"}, 
+      width: "100%", 
       display: {xs: "flex", md: "block"},
       flexDirection: {xs: "column", md: "row"},
-      alignItems: {xs: "center", md: "stretch"}
+      alignItems: {xs: "stretch", md: "stretch"}
     }}>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -708,7 +737,7 @@ export default function ResumeEditor({
         flexDirection={{ xs: "column", md: "row" }}
         width="100%"
         justifyContent="space-between"
-        alignItems={{ xs: "stretch", md: "center" }}
+        alignItems={{ xs: "center", md: "center" }}
         gap={{ xs: 2, md: 3 }}
         mb={3}
       >
@@ -2045,15 +2074,15 @@ export default function ResumeEditor({
           ref={wrapperRef}
           sx={{
             flex: { md: 1 },
-            width: { xs: "90vw", sm: "90%", md: "100%" },
-            maxWidth: { xs: 850, md: "none" },
-            mx: { xs: "auto", md: 0 },
+            width: { xs: "100%", sm: "90%", md: "100%" },
+            maxWidth: { xs: "100%", sm: 850, md: "none" },
+            mx: { xs: 0, sm: "auto", md: 0 },
             position: "relative",
             background: "transparent",
             minWidth: 0,
-            px: { xs: 1, sm: 0 },
+            px: { xs: 0, sm: 0 },
             mt: { xs: 3, md: 0 },
-            overflow: "visible", // Allow content to expand naturally
+            overflow: "hidden", // Prevent horizontal overflow
           }}
         >
           <Box

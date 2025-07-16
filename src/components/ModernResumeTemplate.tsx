@@ -942,7 +942,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
     <div style={{ 
       display: 'flex', 
       flexDirection: 'column', 
-      alignItems: 'center',
+      alignItems: 'flex-start',
       width: '100%',
     }}>
       {pages.map((pageContent, pageIndex) => renderPage(pageContent, pageIndex))}
