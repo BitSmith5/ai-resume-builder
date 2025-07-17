@@ -121,21 +121,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   // Calculate content distribution across pages
   const calculatePages = (): PageContent[] => {
     const pages: PageContent[] = [];
-    const maxContentHeight = 900; // Further reduced to ensure proper bottom margins
-    const bottomMargin = 80; // Increased minimum space to keep at bottom of each page
-    
-    let currentPage: PageContent = {
-      workExperience: [],
-      education: [],
-      courses: [],
-      skills: [],
-      interests: []
-    };
-    
-    let currentHeight = 0;
-    const headerHeight = 180; // Reduced header section height (only on first page)
-    const sectionSpacing = 20; // Reduced spacing between sections
-    const itemSpacing = 15; // Reduced spacing between items
+    const maxContentHeight = 900;
+    const bottomMargin = 80;
+    const headerHeight = 180; // Only on first page
+    const sectionSpacing = 20;
+    const itemSpacing = 15;
     
     // Helper function to estimate content height
     const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0], type: 'work' | 'education' | 'course'): number => {
@@ -143,185 +133,170 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       
       switch (type) {
         case 'work':
-          height = 80; // Increased base height for work experience item to be more conservative
+          height = 80;
           if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 22; // Each bullet point adds ~22px (more conservative)
+            height += content.bulletPoints.length * 22;
           }
           break;
         case 'education':
-          height = 60; // Increased base height for education item
+          height = 60;
           break;
         case 'course':
-          height = 45; // Increased base height for course item
+          height = 45;
           break;
       }
       
       return height;
     };
     
-    // Helper function to estimate skills/interests height
-    const estimateSkillsHeight = (skills: ResumeData['strengths']): number => {
-      if (!skills || skills.length === 0) return 0;
-      return 50 + (skills.length * 25); // Increased section header + skills for more conservative estimates
+    // Helper function to estimate section header height
+    const estimateSectionHeaderHeight = (): number => {
+      return 45; // Section title + border + spacing
     };
     
-    const estimateInterestsHeight = (interests: NonNullable<ResumeData['interests']>): number => {
-      if (!interests || interests.length === 0) return 0;
-      return 50 + (interests.length * 25); // Increased section header + interests for more conservative estimates
+    // SIMPLE APPROACH: First, create pages with ONLY main content (no skills/interests)
+    let currentPage: PageContent = {
+      workExperience: [],
+      education: [],
+      courses: [],
+      skills: [], // EMPTY - no skills on main content pages
+      interests: [] // EMPTY - no interests on main content pages
     };
     
-    // Helper function to add section to current page
-    const addSectionToPage = (section: ResumeData['workExperience'] | ResumeData['education'] | NonNullable<ResumeData['courses']>, type: 'work' | 'education' | 'course') => {
-      const sectionHeight = 45; // Increased section header height for more conservative estimates
-      
-      // Check if we need a new page for this section
-      if (currentHeight + sectionHeight > maxContentHeight - bottomMargin) {
+    let currentHeight = headerHeight; // Start with header height for first page
+    
+    // Helper function to add a new page
+    const addNewPage = () => {
+      // Only add the current page if it has content
+      if (currentPage.workExperience.length > 0 || 
+          currentPage.education.length > 0 || 
+          currentPage.courses.length > 0) {
         pages.push(currentPage);
-        currentPage = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          skills: [],
-          interests: []
-        };
-        currentHeight = 0; // No header on subsequent pages
       }
       
-      currentHeight += sectionHeight;
+      // Create new page
+      currentPage = {
+        workExperience: [],
+        education: [],
+        courses: [],
+        skills: [], // EMPTY - no skills on main content pages
+        interests: [] // EMPTY - no interests on main content pages
+      };
+      currentHeight = 0; // No header on subsequent pages
+    };
+    
+    // Helper function to check if we need a new page
+    const needsNewPage = (additionalHeight: number): boolean => {
+      return currentHeight + additionalHeight > maxContentHeight - bottomMargin - 20;
+    };
+    
+    // Add work experience section
+    if (data.workExperience && data.workExperience.length > 0) {
+      const sectionHeaderHeight = estimateSectionHeaderHeight();
       
-      // Add items to the section
-      for (const item of section) {
-        const itemHeight = estimateContentHeight(item, type);
+      // Check if we need a new page for the section header
+      if (needsNewPage(sectionHeaderHeight)) {
+        addNewPage();
+      }
+      
+      currentHeight += sectionHeaderHeight;
+      
+      // Add each work experience item
+      for (const exp of data.workExperience) {
+        const itemHeight = estimateContentHeight(exp, 'work');
         
-        // Check if adding this item would push content too close to bottom
-        // Add extra buffer to ensure we don't get too close to the bottom
-        if (currentHeight + itemHeight > maxContentHeight - bottomMargin - 20) {
-          pages.push(currentPage);
-          currentPage = {
-            workExperience: [],
-            education: [],
-            courses: [],
-            skills: [],
-            interests: []
-          };
-          currentHeight = sectionHeight; // Include section header on new page
+        // Check if we need a new page for this item
+        if (needsNewPage(itemHeight)) {
+          addNewPage();
+          currentHeight += sectionHeaderHeight; // Add section header to new page
         }
         
-        switch (type) {
-          case 'work':
-            currentPage.workExperience.push(item as ResumeData['workExperience'][0]);
-            break;
-          case 'education':
-            currentPage.education.push(item as ResumeData['education'][0]);
-            break;
-          case 'course':
-            currentPage.courses.push(item as NonNullable<ResumeData['courses']>[0]);
-            break;
-        }
-        
+        currentPage.workExperience.push(exp);
         currentHeight += itemHeight + itemSpacing;
       }
-      
-      currentHeight += sectionSpacing;
-    };
-    
-    // Start with header height for first page
-    currentHeight = headerHeight;
-    
-    // Distribute main content first (work experience, courses, education)
-    if (data.workExperience && data.workExperience.length > 0) {
-      addSectionToPage(data.workExperience, 'work');
     }
     
+    // Add courses section
     if (data.courses && data.courses.length > 0) {
-      addSectionToPage(data.courses, 'course');
-    }
-    
-    if (data.education && data.education.length > 0) {
-      addSectionToPage(data.education, 'education');
-    }
-    
-    // Now distribute skills and interests to fill remaining space across all pages
-    if (data.strengths && data.strengths.length > 0) {
-      const skillsHeight = estimateSkillsHeight(data.strengths);
-      if (currentHeight + skillsHeight <= maxContentHeight - bottomMargin - 20) {
-        // Add skills to current page if there's space
-        currentPage.skills = [...data.strengths];
-        currentHeight += skillsHeight + sectionSpacing;
-      } else {
-        // If no space on current page, create a new page for skills
-        pages.push(currentPage);
-        currentPage = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          skills: [...data.strengths],
-          interests: []
-        };
-        currentHeight = skillsHeight + sectionSpacing;
+      const sectionHeaderHeight = estimateSectionHeaderHeight();
+      
+      // Check if we need a new page for the section header
+      if (needsNewPage(sectionHeaderHeight)) {
+        addNewPage();
       }
-    }
-    
-    if (data.interests && data.interests.length > 0) {
-      const interestsHeight = estimateInterestsHeight(data.interests);
-      if (currentHeight + interestsHeight <= maxContentHeight - bottomMargin - 20) {
-        // Add interests to current page if there's space
-        currentPage.interests = [...data.interests];
-        currentHeight += interestsHeight + sectionSpacing;
-      } else {
-        // Try to add interests to an existing page that has space
-        let interestsAdded = false;
-        for (let i = pages.length - 1; i >= 0; i--) {
-          const page = pages[i];
-          
-          // Calculate total space used on this page
-          let pageUsedHeight = 0;
-          if (page.workExperience.length > 0) pageUsedHeight += 45 + (page.workExperience.length * 80);
-          if (page.education.length > 0) pageUsedHeight += 45 + (page.education.length * 60);
-          if (page.courses.length > 0) pageUsedHeight += 45 + (page.courses.length * 45);
-          if (page.skills.length > 0) pageUsedHeight += 50 + (page.skills.length * 25);
-          if (page.interests.length > 0) pageUsedHeight += 50 + (page.interests.length * 25);
-          
-          // Check if interests can fit on this page
-          if (pageUsedHeight + interestsHeight <= maxContentHeight - bottomMargin - 20) {
-            page.interests = [...data.interests];
-            interestsAdded = true;
-            break;
-          }
+      
+      currentHeight += sectionHeaderHeight;
+      
+      // Add each course item
+      for (const course of data.courses) {
+        const itemHeight = estimateContentHeight(course, 'course');
+        
+        // Check if we need a new page for this item
+        if (needsNewPage(itemHeight)) {
+          addNewPage();
+          currentHeight += sectionHeaderHeight; // Add section header to new page
         }
         
-        if (!interestsAdded) {
-          // Create a new page for interests if no existing page has space
-          pages.push(currentPage);
-          currentPage = {
-            workExperience: [],
-            education: [],
-            courses: [],
-            skills: [],
-            interests: [...data.interests]
-          };
-          currentHeight = interestsHeight + sectionSpacing;
-        }
+        currentPage.courses.push(course);
+        currentHeight += itemHeight + itemSpacing;
       }
     }
     
-    // Add the last page if it has content
+    // Add education section
+    if (data.education && data.education.length > 0) {
+      const sectionHeaderHeight = estimateSectionHeaderHeight();
+      
+      // Check if we need a new page for the section header
+      if (needsNewPage(sectionHeaderHeight)) {
+        addNewPage();
+      }
+      
+      currentHeight += sectionHeaderHeight;
+      
+      // Add each education item
+      for (const edu of data.education) {
+        const itemHeight = estimateContentHeight(edu, 'education');
+        
+        // Check if we need a new page for this item
+        if (needsNewPage(itemHeight)) {
+          addNewPage();
+          currentHeight += sectionHeaderHeight; // Add section header to new page
+        }
+        
+        currentPage.education.push(edu);
+        currentHeight += itemHeight + itemSpacing;
+      }
+    }
+    
+    // Add the final page with content (still no skills/interests)
     if (currentPage.workExperience.length > 0 || 
         currentPage.education.length > 0 || 
-        currentPage.courses.length > 0 ||
-        currentPage.skills.length > 0 ||
-        currentPage.interests.length > 0) {
+        currentPage.courses.length > 0) {
       pages.push(currentPage);
     }
     
-    // If no pages were created, create at least one empty page
+    // NOW, after ALL main content pages are created, add skills/interests to the VERY LAST page
+    if (pages.length > 0) {
+      const lastPage = pages[pages.length - 1];
+      
+      // Add skills and interests ONLY to the last page
+      if (data.strengths && data.strengths.length > 0) {
+        lastPage.skills = [...data.strengths];
+      }
+      
+      if (data.interests && data.interests.length > 0) {
+        lastPage.interests = [...data.interests];
+      }
+    }
+    
+    // If no pages were created at all, create one with just skills/interests
     if (pages.length === 0) {
       pages.push({
         workExperience: [],
         education: [],
         courses: [],
-        skills: [],
-        interests: []
+        skills: data.strengths || [],
+        interests: data.interests || []
       });
     }
     
@@ -418,8 +393,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           {/* Header - only on first page */}
           {isFirstPage && renderHeader()}
 
-          {/* Summary - only on first page */}
-          {isFirstPage && personalInfo.summary && (
+                  {/* Summary - only on first page */}
+        {isFirstPage && personalInfo.summary && (
           <div style={{ marginBottom: '20px' }}>
             <h2 style={{ 
               fontSize: '18px', 
@@ -434,34 +409,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <p style={{ fontSize: '14px', margin: '0', textAlign: 'justify' }}>
               {personalInfo.summary}
             </p>
-          </div>
-        )}
-
-        {/* Skills */}
-        {pageContent.skills.length > 0 && (
-          <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ 
-              fontSize: '18px', 
-              fontWeight: 'bold', 
-              margin: '0 0 8px 0',
-              textTransform: 'uppercase',
-              borderBottom: '1px solid #000',
-              paddingBottom: '4px'
-            }}>
-              Skills
-            </h2>
-            <div style={{ fontSize: '14px' }}>
-              {pageContent.skills.map((strength, index) => (
-                <span key={index} style={{ 
-                  display: 'inline-block',
-                  marginRight: '15px',
-                  marginBottom: '4px',
-                  fontWeight: 'bold'
-                }}>
-                  {strength.skillName} ({strength.rating}/10)
-                </span>
-              ))}
-            </div>
           </div>
         )}
 
@@ -616,6 +563,34 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Skills */}
+        {pageContent.skills.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 'bold', 
+              margin: '0 0 8px 0',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid #000',
+              paddingBottom: '4px'
+            }}>
+              Skills
+            </h2>
+            <div style={{ fontSize: '14px' }}>
+              {pageContent.skills.map((strength, index) => (
+                <span key={index} style={{ 
+                  display: 'inline-block',
+                  marginRight: '15px',
+                  marginBottom: '4px',
+                  fontWeight: 'bold'
+                }}>
+                  {strength.skillName} ({strength.rating}/10)
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
