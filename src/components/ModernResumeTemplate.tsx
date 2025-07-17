@@ -702,8 +702,8 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           boxSizing: 'border-box',
           overflow: 'hidden'
         }}>
-          {/* Profile Picture - only on first page */}
-          {isFirstPage && data.profilePicture && (
+          {/* Profile Picture - only on first page and only if valid image exists */}
+          {isFirstPage && data.profilePicture && data.profilePicture.trim() !== '' && (
             <div style={{ 
               width: '160px',
               height: '160px',
@@ -712,7 +712,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               overflow: 'hidden',
               flexShrink: 0
             }}>
-              {data.profilePicture && data.profilePicture.startsWith('data:') ? (
+              {data.profilePicture.startsWith('data:') ? (
                 // Handle base64 data URLs with regular img tag
                 // eslint-disable-next-line @next/next/no-img-element
                 <img 
@@ -726,11 +726,14 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     display: 'block'
                   }}
                   onError={(e) => {
-                    console.error('Profile picture failed to load:', data.profilePicture);
-                    e.currentTarget.style.display = 'none';
+                    // Hide the image container on error
+                    const container = e.currentTarget.parentElement;
+                    if (container) {
+                      container.style.display = 'none';
+                    }
                   }}
                 />
-              ) : data.profilePicture ? (
+              ) : (
                 // Handle regular URLs with Next.js Image component
                 <Image 
                   src={data.profilePicture.startsWith('http') ? data.profilePicture : `${window.location.origin}${data.profilePicture}`}
@@ -745,11 +748,15 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     display: 'block'
                   }}
                   onError={(e) => {
-                    console.error('Profile picture failed to load:', data.profilePicture);
-                    e.currentTarget.style.display = 'none';
+                    // Hide the image container on error
+                    // @ts-ignore: Next.js Image onError typing
+                    const container = e.target.parentElement;
+                    if (container) {
+                      container.style.display = 'none';
+                    }
                   }}
                 />
-              ) : null}
+              )}
             </div>
           )}
           
