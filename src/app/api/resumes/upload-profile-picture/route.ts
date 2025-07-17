@@ -22,12 +22,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Ensure upload directory exists
+    const uploadDir = path.join(process.cwd(), "public/uploads/profile-pictures");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
     // Parse multipart form
     const filter = ({ mimetype }: { mimetype?: string | null }) =>
       mimetype === "image/png" || mimetype === "image/jpeg" || mimetype === "image/heic" || mimetype === "image/heif";
     
     const form = new IncomingForm({
-      uploadDir: path.join(process.cwd(), "public/uploads/profile-pictures"),
+      uploadDir,
       keepExtensions: true,
       maxFileSize: 5 * 1024 * 1024, // 5MB
       filter,

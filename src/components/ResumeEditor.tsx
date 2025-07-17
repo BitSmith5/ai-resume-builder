@@ -184,6 +184,8 @@ export default function ResumeEditor({
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   const [profilePicError, setProfilePicError] = useState("");
   const [localProfilePicture, setLocalProfilePicture] = useState<string | null>(null);
+  const [removedProfilePicture, setRemovedProfilePicture] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   // Robust React-based zooming with aspect ratio preservation
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -259,10 +261,11 @@ export default function ResumeEditor({
       const response = await fetch(`/api/resumes/${resumeId}`);
       if (response.ok) {
         const resume = await response.json();
+        
         setResumeData({
           title: resume.title,
           jobTitle: resume.jobTitle || "",
-          profilePicture: resume.profilePicture || "",
+          profilePicture: resume.profilePicture || "", // Keep the profile picture from database
           content: {
             ...resume.content,
             personalInfo: {
@@ -283,6 +286,10 @@ export default function ResumeEditor({
           courses: resume.courses || [],
           interests: resume.interests || [],
         });
+        
+        // Clear any local profile picture state when loading from database
+        setLocalProfilePicture(null);
+        setRemovedProfilePicture(null);
       } else {
         setError("Failed to load resume");
       }
@@ -294,10 +301,14 @@ export default function ResumeEditor({
   }, [resumeId]);
 
   useEffect(() => {
-    if (resumeId) {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (resumeId && isClient) {
       loadResume();
     }
-  }, [resumeId, loadResume]);
+  }, [resumeId, loadResume, isClient]);
 
   // Cleanup effect for local profile picture
   useEffect(() => {
@@ -378,7 +389,7 @@ export default function ResumeEditor({
       let finalProfilePicture = resumeData.profilePicture;
       
       // If there's a local profile picture, upload it first
-      if (localProfilePicture) {
+      if (localProfilePicture && localProfilePicture.startsWith("data:")) {
         try {
           // Convert base64 to blob
           const response = await fetch(localProfilePicture);
@@ -407,6 +418,30 @@ export default function ResumeEditor({
           setSaving(false);
           return;
         }
+      }
+      
+      // If there's a removed profile picture, delete it from server
+      if (removedProfilePicture) {
+        try {
+          const deleteResponse = await fetch("/api/resumes/delete-profile-picture", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ 
+              filePath: removedProfilePicture,
+              source: "save-resume" 
+            }),
+          });
+          
+          if (!deleteResponse.ok) {
+            console.warn("Failed to delete removed profile picture from server");
+          }
+        } catch (error) {
+          console.warn("Error deleting removed profile picture:", error);
+        }
+        // Clear the removed profile picture reference
+        setRemovedProfilePicture(null);
       }
 
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
@@ -703,7 +738,7 @@ export default function ResumeEditor({
     }
   };
 
-  if (loading) {
+  if (loading || !isClient) {
     return (
       <Box
         display="flex"
@@ -834,7 +869,7 @@ export default function ResumeEditor({
                 label="Template"
                 onChange={(e) => setSelectedTemplate(e.target.value)}
               >
-                {AVAILABLE_TEMPLATES.map((template) => (
+                {isClient && AVAILABLE_TEMPLATES.map((template) => (
                   <MenuItem key={template.id} value={template.id}>
                     {template.name}
                   </MenuItem>
@@ -850,26 +885,28 @@ export default function ResumeEditor({
         {/* Editor Form */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Paper sx={{ p: { xs: 2, md: 3 } }}>
-            <Tabs
-              value={activeTab}
-              onChange={(_, newValue) => setActiveTab(newValue)}
-              variant="fullWidth"
-              sx={{
-                "& .MuiTab-root": {
-                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
-                },
-              }}
-            >
-              <Tab label="Personal Info" />
-              <Tab label="Skills" />
-              <Tab label="Work Experience" />
-              <Tab label="Education" />
-              <Tab label="Courses" />
-              <Tab label="Interests" />
-            </Tabs>
+            {isClient && (
+              <Tabs
+                value={activeTab}
+                onChange={(_, newValue) => setActiveTab(newValue)}
+                variant="fullWidth"
+                sx={{
+                  "& .MuiTab-root": {
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  },
+                }}
+              >
+                <Tab label="Personal Info" />
+                <Tab label="Skills" />
+                <Tab label="Work Experience" />
+                <Tab label="Education" />
+                <Tab label="Courses" />
+                <Tab label="Interests" />
+              </Tabs>
+            )}
 
             <Box sx={{ mt: 3 }}>
-              {activeTab === 0 && (
+              {isClient && activeTab === 0 && (
                 <Box>
                   <Typography variant="h6" gutterBottom>
                     Personal Information
@@ -880,121 +917,127 @@ export default function ResumeEditor({
                       <Typography variant="subtitle2" gutterBottom>
                         Profile Picture
                       </Typography>
-                      <Box
-                        display="flex"
-                        flexDirection={{ xs: "column", sm: "row" }}
-                        gap={2}
-                        alignItems={{ xs: "stretch", sm: "center" }}
-                      >
-                        {(localProfilePicture || resumeData.profilePicture) && (
-                          <Box
-                            sx={{
-                              width: 100,
-                              height: 100,
-                              borderRadius: "10%",
-                              backgroundImage: `url(${localProfilePicture || resumeData.profilePicture})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                              border: "2px solid #e0e0e0",
-                              flexShrink: 0,
-                            }}
-                          />
-                        )}
-                        <Box sx={{ flex: 1}}>
-                          <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                            <Button
-                              variant="outlined"
-                              component="label"
-                              disabled={uploadingProfilePic}
-                            >
-                              {uploadingProfilePic ? "Processing..." : "Select Image"}
-                              <input
-                                type="file"
-                                accept="image/png, image/jpeg, image/heic, image/heif"
-                                hidden
-                                                                onChange={async (e) => {
-                                  setProfilePicError("");
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  if (!["image/png", "image/jpeg", "image/heic", "image/heif"].includes(file.type)) {
-                                    setProfilePicError("Only PNG, JPG, or HEIC/HEIF allowed");
-                                    return;
-                                  }
-                                  
-                                  // Check file size (5MB limit)
-                                  if (file.size > 5 * 1024 * 1024) {
-                                    setProfilePicError("File size must be less than 5MB");
-                                    return;
-                                  }
-                                  
-                                  setUploadingProfilePic(true);
-                                  
-                                  try {
-                                    // Convert file to base64 for local storage
-                                    const reader = new FileReader();
-                                    reader.onload = (event) => {
-                                      const base64 = event.target?.result as string;
-                                      setLocalProfilePicture(base64);
-                                      setUploadingProfilePic(false);
-                                      // Reset the file input so it can be used again
-                                      e.target.value = "";
-                                    };
-                                    reader.onerror = () => {
-                                      setProfilePicError("Failed to read image file");
-                                      setUploadingProfilePic(false);
-                                      e.target.value = "";
-                                    };
-                                    reader.readAsDataURL(file);
-                                  } catch (error) {
-                                    console.error("Error processing image:", error);
-                                    setProfilePicError("Failed to process image");
-                                    setUploadingProfilePic(false);
-                                    e.target.value = "";
-                                  }
-                                }}
-                              />
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              onClick={async () => {
-                                const currentProfilePicture = resumeData.profilePicture;
-                                if (currentProfilePicture) {
-                                  try {
-                                    const response = await fetch("/api/resumes/delete-profile-picture", {
-                                      method: "POST",
-                                      headers: {
-                                        "Content-Type": "application/json",
-                                      },
-                                      body: JSON.stringify({ 
-                                        filePath: currentProfilePicture,
-                                        source: "remove-button" 
-                                      }),
-                                    });
-                                    
-                                    if (!response.ok) {
-                                      console.error("Failed to delete profile picture from server");
-                                    }
-                                  } catch (error) {
-                                    console.error("Error deleting profile picture:", error);
-                                  }
-                                }
-                                setResumeData((prev) => ({ ...prev, profilePicture: "" }));
-                                setLocalProfilePicture(null);
+                      {isClient && (
+                        <Box
+                          display="flex"
+                          flexDirection={{ xs: "column", sm: "row" }}
+                          gap={2}
+                          alignItems={{ xs: "stretch", sm: "center" }}
+                        >
+                          {(localProfilePicture || resumeData.profilePicture) && (
+                            <Box
+                              sx={{
+                                width: 100,
+                                height: 100,
+                                borderRadius: "10%",
+                                backgroundImage: `url(${localProfilePicture || resumeData.profilePicture})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                border: "2px solid #e0e0e0",
+                                flexShrink: 0,
                               }}
-                              disabled={uploadingProfilePic}
-                            >
-                              Remove
-                            </Button>
-                          </Box>
-                          {profilePicError && (
-                            <Typography color="error" variant="caption">{profilePicError}</Typography>
+                              onClick={() => {
+                                console.log("Profile picture debug:", {
+                                  localProfilePicture,
+                                  resumeDataProfilePicture: resumeData.profilePicture,
+                                  displayUrl: localProfilePicture || resumeData.profilePicture
+                                });
+                              }}
+                            />
                           )}
-                          <Typography variant="caption" color="text.secondary">
-                            Max 5MB. PNG, JPG, or HEIC/HEIF (Apple Photos) allowed. Image will be uploaded when you save the resume.
-                          </Typography>
+                          <Box sx={{ flex: 1}}>
+                            <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+                              <Button
+                                variant="outlined"
+                                component="label"
+                                disabled={uploadingProfilePic}
+                              >
+                                {uploadingProfilePic ? "Processing..." : "Select Image"}
+                                <input
+                                  type="file"
+                                  accept="image/png, image/jpeg, image/heic, image/heif"
+                                  hidden
+                                  onChange={async (e) => {
+                                    setProfilePicError("");
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    if (!["image/png", "image/jpeg", "image/heic", "image/heif"].includes(file.type)) {
+                                      setProfilePicError("Only PNG, JPG, or HEIC/HEIF allowed");
+                                      return;
+                                    }
+                                    if (file.size > 5 * 1024 * 1024) {
+                                      setProfilePicError("File size must be less than 5MB");
+                                      return;
+                                    }
+                                    setUploadingProfilePic(true);
+                                    try {
+                                      const reader = new FileReader();
+                                      reader.onload = (event) => {
+                                        const base64 = event.target?.result as string;
+                                        setLocalProfilePicture(base64);
+                                        // Clear any existing profile picture path and set the new base64 data
+                                        setResumeData((prev) => ({ ...prev, profilePicture: base64 }));
+                                        setUploadingProfilePic(false);
+                                        e.target.value = "";
+                                      };
+                                      reader.onerror = () => {
+                                        setProfilePicError("Failed to read image file");
+                                        setUploadingProfilePic(false);
+                                        e.target.value = "";
+                                      };
+                                      reader.readAsDataURL(file);
+                                    } catch (error) {
+                                      setProfilePicError("Failed to process image");
+                                      setUploadingProfilePic(false);
+                                      e.target.value = "";
+                                    }
+                                  }}
+                                />
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={() => {
+                                  const currentProfilePicture = resumeData.profilePicture;
+                                  // Store the removed profile picture path for later deletion on save
+                                  if (currentProfilePicture && !currentProfilePicture.startsWith('data:')) {
+                                    setRemovedProfilePicture(currentProfilePicture);
+                                  }
+                                  // Clear from local state and resume data
+                                  setResumeData((prev) => ({ ...prev, profilePicture: "" }));
+                                  setLocalProfilePicture(null);
+                                }}
+                                disabled={uploadingProfilePic}
+                              >
+                                Remove
+                              </Button>
+                            </Box>
+                            {profilePicError && (
+                              <Typography color="error" variant="caption">{profilePicError}</Typography>
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                              Max 5MB. PNG, JPG, or HEIC/HEIF (Apple Photos) allowed. Image will be uploaded when you save the resume.
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
+                      )}
+                      {!isClient && (
+                        <Box
+                          sx={{
+                            width: 100,
+                            height: 100,
+                            borderRadius: "10%",
+                            backgroundColor: "#f0f0f0",
+                            border: "2px solid #e0e0e0",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            mb: 2,
+                          }}
+                        >
+                          <CircularProgress size={24} />
+                        </Box>
+                      )}
                     </Box>
                     <TextField
                       fullWidth
@@ -1341,7 +1384,7 @@ export default function ResumeEditor({
                 </Box>
               )}
 
-              {activeTab === 1 && (
+              {isClient && activeTab === 1 && (
                 <Box>
                   <Box
                     display="flex"
@@ -1449,7 +1492,7 @@ export default function ResumeEditor({
                 </Box>
               )}
 
-              {activeTab === 2 && (
+              {isClient && activeTab === 2 && (
                 <Box>
                   <Box
                     display="flex"
@@ -1660,7 +1703,7 @@ export default function ResumeEditor({
                 </Box>
               )}
 
-              {activeTab === 3 && (
+              {isClient && activeTab === 3 && (
                 <Box>
                   <Box
                     display="flex"
@@ -1809,7 +1852,7 @@ export default function ResumeEditor({
                 </Box>
               )}
 
-              {activeTab === 4 && (
+              {isClient && activeTab === 4 && (
                 <Box>
                   <Box
                     display="flex"
@@ -1960,7 +2003,7 @@ export default function ResumeEditor({
                 </Box>
               )}
 
-              {activeTab === 5 && (
+              {isClient && activeTab === 5 && (
                 <Box>
                   <Box
                     display="flex"
@@ -2129,7 +2172,7 @@ export default function ResumeEditor({
               boxSizing: "border-box",
             }}
           >
-            {(() => {
+            {isClient && (() => {
               try {
                 const templateData = {
                   id: 0,
