@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['localhost'], // Allow local images for development
+    domains: ['localhost', 'lh3.googleusercontent.com', 'avatars.githubusercontent.com'], // Allow local images for development
     remotePatterns: [
       {
         protocol: 'https',

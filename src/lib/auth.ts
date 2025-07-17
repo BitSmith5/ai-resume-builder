@@ -60,7 +60,7 @@ export const authOptions = {
   },
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    signIn: async ({ user, account }: { user: any; account: any; profile?: any }) => {
+    signIn: async ({ user, account }: { user: any; account: any }) => {
       if (account?.provider === "google" || account?.provider === "github") {
         try {
           // Check if user already exists
@@ -79,6 +79,13 @@ export const authOptions = {
             });
             user.id = newUser.id;
           } else {
+            // Update existing user's image if they don't have one
+            if (!existingUser.image && user.image) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { image: user.image },
+              });
+            }
             user.id = existingUser.id;
           }
         } catch (error) {
@@ -88,10 +95,11 @@ export const authOptions = {
       }
       return true;
     },
-    jwt: async ({ token, user }: { token: { id?: string; username?: string }; user: { id: string; username?: string } | null }) => {
+    jwt: async ({ token, user }: { token: any; user: any }) => {
       if (user) {
         token.id = user.id;
         token.username = user.username;
+        token.image = user.image;
       }
       return token;
     },
@@ -102,6 +110,7 @@ export const authOptions = {
           ...session.user,
           id: token.id,
           username: token.username,
+          image: token.image,
         };
       }
       return session;

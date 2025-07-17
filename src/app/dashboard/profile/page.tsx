@@ -308,7 +308,9 @@ export default function ProfilePage() {
                 <Avatar
                   src={session?.user?.image || undefined}
                   sx={{ width: 80, height: 80, mx: "auto", mb: 2 }}
-                />
+                >
+                  {!session?.user?.image && session?.user?.name ? session.user.name.charAt(0).toUpperCase() : undefined}
+                </Avatar>
                 <Typography variant="h6" gutterBottom>
                   {session?.user?.name || "User"}
                 </Typography>
