@@ -516,7 +516,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                       <div style={{ 
                         width: 5, 
                         height: 5, 
-                        border: '1px solid MASTER_COLOR', 
+                        border: `1px solid ${MASTER_COLOR}`, 
                         backgroundColor: 'transparent', 
                         marginRight: 4,
                         flexShrink: 0,

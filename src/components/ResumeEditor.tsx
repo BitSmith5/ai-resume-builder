@@ -1040,7 +1040,7 @@ export default function ResumeEditor({
                               <Typography color="error" variant="caption">{profilePicError}</Typography>
                             )}
                             <Typography variant="caption" color="text.secondary">
-                              Max 5MB. PNG, JPG, or HEIC/HEIF (Apple Photos) allowed. Image will be uploaded when you save the resume.
+                              Max 5MB. PNG, JPG, or HEIC/HEIF (Apple Photos) allowed.
                             </Typography>
                           </Box>
                         </Box>
