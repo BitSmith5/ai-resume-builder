@@ -7,9 +7,10 @@ import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -17,7 +18,7 @@ export async function GET(
 
     const resume = await prisma.resume.findFirst({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(id),
         user: {
           email: session.user.email
         }
