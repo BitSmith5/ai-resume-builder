@@ -60,7 +60,7 @@ export async function GET(
       endDate: work.endDate ? work.endDate.toISOString().split('T')[0] : '',
       current: work.current,
       bulletPoints: Array.isArray(work.bulletPoints) 
-        ? (work.bulletPoints as any[]).map(bullet => ({ description: bullet.description }))
+        ? (work.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
         : []
     }));
 
@@ -83,7 +83,7 @@ export async function GET(
     }));
 
     // Parse the resume content JSON to get the actual personal info
-    const resumeContent = resume.content as any;
+    const resumeContent = resume.content as { personalInfo?: { name?: string; email?: string; phone?: string; city?: string; state?: string; summary?: string; website?: string; linkedin?: string; github?: string } };
     const personalInfo = resumeContent?.personalInfo || {};
 
     const resumeData = {
@@ -111,7 +111,7 @@ export async function GET(
     };
 
     // Use the existing HTML renderer but with improved styling
-    const template = (resume as any).template || 'modern';
+    const template = (resume as { template?: string }).template || 'modern';
     const html = renderResumeToHtml(resumeData, template);
 
     // Launch Puppeteer

@@ -1,5 +1,4 @@
 // Direct HTML generation for PDF creation with exact template styling
-import { formatDate, formatUrl } from '@/lib/utils';
 
 interface ResumeData {
   title: string;
@@ -51,8 +50,6 @@ interface ResumeData {
     icon: string;
   }>;
 }
-
-const MASTER_COLOR = '#c8665b';
 
 interface PageContent {
   workExperience: Array<{
@@ -395,11 +392,6 @@ function renderModernTemplate(data: ResumeData): string {
 
 function renderClassicTemplate(data: ResumeData): string {
   const { personalInfo } = data.content;
-  
-  const formatUrl = (url: string): string => {
-    if (!url) return '';
-    return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
-  };
 
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
