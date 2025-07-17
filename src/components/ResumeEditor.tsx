@@ -201,6 +201,9 @@ export default function ResumeEditor({
       setZoom(newZoom);
     }
     
+    // Only calculate zoom when client-side rendering is ready
+    if (!isClient) return;
+    
     // Initial calculation
     updateZoom();
     
@@ -229,7 +232,7 @@ export default function ResumeEditor({
         resizeObserver.disconnect();
       }
     };
-  }, [selectedTemplate]); // Recalculate when template changes
+  }, [selectedTemplate, isClient]); // Recalculate when template changes or client is ready
 
   const [resumeData, setResumeData] = useState<ResumeData>({
     title: "",
@@ -303,6 +306,27 @@ export default function ResumeEditor({
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Recalculate zoom when client becomes ready
+  useEffect(() => {
+    if (isClient && wrapperRef.current) {
+      const updateZoom = () => {
+        if (!wrapperRef.current) return;
+        const width = wrapperRef.current.offsetWidth;
+        const scaleW = width / 850;
+        const newZoom = Math.max(Math.min(scaleW, 1), 0.3);
+        setZoom(newZoom);
+      };
+      
+      // Immediate calculation
+      updateZoom();
+      
+      // Delayed calculation to ensure layout is stable
+      const timeoutId = setTimeout(updateZoom, 50);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isClient]);
 
   useEffect(() => {
     if (resumeId && isClient) {
@@ -2165,7 +2189,7 @@ export default function ResumeEditor({
               width: 850,
               height: "fit-content",
               background: "#fff",
-              transform: `scale(${zoom})`,
+              transform: isClient ? `scale(${zoom})` : "scale(1)",
               transformOrigin: "top left",
               transition: "transform 0.2s",
               // Add padding to accommodate shadow
