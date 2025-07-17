@@ -241,7 +241,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       addSectionToPage(data.education, 'education');
     }
     
-    // Now distribute skills and interests to fill remaining space
+    // Now distribute skills and interests to fill remaining space across all pages
     if (data.strengths && data.strengths.length > 0) {
       const skillsHeight = estimateSkillsHeight(data.strengths);
       if (currentHeight + skillsHeight <= maxContentHeight - bottomMargin - 20) {
@@ -269,16 +269,39 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         currentPage.interests = [...data.interests];
         currentHeight += interestsHeight + sectionSpacing;
       } else {
-        // If no space on current page, create a new page for interests
-        pages.push(currentPage);
-        currentPage = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          skills: [],
-          interests: [...data.interests]
-        };
-        currentHeight = interestsHeight + sectionSpacing;
+        // Try to add interests to an existing page that has space
+        let interestsAdded = false;
+        for (let i = pages.length - 1; i >= 0; i--) {
+          const page = pages[i];
+          
+          // Calculate total space used on this page
+          let pageUsedHeight = 0;
+          if (page.workExperience.length > 0) pageUsedHeight += 45 + (page.workExperience.length * 80);
+          if (page.education.length > 0) pageUsedHeight += 45 + (page.education.length * 60);
+          if (page.courses.length > 0) pageUsedHeight += 45 + (page.courses.length * 45);
+          if (page.skills.length > 0) pageUsedHeight += 50 + (page.skills.length * 25);
+          if (page.interests.length > 0) pageUsedHeight += 50 + (page.interests.length * 25);
+          
+          // Check if interests can fit on this page
+          if (pageUsedHeight + interestsHeight <= maxContentHeight - bottomMargin - 20) {
+            page.interests = [...data.interests];
+            interestsAdded = true;
+            break;
+          }
+        }
+        
+        if (!interestsAdded) {
+          // Create a new page for interests if no existing page has space
+          pages.push(currentPage);
+          currentPage = {
+            workExperience: [],
+            education: [],
+            courses: [],
+            skills: [],
+            interests: [...data.interests]
+          };
+          currentHeight = interestsHeight + sectionSpacing;
+        }
       }
     }
     
@@ -442,33 +465,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </div>
         )}
 
-        {/* Interests */}
-        {pageContent.interests.length > 0 && (
-          <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ 
-              fontSize: '18px', 
-              fontWeight: 'bold', 
-              margin: '0 0 8px 0',
-              textTransform: 'uppercase',
-              borderBottom: '1px solid #000',
-              paddingBottom: '4px'
-            }}>
-              Interests
-            </h2>
-            <div style={{ fontSize: '14px' }}>
-              {pageContent.interests.map((interest, index) => (
-                <span key={index} style={{ 
-                  display: 'inline-block',
-                  marginRight: '15px',
-                  marginBottom: '4px'
-                }}>
-                  {interest.icon} {interest.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Work Experience */}
         {pageContent.workExperience.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
@@ -620,6 +616,33 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Interests */}
+        {pageContent.interests.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 'bold', 
+              margin: '0 0 8px 0',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid #000',
+              paddingBottom: '4px'
+            }}>
+              Interests
+            </h2>
+            <div style={{ fontSize: '14px' }}>
+              {pageContent.interests.map((interest, index) => (
+                <span key={index} style={{ 
+                  display: 'inline-block',
+                  marginRight: '15px',
+                  marginBottom: '4px'
+                }}>
+                  {interest.icon} {interest.name}
+                </span>
+              ))}
+            </div>
           </div>
         )}
         </div> {/* Close content wrapper */}
