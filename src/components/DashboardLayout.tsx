@@ -26,7 +26,6 @@ import {
   Description as ResumeIcon,
   Person as ProfileIcon,
   Logout as LogoutIcon,
-  AccountCircle,
 } from "@mui/icons-material";
 
 const drawerWidth = 240;
