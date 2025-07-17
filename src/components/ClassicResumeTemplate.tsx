@@ -2,6 +2,7 @@ import React from 'react';
 
 interface ResumeData {
   title: string;
+  jobTitle?: string;
   profilePicture?: string;
   content: {
     personalInfo: {

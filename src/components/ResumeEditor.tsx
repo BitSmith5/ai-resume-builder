@@ -2129,52 +2129,62 @@ export default function ResumeEditor({
               boxSizing: "border-box",
             }}
           >
-            <ResumeTemplateRegistry
-              data={{
-                id: 0,
-                title: resumeData.title,
-                jobTitle: resumeData.jobTitle,
-                profilePicture: localProfilePicture || resumeData.profilePicture,
-                content: resumeData.content,
-                strengths: resumeData.strengths.map((s, index) => ({
-                  id: index,
-                  skillName: s.skillName,
-                  rating: s.rating,
-                })),
-                workExperience: resumeData.workExperience.map((exp, index) => ({
-                  id: index,
-                  company: exp.company,
-                  position: exp.position,
-                  startDate: exp.startDate,
-                  endDate: exp.endDate,
-                  current: exp.current,
-                  bulletPoints: exp.bulletPoints,
-                })),
-                education: resumeData.education.map((edu, index) => ({
-                  id: index,
-                  institution: edu.institution,
-                  degree: edu.degree,
-                  field: edu.field,
-                  startDate: edu.startDate,
-                  endDate: edu.endDate,
-                  current: edu.current,
-                  gpa: edu.gpa,
-                })),
-                courses: resumeData.courses.map((course, index) => ({
-                  id: index,
-                  title: course.title,
-                  provider: course.provider,
-                  link: course.link,
-                })),
-                interests: resumeData.interests.map((interest, index) => ({
-                  id: index,
-                  name: interest.name,
-                  icon: interest.icon,
-                })),
-                createdAt: new Date().toISOString(),
-              }}
-              templateId={selectedTemplate}
-            />
+            {(() => {
+              try {
+                const templateData = {
+                  id: 0,
+                  title: resumeData.title,
+                  jobTitle: resumeData.jobTitle,
+                  profilePicture: localProfilePicture || resumeData.profilePicture,
+                  content: resumeData.content,
+                  strengths: resumeData.strengths.map((s, index) => ({
+                    id: index,
+                    skillName: s.skillName,
+                    rating: s.rating,
+                  })),
+                  workExperience: resumeData.workExperience.map((exp, index) => ({
+                    id: index,
+                    company: exp.company,
+                    position: exp.position,
+                    startDate: exp.startDate,
+                    endDate: exp.endDate,
+                    current: exp.current,
+                    bulletPoints: exp.bulletPoints,
+                  })),
+                  education: resumeData.education.map((edu, index) => ({
+                    id: index,
+                    institution: edu.institution,
+                    degree: edu.degree,
+                    field: edu.field,
+                    startDate: edu.startDate,
+                    endDate: edu.endDate,
+                    current: edu.current,
+                    gpa: edu.gpa,
+                  })),
+                  courses: resumeData.courses.map((course, index) => ({
+                    id: index,
+                    title: course.title,
+                    provider: course.provider,
+                    link: course.link,
+                  })),
+                  interests: resumeData.interests.map((interest, index) => ({
+                    id: index,
+                    name: interest.name,
+                    icon: interest.icon,
+                  })),
+                  createdAt: new Date().toISOString(),
+                };
+                return (
+                  <ResumeTemplateRegistry
+                    data={templateData}
+                    templateId={selectedTemplate}
+                  />
+                );
+              } catch (error) {
+                console.error('Error in ResumeTemplateRegistry:', error);
+                return <div style={{ color: 'red' }}>Error rendering template: {error.message}</div>;
+              }
+            })()}
           </Box>
         </Box>
       </Box>
