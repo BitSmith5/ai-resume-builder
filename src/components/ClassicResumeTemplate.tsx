@@ -124,7 +124,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     const maxContentHeight = 900;
     const bottomMargin = 80;
     const headerHeight = 180; // Only on first page
-    const sectionSpacing = 20;
     const itemSpacing = 15;
     
     // Helper function to estimate content height
