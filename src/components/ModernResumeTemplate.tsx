@@ -447,7 +447,8 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             fontWeight: 700, 
             fontSize: 'clamp(14px, 2.2vw, 18px)', 
             color: '#c94f4f', 
-            marginBottom: 4 
+            marginBottom: 4,
+            marginLeft: '20px'
           }}>WORK EXPERIENCE</div>
           <div style={{ 
             width: '100%', 
@@ -456,7 +457,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             margin: '4px 0 12px 0' 
           }} />
           {pageContent.workExperience.map((exp, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
+            <div key={i} style={{ marginBottom: 12, marginLeft: '20px' }}>
               <div style={{ 
                 fontWeight: 700, 
                 fontSize: '16px',
@@ -536,7 +537,8 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             fontWeight: 700, 
             fontSize: 'clamp(14px, 2.2vw, 18px)', 
             color: '#c94f4f', 
-            marginBottom: 8 
+            marginBottom: 8,
+            marginLeft: '20px'
           }}>COURSES & TRAININGS</div>
           <div style={{ 
             width: '100%', 
@@ -545,7 +547,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             margin: '4px 0 12px 0' 
           }} />
           {pageContent.courses.map((course, i) => (
-            <div key={i} style={{ marginBottom: 8 }}>
+            <div key={i} style={{ marginBottom: 8, marginLeft: '20px' }}>
               <div style={{ 
                 display: 'flex',
                 alignItems: 'center',
@@ -598,7 +600,8 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             fontWeight: 700, 
             fontSize: 'clamp(14px, 2.2vw, 18px)', 
             color: '#c94f4f', 
-            marginBottom: 8 
+            marginBottom: 8,
+            marginLeft: '20px'
           }}>EDUCATION</div>
           <div style={{ 
             width: '100%', 
@@ -607,7 +610,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             margin: '4px 0 12px 0' 
           }} />
           {pageContent.education.map((edu, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
+            <div key={i} style={{ marginBottom: 12, marginLeft: '20px' }}>
               <div style={{ 
                 fontWeight: 600, 
                 fontSize: '16px',
@@ -847,11 +850,12 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           {/* Technical Skills - on all pages to allow overflow */}
           {pageContent.leftColumnContent.skills && pageContent.leftColumnContent.skills.length > 0 && (
             <div style={{ width: '100%', maxWidth: '180px', marginBottom: '32px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div style={{ 
                   fontWeight: 700, 
                   fontSize: '16px', 
-                  color: '#c94f4f' 
+                  color: '#c94f4f',
+                  textAlign: 'left',
                 }}>TECHNICAL SKILLS</div>
                 <div style={{ width: '100%', height: 2, background: '#c94f4f', margin: '2px 0 0 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
@@ -891,13 +895,12 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           
           {/* Interests - on all pages to allow overflow */}
           {pageContent.leftColumnContent.interests && pageContent.leftColumnContent.interests.length > 0 && (
-            <div style={{ width: '100%', maxWidth: '180px' }}>
+            <div style={{ width: '100%', maxWidth: '180px', justifyContent: 'flex-start' }}>
               <div style={{ 
                 fontWeight: 700, 
                 fontSize: 'clamp(12px, 2vw, 16px)', 
-                marginBottom: 12, 
                 color: '#c94f4f',
-                textAlign: 'center'
+                textAlign: 'left'
               }}>INTERESTS</div>
               <div style={{ 
                 width: '100%', 
