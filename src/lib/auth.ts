@@ -59,6 +59,35 @@ export const authOptions = {
     strategy: "jwt" as const,
   },
   callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    signIn: async ({ user, account }: { user: any; account: any; profile?: any }) => {
+      if (account?.provider === "google" || account?.provider === "github") {
+        try {
+          // Check if user already exists
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          });
+
+          if (!existingUser) {
+            // Create new user
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name!,
+                image: user.image,
+              },
+            });
+            user.id = newUser.id;
+          } else {
+            user.id = existingUser.id;
+          }
+        } catch (error) {
+          console.error("Error in signIn callback:", error);
+          return false;
+        }
+      }
+      return true;
+    },
     jwt: async ({ token, user }: { token: { id?: string; username?: string }; user: { id: string; username?: string } | null }) => {
       if (user) {
         token.id = user.id;
