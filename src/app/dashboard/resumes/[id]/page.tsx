@@ -92,7 +92,7 @@ export default function ViewResumePage() {
     
     setDownloading(true);
     try {
-      const response = await fetch(`/api/resumes/${resumeId}/pdf?template=${selectedTemplate}`);
+      const response = await fetch(`/api/resumes/${resumeId}/pdf`);
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
