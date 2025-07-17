@@ -2182,7 +2182,7 @@ export default function ResumeEditor({
                 );
               } catch (error) {
                 console.error('Error in ResumeTemplateRegistry:', error);
-                return <div style={{ color: 'red' }}>Error rendering template: {error.message}</div>;
+                return <div style={{ color: 'red' }}>Error rendering template: {error instanceof Error ? error.message : 'Unknown error'}</div>;
               }
             })()}
           </Box>
