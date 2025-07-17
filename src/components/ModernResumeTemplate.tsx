@@ -3,6 +3,8 @@ import Image from 'next/image';
 import { MdEmail, MdPhone, MdLocationOn, MdLanguage, MdLink } from 'react-icons/md';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 
+const MASTER_COLOR = '#c8665b';
+
 interface ResumeData {
   title: string;
   jobTitle?: string;
@@ -389,7 +391,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
 
   // Render header (same for all pages)
   const renderHeader = () => (
-    <div style={{ marginBottom: 16, background: '#c94f4f', padding: '12px' }}>
+    <div style={{ marginBottom: 16, background: MASTER_COLOR, padding: '12px' }}>
       <div style={{ 
         fontSize: '30px', 
         fontWeight: 500, 
@@ -446,14 +448,14 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           <div style={{ 
             fontWeight: 700, 
             fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: '#c94f4f', 
+            color: MASTER_COLOR, 
             marginBottom: 4,
             marginLeft: '20px'
           }}>WORK EXPERIENCE</div>
           <div style={{ 
             width: '100%', 
             height: 2, 
-            background: '#c94f4f', 
+            background: MASTER_COLOR, 
             margin: '4px 0 12px 0' 
           }} />
           {pageContent.workExperience.map((exp, i) => (
@@ -464,7 +466,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
-                color: '#c94f4f',
+                color: MASTER_COLOR,
               }}>{exp.position}</div>
               <div style={{ 
                 fontWeight: 600, 
@@ -483,7 +485,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               }}>
                 <div style={{ 
                   fontSize: '10px', 
-                  color: '#c94f4f', 
+                  color: MASTER_COLOR, 
                   marginBottom: 4,
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
@@ -493,7 +495,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 {(exp.city || exp.state) && (
                   <div style={{ 
                     fontSize: 'clamp(10px, 1.5vw, 12px)', 
-                    color: '#c94f4f',
+                    color: MASTER_COLOR,
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
                     whiteSpace: 'normal',
@@ -514,7 +516,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                       <div style={{ 
                         width: 5, 
                         height: 5, 
-                        border: '1px solid #c94f4f', 
+                        border: '1px solid MASTER_COLOR', 
                         backgroundColor: 'transparent', 
                         marginRight: 4,
                         flexShrink: 0,
@@ -536,14 +538,14 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           <div style={{ 
             fontWeight: 700, 
             fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: '#c94f4f', 
+            color: MASTER_COLOR, 
             marginBottom: 8,
             marginLeft: '20px'
           }}>COURSES & TRAININGS</div>
           <div style={{ 
             width: '100%', 
             height: 2, 
-            background: '#c94f4f', 
+            background: MASTER_COLOR, 
             margin: '4px 0 12px 0' 
           }} />
           {pageContent.courses.map((course, i) => (
@@ -569,7 +571,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     target="_blank" 
                     rel="noopener noreferrer"
                     style={{ 
-                      color: '#c94f4f',
+                      color: MASTER_COLOR,
                       textDecoration: 'none',
                       display: 'flex',
                       alignItems: 'center'
@@ -599,14 +601,14 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           <div style={{ 
             fontWeight: 700, 
             fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: '#c94f4f', 
+            color: MASTER_COLOR, 
             marginBottom: 8,
             marginLeft: '20px'
           }}>EDUCATION</div>
           <div style={{ 
             width: '100%', 
             height: 2, 
-            background: '#c94f4f', 
+            background: MASTER_COLOR, 
             margin: '4px 0 12px 0' 
           }} />
           {pageContent.education.map((edu, i) => (
@@ -617,7 +619,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
-                color: '#c94f4f',
+                color: MASTER_COLOR,
                 lineHeight: '1',
                 marginBottom: 4
               }}>{edu.degree} in {edu.field}</div>
@@ -637,7 +639,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               }}>
                 <div style={{ 
                   fontSize: '10px', 
-                  color: '#c94f4f',
+                  color: MASTER_COLOR,
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'normal',
@@ -647,7 +649,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 {edu.gpa &&
                   <div style={{ 
                     fontSize: '10px', 
-                    color: '#c94f4f',
+                    color: MASTER_COLOR,
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
                     whiteSpace: 'normal',
@@ -765,7 +767,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   overflowWrap: 'break-word', 
                   whiteSpace: 'normal' 
                 }}>
-                  <MdEmail size="clamp(12px, 2vw, 16px)" style={{ color: '#c94f4f', marginRight: 8, flexShrink: 0 }} />
+                  <MdEmail size="clamp(12px, 2vw, 16px)" style={{ color: MASTER_COLOR, marginRight: 8, flexShrink: 0 }} />
                   <span style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{personalInfo.email}</span>
                 </div>
               )}
@@ -780,7 +782,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   overflowWrap: 'break-word', 
                   whiteSpace: 'normal' 
                 }}>
-                  <MdPhone size="clamp(12px, 2vw, 16px)" style={{ color: '#c94f4f', marginRight: 8, flexShrink: 0 }} />
+                  <MdPhone size="clamp(12px, 2vw, 16px)" style={{ color: MASTER_COLOR, marginRight: 8, flexShrink: 0 }} />
                   <span style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{personalInfo.phone}</span>
                 </div>
               )}
@@ -795,7 +797,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   overflowWrap: 'break-word', 
                   whiteSpace: 'normal' 
                 }}>
-                  <MdLocationOn size="clamp(12px, 2vw, 16px)" style={{ color: '#c94f4f', marginRight: 8, flexShrink: 0 }} />
+                  <MdLocationOn size="clamp(12px, 2vw, 16px)" style={{ color: MASTER_COLOR, marginRight: 8, flexShrink: 0 }} />
                   <span style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{[personalInfo.city, personalInfo.state].filter(Boolean).join(', ')}</span>
                 </div>
               )}
@@ -810,7 +812,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   overflowWrap: 'break-word', 
                   whiteSpace: 'normal' 
                 }}>
-                  <MdLanguage size="clamp(12px, 2vw, 16px)" style={{ color: '#c94f4f', marginRight: 8, flexShrink: 0 }} />
+                  <MdLanguage size="clamp(12px, 2vw, 16px)" style={{ color: MASTER_COLOR, marginRight: 8, flexShrink: 0 }} />
                   <span style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{formatUrl(personalInfo.website)}</span>
                 </div>
               )}
@@ -825,7 +827,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   overflowWrap: 'break-word', 
                   whiteSpace: 'normal' 
                 }}>
-                  <FaLinkedin size="clamp(12px, 2vw, 16px)" style={{ color: '#c94f4f', marginRight: 8, flexShrink: 0 }} />
+                  <FaLinkedin size="clamp(12px, 2vw, 16px)" style={{ color: MASTER_COLOR, marginRight: 8, flexShrink: 0 }} />
                   <span style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{formatUrl(personalInfo.linkedin)}</span>
                 </div>
               )}
@@ -840,7 +842,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   overflowWrap: 'break-word', 
                   whiteSpace: 'normal' 
                 }}>
-                  <FaGithub size="clamp(12px, 2vw, 16px)" style={{ color: '#c94f4f', marginRight: 8, flexShrink: 0 }} />
+                  <FaGithub size="clamp(12px, 2vw, 16px)" style={{ color: MASTER_COLOR, marginRight: 8, flexShrink: 0 }} />
                   <span style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{formatUrl(personalInfo.github)}</span>
                 </div>
               )}
@@ -854,13 +856,13 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 <div style={{ 
                   fontWeight: 700, 
                   fontSize: '16px', 
-                  color: '#c94f4f',
+                  color: MASTER_COLOR,
                   textAlign: 'left',
                 }}>TECHNICAL SKILLS</div>
-                <div style={{ width: '100%', height: 2, background: '#c94f4f', margin: '2px 0 0 0' }} />
+                <div style={{ width: '100%', height: 2, background: MASTER_COLOR, margin: '2px 0 0 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} style={{ width: 2, height: 5, background: '#c94f4f', borderRadius: 0 }} />
+                    <div key={i} style={{ width: 2, height: 5, background: MASTER_COLOR, borderRadius: 0 }} />
                   ))}
                 </div>
               </div>
@@ -878,13 +880,13 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     width: '100%', 
                     height: 10, 
                     backgroundColor: 'transparent', 
-                    border: '2px solid #c94f4f',
+                    border: `2px solid ${MASTER_COLOR}`,
                     overflow: 'hidden'
                   }}>
                     <div style={{
                       width: `${(s.rating / 10) * 100}%`,
                       height: '100%',
-                      backgroundColor: '#c94f4f',
+                      backgroundColor: MASTER_COLOR,
                       padding: 1
                     }} />
                   </div>
@@ -899,13 +901,13 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               <div style={{ 
                 fontWeight: 700, 
                 fontSize: 'clamp(12px, 2vw, 16px)', 
-                color: '#c94f4f',
+                color: MASTER_COLOR,
                 textAlign: 'left'
               }}>INTERESTS</div>
               <div style={{ 
                 width: '100%', 
                 height: 2, 
-                background: '#c94f4f', 
+                background: MASTER_COLOR, 
                 margin: '2px 0 12px 0' 
               }} />
               {pageContent.leftColumnContent.interests.map((interest, i) => (
@@ -915,14 +917,13 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   marginBottom: 8,
                   gap: 8
                 }}>
-                  <div style={{ 
+                  <span style={{
                     fontSize: '16px',
                     flexShrink: 0,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    filter: 'grayscale(100%) brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(80%)'
-                  }}>{interest.icon}</div>
+                  }}>{interest.icon}</span>
                   <div style={{ 
                     fontSize: 'clamp(11px, 1.8vw, 14px)', 
                     wordWrap: 'break-word',
