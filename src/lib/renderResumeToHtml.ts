@@ -51,42 +51,7 @@ interface ResumeData {
   }>;
 }
 
-interface PageContent {
-  workExperience: Array<{
-    company: string;
-    position: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    bulletPoints: Array<{
-      description: string;
-    }>;
-  }>;
-  education: Array<{
-    institution: string;
-    degree: string;
-    field: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    gpa?: number;
-  }>;
-  courses: Array<{
-    title: string;
-    provider: string;
-    link?: string;
-  }>;
-  leftColumnContent: {
-    skills: Array<{
-      skillName: string;
-      rating: number;
-    }>;
-    interests: Array<{
-      name: string;
-      icon: string;
-    }>;
-  };
-}
+
 
 export function renderResumeToHtml(data: ResumeData, template: string): string {
   if (template === 'classic') {
