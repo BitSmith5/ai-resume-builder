@@ -986,7 +986,7 @@ export default function ResumeEditor({
                                         e.target.value = "";
                                       };
                                       reader.readAsDataURL(file);
-                                    } catch (error) {
+                                    } catch {
                                       setProfilePicError("Failed to process image");
                                       setUploadingProfilePic(false);
                                       e.target.value = "";

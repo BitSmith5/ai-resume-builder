@@ -749,7 +749,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   }}
                   onError={(e) => {
                     // Hide the image container on error
-                    // @ts-ignore: Next.js Image onError typing
+                    // @ts-expect-error: Next.js Image onError typing
                     const container = e.target.parentElement;
                     if (container) {
                       container.style.display = 'none';
