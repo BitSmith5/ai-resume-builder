@@ -18,14 +18,7 @@ export async function GET() {
       where: {
         userId: user.id,
       },
-      select: {
-        id: true,
-        title: true,
-        jobTitle: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        userId: true,
+      include: {
         strengths: true,
         workExperience: true,
         education: true,
@@ -73,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, jobTitle, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
+    const { title, jobTitle, template, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -134,6 +127,7 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         jobTitle,
+        template: template || "modern",
         content: content,
         profilePicture: profilePicture || null,
         userId: user.id,

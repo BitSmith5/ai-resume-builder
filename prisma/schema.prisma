@@ -65,6 +65,7 @@ model Resume {
   userId         String
   title          String
   jobTitle       String?          // Job title to display on the resume
+  template       String?          @default("modern") // Template ID for the resume
   content        Json
   profilePicture String?          // Stores file path like "uploads/profile-pictures/filename.jpg"
   createdAt      DateTime         @default(now())

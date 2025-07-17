@@ -79,7 +79,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, jobTitle, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
+    const { title, jobTitle, template, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -152,56 +152,61 @@ export async function PUT(
       }
     }
 
-    // Delete existing related data
-    await prisma.strength.deleteMany({
-      where: { resumeId: parseInt(resolvedParams.id) },
-    });
-    await prisma.workExperience.deleteMany({
-      where: { resumeId: parseInt(resolvedParams.id) },
-    });
-    await prisma.education.deleteMany({
-      where: { resumeId: parseInt(resolvedParams.id) },
-    });
-    await prisma.course.deleteMany({
-      where: { resumeId: parseInt(resolvedParams.id) },
-    });
-    await prisma.interest.deleteMany({
-      where: { resumeId: parseInt(resolvedParams.id) },
-    });
+    // Use a transaction to ensure data consistency
+    const resume = await prisma.$transaction(async (tx) => {
+      // Delete existing related data within the transaction
+      await tx.strength.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
+      await tx.workExperience.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
+      await tx.education.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
+      await tx.course.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
+      await tx.interest.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
 
-    const resume = await prisma.resume.update({
-      where: {
-        id: parseInt(resolvedParams.id),
-        userId: user.id,
-      },
-      data: {
-        title,
-        jobTitle,
-        content,
-        profilePicture: profilePicture || null,
-        strengths: {
-          create: processedStrengths,
+      // Update the resume and recreate related data within the same transaction
+      return await tx.resume.update({
+        where: {
+          id: parseInt(resolvedParams.id),
+          userId: user.id,
         },
-        workExperience: {
-          create: processedWorkExperience,
+        data: {
+          title,
+          jobTitle,
+          template: template || "modern",
+          content,
+          profilePicture: profilePicture || null,
+          strengths: {
+            create: processedStrengths,
+          },
+          workExperience: {
+            create: processedWorkExperience,
+          },
+          education: {
+            create: processedEducation,
+          },
+          courses: {
+            create: processedCourses,
+          },
+          interests: {
+            create: processedInterests,
+          },
+        } as Prisma.ResumeUpdateInput,
+        include: {
+          strengths: true,
+          workExperience: true,
+          education: true,
+          courses: true,
+          interests: true,
         },
-        education: {
-          create: processedEducation,
-        },
-        courses: {
-          create: processedCourses,
-        },
-        interests: {
-          create: processedInterests,
-        },
-      } as Prisma.ResumeUpdateInput,
-      include: {
-        strengths: true,
-        workExperience: true,
-        education: true,
-        courses: true,
-        interests: true,
-      },
+      });
     });
 
     // Convert dates to YYYY-MM-DD format for HTML date inputs

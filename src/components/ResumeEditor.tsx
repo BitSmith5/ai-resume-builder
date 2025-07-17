@@ -101,6 +101,7 @@ const formatPhoneNumber = (value: string): string => {
 interface ResumeData {
   title: string;
   jobTitle?: string;
+  template?: string;
   profilePicture?: string;
   content: {
     personalInfo: {
@@ -237,6 +238,7 @@ export default function ResumeEditor({
   const [resumeData, setResumeData] = useState<ResumeData>({
     title: "",
     jobTitle: "",
+    template: "modern",
     profilePicture: "",
     content: {
       personalInfo: {
@@ -265,9 +267,11 @@ export default function ResumeEditor({
       if (response.ok) {
         const resume = await response.json();
         
+
         setResumeData({
           title: resume.title,
           jobTitle: resume.jobTitle || "",
+          template: resume.template || "modern",
           profilePicture: resume.profilePicture || "", // Keep the profile picture from database
           content: {
             ...resume.content,
@@ -333,6 +337,13 @@ export default function ResumeEditor({
       loadResume();
     }
   }, [resumeId, loadResume, isClient]);
+
+  // Update selectedTemplate when resume data is loaded
+  useEffect(() => {
+    if (resumeData.template && !loading) {
+      setSelectedTemplate(resumeData.template);
+    }
+  }, [resumeData.template, loading]);
 
   // Cleanup effect for local profile picture
   useEffect(() => {
@@ -478,6 +489,7 @@ export default function ResumeEditor({
         },
         body: JSON.stringify({
           ...resumeData,
+          template: selectedTemplate,
           profilePicture: finalProfilePicture,
         }),
       });
@@ -2241,6 +2253,11 @@ export default function ResumeEditor({
                   })),
                   createdAt: new Date().toISOString(),
                 };
+
+
+                
+
+                
                 return (
                   <ResumeTemplateRegistry
                     data={templateData}
