@@ -95,7 +95,8 @@ export const authOptions = {
       }
       return true;
     },
-    jwt: async ({ token, user }: { token: { id?: string; username?: string; image?: string }; user: { id: string; username?: string; image?: string } | null }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    jwt: async ({ token, user }: { token: any; user: any }) => {
       if (user) {
         token.id = user.id;
         token.username = user.username;
@@ -104,7 +105,7 @@ export const authOptions = {
       return token;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    session: async ({ session, token }: { session: any; token: { id?: string; username?: string; image?: string } }) => {
+    session: async ({ session, token }: { session: any; token: any }) => {
       if (session?.user && token) {
         session.user = {
           ...session.user,
