@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { MdEmail, MdPhone, MdLocationOn, MdLanguage, MdLink } from 'react-icons/md';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
+import { getImage } from '@/lib/imageStorage';
 
 const MASTER_COLOR = '#c8665b';
 
@@ -731,7 +732,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           overflow: 'hidden'
         }}>
           {/* Profile Picture - only on first page and only if valid image exists */}
-          {isFirstPage && data.profilePicture && data.profilePicture.trim() !== '' && (
+          {isFirstPage && data.profilePicture && data.profilePicture.trim() !== '' && data.profilePicture !== 'undefined' && (
             <div style={{ 
               width: '160px',
               height: '160px',
@@ -740,11 +741,11 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               overflow: 'hidden',
               flexShrink: 0
             }}>
-              {data.profilePicture.startsWith('data:') ? (
-                // Handle base64 data URLs with regular img tag
+              {data.profilePicture.startsWith('data:') || data.profilePicture.startsWith('profile_') ? (
+                // Handle base64 data URLs and localStorage image IDs with regular img tag
                 // eslint-disable-next-line @next/next/no-img-element
                 <img 
-                  src={data.profilePicture}
+                  src={data.profilePicture.startsWith('data:') ? data.profilePicture : (getImage(data.profilePicture) || '')}
                   alt="Profile"
                   style={{
                     width: '100%',
@@ -761,7 +762,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     }
                   }}
                 />
-              ) : (
+              ) : data.profilePicture && data.profilePicture.trim() !== '' ? (
                 // Handle regular URLs with Next.js Image component
                 <Image 
                   src={data.profilePicture.startsWith('http') ? data.profilePicture : `${window.location.origin}${data.profilePicture}`}
@@ -784,7 +785,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     }
                   }}
                 />
-              )}
+              ) : null}
             </div>
           )}
           
