@@ -10,7 +10,7 @@ interface ResumeWithTemplate {
   jobTitle?: string;
 }
 
-export const runtime = 'nodejs'; // Force redeploy for Vercel - deployment test - v2
+export const runtime = 'nodejs'; // Force redeploy for Vercel - deployment test - v3 - fixed version
 
 export async function GET(
   request: NextRequest,
