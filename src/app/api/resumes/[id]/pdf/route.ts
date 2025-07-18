@@ -153,22 +153,53 @@ export async function GET(
 
     // Launch Puppeteer with serverless-compatible configuration
     console.log('Launching Puppeteer...');
-    const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.CHROME_BIN || '/usr/bin/google-chrome-stable',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-web-security',
-        '--allow-running-insecure-content',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process'
-      ]
-    });
-    console.log('Puppeteer launched successfully');
+    
+    // Try different Chrome paths for Vercel
+    const chromePaths = [
+      '/usr/bin/google-chrome',
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/chromium-browser',
+      '/usr/bin/chromium',
+      process.env.CHROME_BIN
+    ].filter(Boolean);
+    
+    let browser;
+    let lastError;
+    
+    for (const chromePath of chromePaths) {
+      try {
+        console.log(`Trying Chrome path: ${chromePath}`);
+        browser = await puppeteer.launch({
+          headless: true,
+          executablePath: chromePath,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-web-security',
+            '--allow-running-insecure-content',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process'
+          ]
+        });
+        console.log(`Puppeteer launched successfully with Chrome path: ${chromePath}`);
+        break;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.log(`Failed with Chrome path ${chromePath}:`, errorMessage);
+        lastError = error;
+        if (browser) {
+          await browser.close();
+        }
+      }
+    }
+    
+    if (!browser) {
+      const lastErrorMessage = lastError instanceof Error ? lastError.message : 'Unknown error';
+      throw new Error(`Failed to launch Puppeteer with any Chrome path. Last error: ${lastErrorMessage}`);
+    }
 
     const page = await browser.newPage();
     

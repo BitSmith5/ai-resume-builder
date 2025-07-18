@@ -12,7 +12,7 @@
     }
   },
   "env": {
-    "CHROME_BIN": "/usr/bin/google-chrome-stable"
+    "CHROME_BIN": "/usr/bin/google-chrome"
   },
   "version": 2
 } 
