@@ -7,7 +7,8 @@
   },
   "build": {
     "env": {
-      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true"
+      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
+      "FORCE_REDEPLOY": "true"
     }
   },
   "version": 2
