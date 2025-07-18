@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import type { Session } from "next-auth";
 import { put } from '@vercel/blob';
-import { Readable } from "stream";
 
 export const config = {
   api: {

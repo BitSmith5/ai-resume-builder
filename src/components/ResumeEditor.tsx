@@ -344,6 +344,7 @@ export default function ResumeEditor({
     if (resumeData.template && !loading && isClient && resumeData.template !== selectedTemplate) {
       setSelectedTemplate(resumeData.template);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeData.template, loading, isClient]); // Removed selectedTemplate to prevent infinite loop
 
   // Handle template prop changes
@@ -351,6 +352,7 @@ export default function ResumeEditor({
     if (template && template !== selectedTemplate) {
       setSelectedTemplate(template);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [template]); // Removed selectedTemplate to prevent infinite loop
 
   // Cleanup effect for local profile picture
