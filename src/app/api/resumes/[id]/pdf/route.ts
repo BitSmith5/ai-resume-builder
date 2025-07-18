@@ -5,6 +5,11 @@ import { prisma } from '@/lib/prisma';
 import puppeteer from 'puppeteer';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
+interface ResumeWithTemplate {
+  template?: string;
+  jobTitle?: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -105,7 +110,7 @@ export async function GET(
 
     const resumeData = {
       title: resume.title,
-      jobTitle: (resume as any).jobTitle || undefined,
+      jobTitle: (resume as ResumeWithTemplate).jobTitle || undefined,
       profilePicture: profilePictureUrl || undefined,
       content: {
         personalInfo: {
@@ -135,7 +140,7 @@ export async function GET(
     });
 
     // Use the existing HTML renderer but with improved styling
-    const template = (resume as { template?: string }).template || 'modern';
+    const template = (resume as ResumeWithTemplate).template || 'modern';
     const html = renderResumeToHtml(resumeData, template);
 
     // Launch Puppeteer
