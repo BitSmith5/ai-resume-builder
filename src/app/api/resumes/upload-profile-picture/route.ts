@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import type { Session } from "next-auth";
-import { put } from '@vercel/blob';
 
 export const config = {
   api: {
@@ -38,20 +37,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 });
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 15);
-    const extension = file.name.split('.').pop() || 'jpg';
-    const filename = `profile-pictures/${user.id}/${timestamp}-${randomId}.${extension}`;
+    // Convert file to base64 data URL
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+    const mimeType = file.type;
+    const dataUrl = `data:${mimeType};base64,${base64}`;
 
-    // Upload to Vercel Blob
-    const blob = await put(filename, file, {
-      access: 'public',
-      addRandomSuffix: false,
-    });
-
-    // Return the blob URL
-    return NextResponse.json({ filePath: blob.url });
+    // Return the data URL as the file path
+    return NextResponse.json({ filePath: dataUrl });
   } catch (error) {
     console.error("Error uploading profile picture:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });

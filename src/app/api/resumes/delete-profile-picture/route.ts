@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import type { Session } from "next-auth";
-import { del } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,21 +18,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File path is required" }, { status: 400 });
     }
 
-    // For Vercel Blob, we need to extract the blob URL
-    // The filePath should be a full URL from Vercel Blob
-    if (!filePath.startsWith('https://') || !filePath.includes('blob.vercel-storage.com')) {
-      return NextResponse.json({ error: "Invalid file path" }, { status: 400 });
-    }
-
-    try {
-      // Delete the blob
-      await del(filePath);
-      return NextResponse.json({ success: true });
-    } catch (deleteError) {
-      // If the blob doesn't exist, that's fine - it might have been already deleted
-      console.warn("Blob not found for deletion:", deleteError);
-      return NextResponse.json({ success: true, message: "File not found (may have been already deleted)" });
-    }
+    // For data URLs, we don't need to delete anything from storage
+    // The data URL will be replaced when a new image is uploaded
+    // Just return success
+    return NextResponse.json({ success: true, message: "Profile picture cleared" });
   } catch (error) {
     console.error("Error deleting profile picture:", error);
     return NextResponse.json({ error: "Failed to delete file" }, { status: 500 });

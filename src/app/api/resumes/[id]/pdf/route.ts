@@ -44,9 +44,9 @@ export async function GET(
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
 
-    // Handle profile picture URL - now using Vercel Blob storage
+    // Handle profile picture URL - now using base64 data URLs
     let profilePictureUrl = resume.profilePicture;
-    console.log('Original profile picture URL:', profilePictureUrl);
+    console.log('Original profile picture URL:', profilePictureUrl ? profilePictureUrl.substring(0, 50) + '...' : 'None');
     
     if (profilePictureUrl) {
       if (profilePictureUrl.startsWith('data:')) {
@@ -54,7 +54,7 @@ export async function GET(
         profilePictureUrl = profilePictureUrl;
         console.log('Using data URL as is:', profilePictureUrl.substring(0, 50) + '...');
       } else if (profilePictureUrl.startsWith('https://') && profilePictureUrl.includes('blob.vercel-storage.com')) {
-        // Vercel Blob URL - use as is
+        // Vercel Blob URL - use as is (for backward compatibility)
         profilePictureUrl = profilePictureUrl;
         console.log('Using Vercel Blob URL as is:', profilePictureUrl);
       } else if (profilePictureUrl.startsWith('http')) {
