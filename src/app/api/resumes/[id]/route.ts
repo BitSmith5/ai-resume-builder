@@ -3,8 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import { prisma } from "../../../../lib/prisma";
 import type { Session } from "next-auth";
-import fs from "fs";
-import path from "path";
+import { del } from '@vercel/blob';
 import { Prisma } from "@prisma/client";
 
 export async function GET(
@@ -142,10 +141,13 @@ export async function PUT(
     // Delete old profile picture if it's being replaced or removed
     if (currentResume && (currentResume as { profilePicture?: string }).profilePicture && (currentResume as { profilePicture?: string }).profilePicture !== profilePicture) {
       try {
-        const absolutePath = path.join(process.cwd(), 'public', (currentResume as { profilePicture?: string }).profilePicture!);
-        if (fs.existsSync(absolutePath)) {
-          fs.unlinkSync(absolutePath);
+        const oldProfilePicture = (currentResume as { profilePicture?: string }).profilePicture!;
+        
+        // Check if it's a Vercel Blob URL
+        if (oldProfilePicture.startsWith('https://') && oldProfilePicture.includes('blob.vercel-storage.com')) {
+          await del(oldProfilePicture);
         }
+        // Note: Legacy local file paths will be ignored in production
       } catch (fileError) {
         console.error("Error deleting old profile picture file:", fileError);
         // Continue with update even if file deletion fails
@@ -262,11 +264,13 @@ export async function DELETE(
     // Delete the profile picture file if it exists
     if ((resume as { profilePicture?: string }).profilePicture) {
       try {
-        const absolutePath = path.join(process.cwd(), 'public', (resume as { profilePicture?: string }).profilePicture!);
+        const profilePicture = (resume as { profilePicture?: string }).profilePicture!;
         
-        if (fs.existsSync(absolutePath)) {
-          fs.unlinkSync(absolutePath);
+        // Check if it's a Vercel Blob URL
+        if (profilePicture.startsWith('https://') && profilePicture.includes('blob.vercel-storage.com')) {
+          await del(profilePicture);
         }
+        // Note: Legacy local file paths will be ignored in production
       } catch (fileError) {
         console.error("Error deleting profile picture file:", fileError);
         // Continue with resume deletion even if file deletion fails

@@ -44,7 +44,7 @@ export async function GET(
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
 
-    // Convert profile picture URL to absolute URL if it's a relative path
+    // Handle profile picture URL - now using Vercel Blob storage
     let profilePictureUrl = resume.profilePicture;
     console.log('Original profile picture URL:', profilePictureUrl);
     
@@ -53,13 +53,16 @@ export async function GET(
         // Data URL - use as is
         profilePictureUrl = profilePictureUrl;
         console.log('Using data URL as is:', profilePictureUrl.substring(0, 50) + '...');
+      } else if (profilePictureUrl.startsWith('https://') && profilePictureUrl.includes('blob.vercel-storage.com')) {
+        // Vercel Blob URL - use as is
+        profilePictureUrl = profilePictureUrl;
+        console.log('Using Vercel Blob URL as is:', profilePictureUrl);
       } else if (profilePictureUrl.startsWith('http')) {
-        // Absolute URL - use as is
+        // Other absolute URL - use as is
         profilePictureUrl = profilePictureUrl;
         console.log('Using absolute URL as is:', profilePictureUrl);
       } else {
-        // Relative path - convert to absolute URL
-        // Use the request URL to get the proper base URL
+        // Legacy relative path - convert to absolute URL (for backward compatibility)
         const requestUrl = new URL(request.url);
         const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
         
@@ -70,7 +73,7 @@ export async function GET(
           profilePictureUrl = `${baseUrl}/uploads/profile-pictures/${profilePictureUrl}`;
         }
         
-        console.log('Converted to absolute URL:', profilePictureUrl);
+        console.log('Converted legacy path to absolute URL:', profilePictureUrl);
       }
     } else {
       console.log('No profile picture URL found');

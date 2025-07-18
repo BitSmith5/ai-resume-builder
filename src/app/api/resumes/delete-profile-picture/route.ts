@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import type { Session } from "next-auth";
-import fs from "fs";
-import path from "path";
+import { del } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,24 +19,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File path is required" }, { status: 400 });
     }
 
-    // Ensure the file path is within the uploads directory for security
-    if (!filePath.startsWith('/uploads/profile-pictures/')) {
+    // For Vercel Blob, we need to extract the blob URL
+    // The filePath should be a full URL from Vercel Blob
+    if (!filePath.startsWith('https://') || !filePath.includes('blob.vercel-storage.com')) {
       return NextResponse.json({ error: "Invalid file path" }, { status: 400 });
     }
 
-    // Convert the relative path to absolute path
-    const absolutePath = path.join(process.cwd(), 'public', filePath);
-
-    // Check if file exists
-    if (!fs.existsSync(absolutePath)) {
-      // Return success even if file doesn't exist - it might have been already deleted
+    try {
+      // Delete the blob
+      await del(filePath);
+      return NextResponse.json({ success: true });
+    } catch (deleteError) {
+      // If the blob doesn't exist, that's fine - it might have been already deleted
+      console.warn("Blob not found for deletion:", deleteError);
       return NextResponse.json({ success: true, message: "File not found (may have been already deleted)" });
     }
-
-    // Delete the file
-    fs.unlinkSync(absolutePath);
-
-    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting profile picture:", error);
     return NextResponse.json({ error: "Failed to delete file" }, { status: 500 });

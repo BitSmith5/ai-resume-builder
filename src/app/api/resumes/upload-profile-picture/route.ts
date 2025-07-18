@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import type { Session } from "next-auth";
-import { IncomingForm } from "formidable";
-import type { Fields, Files, File } from "formidable";
-import fs from "fs";
-import path from "path";
+import { put } from '@vercel/blob';
 import { Readable } from "stream";
 
 export const config = {
@@ -22,66 +19,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), "public/uploads/profile-pictures");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // Parse multipart form
-    const filter = ({ mimetype }: { mimetype?: string | null }) =>
-      mimetype === "image/png" || mimetype === "image/jpeg" || mimetype === "image/heic" || mimetype === "image/heif";
-    
-    const form = new IncomingForm({
-      uploadDir,
-      keepExtensions: true,
-      maxFileSize: 5 * 1024 * 1024, // 5MB
-      filter,
-    });
-
-    // formidable doesn't work natively with Next.js API routes, so we need to wrap it
-    const buffer = await request.arrayBuffer();
-    const req = new Readable();
-    req.push(Buffer.from(buffer));
-    req.push(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (req as any).headers = Object.fromEntries(request.headers.entries());
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (req as any).method = request.method;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (req as any).url = request.url;
-
-    const parseForm = () =>
-      new Promise<{ fields: Fields; files: Files }>((resolve, reject) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form.parse(req as any, (err: any, fields: Fields, files: Files) => {
-          if (err) reject(err);
-          else resolve({ fields, files });
-        });
-      });
-
-    const { files } = await parseForm();
-    let file = files.file as File | File[] | undefined;
-    if (Array.isArray(file)) file = file[0];
+    // Get the form data
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
     
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Only allow PNG, JPG, or HEIC/HEIF
-    if (
-      file.mimetype !== "image/png" &&
-      file.mimetype !== "image/jpeg" &&
-      file.mimetype !== "image/heic" &&
-      file.mimetype !== "image/heif"
-    ) {
-      fs.unlinkSync(file.filepath);
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/heic', 'image/heif'];
+    if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ error: "Only PNG, JPG, or HEIC/HEIF allowed" }, { status: 400 });
     }
 
-    // Return the file path relative to /public
-    const relPath = `/uploads/profile-pictures/${path.basename(file.filepath)}`;
-    return NextResponse.json({ filePath: relPath });
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 });
+    }
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 15);
+    const extension = file.name.split('.').pop() || 'jpg';
+    const filename = `profile-pictures/${user.id}/${timestamp}-${randomId}.${extension}`;
+
+    // Upload to Vercel Blob
+    const blob = await put(filename, file, {
+      access: 'public',
+      addRandomSuffix: false,
+    });
+
+    // Return the blob URL
+    return NextResponse.json({ filePath: blob.url });
   } catch (error) {
     console.error("Error uploading profile picture:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });

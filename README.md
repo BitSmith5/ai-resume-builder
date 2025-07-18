@@ -30,6 +30,7 @@ A comprehensive resume builder application built with Next.js, Prisma, and Mater
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js
 - **PDF Generation**: @react-pdf/renderer
+- **File Storage**: Vercel Blob Storage
 - **Styling**: Emotion (CSS-in-JS)
 
 ## Getting Started
@@ -45,7 +46,10 @@ A comprehensive resume builder application built with Next.js, Prisma, and Mater
    DATABASE_URL="your-postgresql-connection-string"
    NEXTAUTH_SECRET="your-nextauth-secret"
    NEXTAUTH_URL="http://localhost:3000"
+   BLOB_READ_WRITE_TOKEN="your-vercel-blob-token"
    ```
+   
+   **Note**: For production deployment on Vercel, you'll need to set the `BLOB_READ_WRITE_TOKEN` environment variable. See [File Storage Migration Guide](docs/FILE_STORAGE_MIGRATION.md) for details.
 
 3. **Run Database Migrations**:
    ```bash
