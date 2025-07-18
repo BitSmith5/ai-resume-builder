@@ -172,7 +172,8 @@ function renderModernTemplateWithPageBreaks(data: ResumeData): string {
   // Use the same page calculation logic as the React component
   const calculatePages = (): PageContent[] => {
     const pages: PageContent[] = [];
-    const maxContentHeight = 820;
+    // Match the actual template dimensions: 1100px page height - margins and padding
+    const maxContentHeight = 1000; // Increased to match template's actual available space
     const maxLeftColumnHeight = 620;
     
     let currentPage: PageContent = {
@@ -214,7 +215,10 @@ function renderModernTemplateWithPageBreaks(data: ResumeData): string {
     const addSectionToPage = (section: ContentItem[], type: string) => {
       const sectionHeight = 50;
       
-      if (currentHeight + sectionHeight > maxContentHeight) {
+      // Use the actual template dimensions for accurate page breaks
+      const effectiveMaxHeight = maxContentHeight;
+      
+      if (currentHeight + sectionHeight > effectiveMaxHeight) {
         pages.push(currentPage);
         currentPage = {
           workExperience: [],
@@ -233,7 +237,8 @@ function renderModernTemplateWithPageBreaks(data: ResumeData): string {
       for (const item of section) {
         const itemHeight = estimateContentHeight(item, type);
         
-        if (currentHeight + itemHeight > maxContentHeight) {
+        // For courses and education, be more conservative about page breaks
+        if (currentHeight + itemHeight > effectiveMaxHeight) {
           pages.push(currentPage);
           currentPage = {
             workExperience: [],
@@ -558,7 +563,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
         box-sizing: border-box;
         overflow: hidden;
       ">
-        ${isFirstPage && data.profilePicture && data.profilePicture.trim() !== '' ? `<div style="width: 160px; height: 160px; border-radius: 10%; margin-bottom: 20px; overflow: hidden; flex-shrink: 0;"><img src="${data.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10%; display: block;" onerror="this.parentElement.style.display='none';" /></div>` : ''}
+        ${isFirstPage && data.profilePicture && data.profilePicture.trim() !== '' && data.profilePicture.startsWith('data:') ? `<div style="width: 160px; height: 160px; border-radius: 10%; margin-bottom: 20px; overflow: hidden; flex-shrink: 0;"><img src="${data.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10%; display: block;" onerror="this.parentElement.style.display='none';" /></div>` : ''}
         ${isFirstPage ? `<div style="width: 160px; margin-bottom: 24px;">${contactInfo}</div>` : ''}
         ${pageContent.leftColumnContent.skills && pageContent.leftColumnContent.skills.length > 0 ? `
         <div style="width: 100%; max-width: 180px; margin-bottom: 32px;">
@@ -624,19 +629,15 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
         ` : ''}
         ${pageContent.courses && pageContent.courses.length > 0 ? `
           <div style="margin-bottom: 16px;">
-            ${!sectionsStarted.courses ? `
-              <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">COURSES & TRAININGS</div>
-              <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
-            ` : ''}
+            <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">COURSES & TRAININGS</div>
+            <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
             ${coursesHtml}
           </div>
         ` : ''}
         ${pageContent.education.length > 0 ? `
           <div style="margin-bottom: clamp(16px, 3vw, 32px);">
-            ${!sectionsStarted.education ? `
-              <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">EDUCATION</div>
-              <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
-            ` : ''}
+            <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">EDUCATION</div>
+            <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
             ${educationHtml}
           </div>
         ` : ''}
@@ -927,7 +928,7 @@ function renderClassicTemplate(data: ResumeData): string {
   // Render header (same for all pages)
   const renderHeader = () => `
     <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #000; padding-bottom: 16px;">
-      ${data.profilePicture ? `
+      ${data.profilePicture && data.profilePicture.trim() !== '' && data.profilePicture.startsWith('data:') ? `
         <div style="
           width: 120px;
           height: 120px;

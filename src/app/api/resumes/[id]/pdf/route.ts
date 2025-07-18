@@ -44,36 +44,38 @@ export async function GET(
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
 
-    // Convert profile picture URL to absolute URL if it's a relative path
+    // Handle profile picture - support both data URLs and localStorage IDs
     let profilePictureUrl = resume.profilePicture;
-    console.log('Original profile picture URL:', profilePictureUrl);
+    console.log('Original profile picture:', profilePictureUrl ? profilePictureUrl.substring(0, 50) + '...' : 'None');
     
     if (profilePictureUrl) {
       if (profilePictureUrl.startsWith('data:')) {
-        // Data URL - use as is
+        // Data URL - use as is (perfect for PDF generation)
         profilePictureUrl = profilePictureUrl;
-        console.log('Using data URL as is:', profilePictureUrl.substring(0, 50) + '...');
+        console.log('Using data URL for PDF generation');
       } else if (profilePictureUrl.startsWith('http')) {
         // Absolute URL - use as is
         profilePictureUrl = profilePictureUrl;
         console.log('Using absolute URL as is:', profilePictureUrl);
+      } else if (profilePictureUrl.startsWith('profile_')) {
+        // This is a localStorage image ID - we can't access localStorage from server
+        console.log('Profile picture stored in localStorage - skipping for PDF generation');
+        profilePictureUrl = "";
       } else {
-        // Relative path - convert to absolute URL
-        // Use the request URL to get the proper base URL
+        // Legacy relative path - convert to absolute URL
         const requestUrl = new URL(request.url);
         const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
         
-        // Check if the path already includes the uploads directory
         if (profilePictureUrl.startsWith('/uploads/')) {
           profilePictureUrl = `${baseUrl}${profilePictureUrl}`;
         } else {
           profilePictureUrl = `${baseUrl}/uploads/profile-pictures/${profilePictureUrl}`;
         }
         
-        console.log('Converted to absolute URL:', profilePictureUrl);
+        console.log('Converted legacy path to absolute URL:', profilePictureUrl);
       }
     } else {
-      console.log('No profile picture URL found');
+      console.log('No profile picture found');
     }
 
     // Transform work experience data
@@ -137,8 +139,9 @@ export async function GET(
     console.log('Resume data for PDF generation:', {
       title: resumeData.title,
       jobTitle: resumeData.jobTitle,
-      profilePicture: resumeData.profilePicture,
-      hasProfilePicture: !!resumeData.profilePicture
+      profilePicture: resumeData.profilePicture ? resumeData.profilePicture.substring(0, 50) + '...' : 'None',
+      hasProfilePicture: !!resumeData.profilePicture,
+      profilePictureType: resumeData.profilePicture ? (resumeData.profilePicture.startsWith('data:') ? 'data URL' : 'other') : 'none'
     });
 
     // Use the existing HTML renderer but with improved styling

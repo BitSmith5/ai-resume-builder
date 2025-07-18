@@ -270,17 +270,25 @@ export default function ResumeEditor({
         const resume = await response.json();
         
 
-        // Try to load the profile picture from localStorage
+        // Handle profile picture - prioritize data URLs for display
         let profilePictureUrl = resume.profilePicture || "";
-        if (profilePictureUrl && !profilePictureUrl.startsWith('data:')) {
-          // This is an image ID, try to get the actual image from localStorage
+        if (profilePictureUrl && profilePictureUrl.startsWith('data:')) {
+          // Data URL - use as is (perfect for both display and PDF)
+          console.log('Using data URL for profile picture display');
+        } else if (profilePictureUrl && profilePictureUrl.startsWith('profile_')) {
+          // This is a localStorage image ID, try to get the actual image from localStorage
           const storedImage = getImage(profilePictureUrl);
           if (storedImage) {
             profilePictureUrl = storedImage;
+            console.log('Using localStorage image for display');
           } else {
             // Image not found in localStorage, clear the reference
             profilePictureUrl = "";
+            console.log('localStorage image not found, clearing reference');
           }
+        } else if (profilePictureUrl) {
+          // Other URL types (http, etc.) - use as is
+          console.log('Using external URL for profile picture');
         }
 
         setResumeData({
@@ -467,13 +475,17 @@ export default function ResumeEditor({
           });
           
           const uploadData = await uploadResponse.json();
-          if (uploadResponse.ok && uploadData.filePath) {
+          console.log('Upload response:', uploadData);
+          if (uploadResponse.ok && uploadData.filePath && uploadData.dataUrl) {
             // Store the image in localStorage with the returned ID
             await storeImage(uploadData.filePath, file);
-            finalProfilePicture = uploadData.filePath;
+            // Use the data URL for the resume record (for PDF generation)
+            finalProfilePicture = uploadData.dataUrl;
+            console.log('Using data URL for resume:', finalProfilePicture?.substring(0, 50) + '...');
             // Clear local image after successful storage
             setLocalProfilePicture(null);
           } else {
+            console.error('Upload failed:', uploadData);
             throw new Error(uploadData.error || "Failed to process profile picture");
           }
         } catch (uploadError) {
@@ -515,6 +527,11 @@ export default function ResumeEditor({
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
       const method = resumeId ? "PUT" : "POST";
 
+      console.log('Saving resume with profile picture:', {
+        profilePicture: finalProfilePicture?.substring(0, 50) + '...',
+        isDataUrl: finalProfilePicture?.startsWith('data:')
+      });
+      
       const response = await fetch(url, {
         method,
         headers: {
