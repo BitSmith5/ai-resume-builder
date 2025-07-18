@@ -44,13 +44,13 @@ export async function GET(
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
 
-    // Handle profile picture URL - now using base64 data URLs
+    // Handle profile picture URL - now using localStorage with image IDs
     let profilePictureUrl = resume.profilePicture;
     console.log('Original profile picture URL:', profilePictureUrl ? profilePictureUrl.substring(0, 50) + '...' : 'None');
     
     if (profilePictureUrl) {
       if (profilePictureUrl.startsWith('data:')) {
-        // Data URL - use as is
+        // Data URL - use as is (for backward compatibility)
         profilePictureUrl = profilePictureUrl;
         console.log('Using data URL as is:', profilePictureUrl.substring(0, 50) + '...');
       } else if (profilePictureUrl.startsWith('https://') && profilePictureUrl.includes('blob.vercel-storage.com')) {
@@ -61,6 +61,11 @@ export async function GET(
         // Other absolute URL - use as is
         profilePictureUrl = profilePictureUrl;
         console.log('Using absolute URL as is:', profilePictureUrl);
+      } else if (profilePictureUrl.startsWith('profile_')) {
+        // This is a localStorage image ID - we can't access localStorage from server
+        // For PDF generation, we'll skip the profile picture
+        console.log('Profile picture stored in localStorage - skipping for PDF generation');
+        profilePictureUrl = "";
       } else {
         // Legacy relative path - convert to absolute URL (for backward compatibility)
         const requestUrl = new URL(request.url);

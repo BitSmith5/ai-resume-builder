@@ -37,17 +37,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 });
     }
 
-    // Convert file to base64 data URL
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString('base64');
-    const mimeType = file.type;
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    // Generate a unique identifier for the image
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 15);
+    const imageId = `profile_${user.id}_${timestamp}_${randomId}`;
 
-    // Return the data URL as the file path
-    return NextResponse.json({ filePath: dataUrl });
+    // Return the image ID - the frontend will store the actual image in localStorage
+    return NextResponse.json({ 
+      filePath: imageId,
+      message: "Image ID generated. Store the actual image in localStorage with this ID."
+    });
   } catch (error) {
-    console.error("Error uploading profile picture:", error);
+    console.error("Error processing profile picture:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 } 

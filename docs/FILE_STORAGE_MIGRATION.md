@@ -1,8 +1,8 @@
-# File Storage Solution: Base64 Data URLs
+# File Storage Solution: Browser localStorage
 
 ## Overview
 
-This document describes the solution for profile picture storage in the AI Resume Builder application using base64 data URLs stored directly in the database.
+This document describes the solution for profile picture storage in the AI Resume Builder application using browser localStorage to store images locally on each device.
 
 ## Problem
 
@@ -14,63 +14,88 @@ The original implementation stored profile pictures in the local filesystem (`pu
 
 ## Solution
 
-Migrated to storing profile pictures as base64 data URLs directly in the database, which provides:
+Migrated to storing profile pictures in browser localStorage, which provides:
 - No external storage dependencies
 - Works on any Vercel plan (including Hobby)
 - No filesystem dependencies
-- Simple and reliable
+- Images stored locally on each device
+- No server storage costs
 
 ## How It Works
 
-### Data URL Format
-Profile pictures are stored as base64 data URLs in the format:
-```
-data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=
-```
+### localStorage Storage
+Profile pictures are stored in the browser's localStorage on each device:
+- **Database**: Stores only the image ID (e.g., `profile_user123_1234567890_abc123`)
+- **localStorage**: Stores the actual image as base64 data URL
+- **Device-specific**: Each device manages its own images
 
 ### Benefits
 - **No External Dependencies**: No need for Vercel Blob, AWS S3, or other storage services
 - **Works on Hobby Plan**: No upgrade required
-- **Simple**: Everything stored in the database
-- **Reliable**: No external service failures to worry about
-- **Fast**: No network requests to load images
+- **Device-specific**: Images stay on the device where they were uploaded
+- **No Server Storage**: No database bloat from image data
+- **Privacy**: Images never leave the user's device
 
 ## Changes Made
 
 ### 1. Dependencies
 - Removed `@vercel/blob` package (no longer needed)
+- Added localStorage utility functions
 
 ### 2. API Routes Updated
 
 #### `/api/resumes/upload-profile-picture/route.ts`
-- Replaced Vercel Blob upload with base64 conversion
-- Converts uploaded files to data URLs
-- Stores the data URL directly in the database
+- Generates unique image IDs instead of storing files
+- Returns image ID for frontend to store in localStorage
+- No file storage on server
 
 #### `/api/resumes/delete-profile-picture/route.ts`
-- Simplified to just return success (no file deletion needed)
-- Data URLs are replaced when new images are uploaded
+- Simplified to just return success
+- Actual deletion happens in localStorage
 
 #### `/api/resumes/[id]/route.ts`
 - Removed file deletion logic
-- Data URLs are handled directly in the database
+- Only stores image IDs in database
 
 #### `/api/resumes/[id]/pdf/route.ts`
-- Updated to handle data URLs properly
-- Maintains backward compatibility with legacy file paths
+- Updated to handle localStorage image IDs
+- Skips profile pictures in PDF generation (since server can't access localStorage)
+- Maintains backward compatibility with legacy paths
 
-### 3. Configuration Updates
+### 3. New Utility Functions
 
-#### `next.config.ts`
-- Removed `blob.vercel-storage.com` from allowed image domains
-- No special configuration needed for data URLs
+#### `src/lib/imageStorage.ts`
+- `storeImage()`: Store image in localStorage with ID
+- `getImage()`: Retrieve image from localStorage by ID
+- `getLatestUserImage()`: Get the most recent image for a user
+- `deleteImage()`: Remove image from localStorage
+- `clearUserImages()`: Remove all images for a user
+- `getImageStorageUsage()`: Check storage usage
+- `checkStorageAvailability()`: Verify localStorage is available
+
+### 4. Frontend Updates
+
+#### `src/components/ResumeEditor.tsx`
+- Uploads image to get ID, then stores in localStorage
+- Loads images from localStorage when editing resumes
+- Handles image deletion from localStorage
+- Manages device-specific image storage
 
 ## Database Storage
 
-Profile pictures are now stored as text in the database:
+Profile pictures are now stored as simple IDs in the database:
 - **Field**: `profilePicture` (String)
-- **Format**: `data:image/jpeg;base64,<base64_data>` or `data:image/png;base64,<base64_data>`
-- **Size**: Typically 20-50KB for compressed images
+- **Format**: `profile_userId_timestamp_randomId`
+- **Example**: `profile_123_1703123456789_abc123def456`
+- **Size**: Very small (just the ID string)
+
+## localStorage Storage
+
+Images are stored in browser localStorage:
+- **Key Format**: `profile_image_<imageId>`
+- **Value**: JSON object with image data, timestamp, and size
+- **Size**: Typically 20-50KB per compressed image
+- **Persistence**: Survives browser sessions until cleared
 
 ## File Size Considerations
 
@@ -78,9 +103,10 @@ Profile pictures are now stored as text in the database:
 - **Maximum file size**: 5MB (enforced in upload API)
 - **Recommended size**: 1-2MB for optimal performance
 - **Image dimensions**: 500x500 pixels is sufficient for profile pictures
+- **localStorage limit**: ~5-10MB total (varies by browser)
 
 ### Compression
-The frontend can compress images before upload to reduce database size:
+The frontend can compress images before storage:
 - Use browser's Canvas API to resize images
 - Convert to JPEG for better compression
 - Target 80% quality for good balance of size and quality
@@ -92,27 +118,48 @@ The frontend can compress images before upload to reduce database size:
 /uploads/profile-pictures/filename.jpg
 ```
 
-### After (Data URLs)
+### After (localStorage)
 ```
-data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=
+profile_user123_1703123456789_abc123def456
 ```
+
+## Device Behavior
+
+### First Time on Device
+1. User uploads profile picture
+2. Server generates unique ID
+3. Frontend stores image in localStorage with that ID
+4. Database stores only the ID
+
+### Returning to Device
+1. Resume loads with image ID from database
+2. Frontend checks localStorage for image with that ID
+3. If found, displays the image
+4. If not found, shows no profile picture
+
+### Different Device
+1. Resume loads with image ID from database
+2. Frontend checks localStorage (empty on new device)
+3. No profile picture displayed
+4. User must upload image again on this device
 
 ## Backward Compatibility
 
 The migration maintains backward compatibility:
-- Legacy local file paths are still handled in PDF generation
+- Legacy data URLs still work
+- Legacy file paths still work in PDF generation
 - Old profile pictures in the database continue to work
 - Gradual migration as users update their profile pictures
 
 ## Testing
 
 ### Local Development
-- Profile pictures are converted to data URLs
-- No local filesystem dependencies
+- Profile pictures stored in browser localStorage
+- No server storage dependencies
 - Works the same as production
 
 ### Production
-- All profile pictures stored as data URLs in database
+- All profile pictures stored in browser localStorage
 - No external storage dependencies
 - Works on any Vercel plan
 
@@ -124,29 +171,30 @@ The migration maintains backward compatibility:
 
 2. **Monitor**
    - Check that new uploads work correctly
-   - Verify PDF generation works with both old and new URLs
+   - Verify images are stored in localStorage
    - Old profile pictures will continue to work until users update them
 
 ## Benefits
 
 1. **No External Dependencies**: Works without any cloud storage services
 2. **Hobby Plan Compatible**: No Vercel plan upgrade required
-3. **Simple**: Everything stored in the database
-4. **Reliable**: No external service failures
-5. **Fast**: No network requests to load images
+3. **Device-specific**: Images stay on user's device
+4. **Privacy-focused**: Images never uploaded to server
+5. **Cost-effective**: No storage costs
 
 ## Limitations
 
-1. **Database Size**: Images increase database size
-2. **Query Performance**: Large data URLs may impact query performance
-3. **Memory Usage**: Large images consume more memory when loaded
+1. **Device-specific**: Images don't sync across devices
+2. **localStorage Limits**: Limited by browser storage capacity
+3. **PDF Generation**: Profile pictures not available in PDF (server can't access localStorage)
+4. **Browser Clearing**: Images lost if user clears browser data
 
 ## Best Practices
 
-1. **Compress Images**: Use frontend compression before upload
+1. **Compress Images**: Use frontend compression before storage
 2. **Limit File Size**: Enforce reasonable size limits (5MB max)
-3. **Monitor Database Size**: Keep an eye on database growth
-4. **Consider Cleanup**: Periodically clean up unused profile pictures
+3. **Monitor Storage**: Check localStorage usage
+4. **User Education**: Inform users that images are device-specific
 
 ## Troubleshooting
 
@@ -155,18 +203,22 @@ The migration maintains backward compatibility:
 1. **Upload Fails with 500 Error**
    - Check file size (should be under 5MB)
    - Verify file type (PNG, JPG, HEIC allowed)
+   - Check localStorage availability
 
 2. **Images Not Loading**
-   - Check that data URL is properly formatted
-   - Verify base64 encoding is correct
+   - Check if localStorage is available
+   - Verify image ID format
+   - Check if image exists in localStorage
 
-3. **PDF Generation Fails**
-   - Verify the data URL is accessible
-   - Check that Puppeteer can handle the data URL
+3. **PDF Generation Missing Profile Picture**
+   - This is expected behavior
+   - Server cannot access localStorage
+   - Consider alternative PDF generation approach
 
 ### Debug Steps
 
-1. Check Vercel function logs for detailed error messages
-2. Verify data URL format in database
+1. Check browser console for localStorage errors
+2. Verify image ID format in database
 3. Test image upload with smaller files
-4. Check browser console for any JavaScript errors 
+4. Check localStorage usage in browser dev tools
+5. Verify localStorage is not disabled 

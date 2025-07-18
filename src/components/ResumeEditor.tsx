@@ -29,6 +29,7 @@ import {
 import ResumeTemplateRegistry, {
   AVAILABLE_TEMPLATES,
 } from "./ResumeTemplateRegistry";
+import { storeImage, getImage, getLatestUserImage, deleteImage } from "@/lib/imageStorage";
 // import { generateResumePDF } from './ResumePDF';
 
 // Available icons for interests
@@ -269,11 +270,24 @@ export default function ResumeEditor({
         const resume = await response.json();
         
 
+        // Try to load the profile picture from localStorage
+        let profilePictureUrl = resume.profilePicture || "";
+        if (profilePictureUrl && !profilePictureUrl.startsWith('data:')) {
+          // This is an image ID, try to get the actual image from localStorage
+          const storedImage = getImage(profilePictureUrl);
+          if (storedImage) {
+            profilePictureUrl = storedImage;
+          } else {
+            // Image not found in localStorage, clear the reference
+            profilePictureUrl = "";
+          }
+        }
+
         setResumeData({
           title: resume.title,
           jobTitle: resume.jobTitle || "",
           template: resume.template || "modern",
-          profilePicture: resume.profilePicture || "", // Keep the profile picture from database
+          profilePicture: profilePictureUrl,
           content: {
             ...resume.content,
             personalInfo: {
@@ -433,16 +447,19 @@ export default function ResumeEditor({
     try {
       let finalProfilePicture = resumeData.profilePicture;
       
-      // If there's a local profile picture, upload it first
+      // If there's a local profile picture, process it
       if (localProfilePicture && localProfilePicture.startsWith("data:")) {
         try {
           // Convert base64 to blob
           const response = await fetch(localProfilePicture);
           const blob = await response.blob();
           
-          // Create FormData and upload
+          // Create a File object from the blob
+          const file = new File([blob], "profile-picture.jpg", { type: blob.type });
+          
+          // Create FormData and get image ID from server
           const formData = new FormData();
-          formData.append("file", blob, "profile-picture.jpg");
+          formData.append("file", file);
           
           const uploadResponse = await fetch("/api/resumes/upload-profile-picture", {
             method: "POST",
@@ -451,23 +468,29 @@ export default function ResumeEditor({
           
           const uploadData = await uploadResponse.json();
           if (uploadResponse.ok && uploadData.filePath) {
+            // Store the image in localStorage with the returned ID
+            await storeImage(uploadData.filePath, file);
             finalProfilePicture = uploadData.filePath;
-            // Clear local image after successful upload
+            // Clear local image after successful storage
             setLocalProfilePicture(null);
           } else {
-            throw new Error(uploadData.error || "Failed to upload profile picture");
+            throw new Error(uploadData.error || "Failed to process profile picture");
           }
         } catch (uploadError) {
-          console.error("Error uploading profile picture:", uploadError);
-          setError("Failed to upload profile picture. Please try again.");
+          console.error("Error processing profile picture:", uploadError);
+          setError("Failed to process profile picture. Please try again.");
           setSaving(false);
           return;
         }
       }
       
-      // If there's a removed profile picture, delete it from server
+      // If there's a removed profile picture, delete it from localStorage
       if (removedProfilePicture) {
         try {
+          // Delete from localStorage
+          deleteImage(removedProfilePicture);
+          
+          // Also notify the server (for cleanup purposes)
           const deleteResponse = await fetch("/api/resumes/delete-profile-picture", {
             method: "POST",
             headers: {
@@ -480,10 +503,10 @@ export default function ResumeEditor({
           });
           
           if (!deleteResponse.ok) {
-            console.warn("Failed to delete removed profile picture from server");
+            console.warn("Failed to notify server about profile picture deletion");
           }
         } catch (error) {
-          console.warn("Error deleting removed profile picture:", error);
+          console.warn("Error deleting profile picture:", error);
         }
         // Clear the removed profile picture reference
         setRemovedProfilePicture(null);

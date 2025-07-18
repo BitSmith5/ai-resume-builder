@@ -30,7 +30,7 @@ A comprehensive resume builder application built with Next.js, Prisma, and Mater
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js
 - **PDF Generation**: @react-pdf/renderer
-- **File Storage**: Base64 Data URLs (stored in database)
+- **File Storage**: Browser localStorage (device-specific)
 - **Styling**: Emotion (CSS-in-JS)
 
 ## Getting Started
@@ -48,7 +48,7 @@ A comprehensive resume builder application built with Next.js, Prisma, and Mater
    NEXTAUTH_URL="http://localhost:3000"
    ```
    
-   **Note**: Profile pictures are stored as base64 data URLs in the database, so no external storage configuration is needed. See [File Storage Guide](docs/FILE_STORAGE_MIGRATION.md) for details.
+   **Note**: Profile pictures are stored locally in the browser's localStorage, so no external storage configuration is needed. Images are device-specific and won't sync across devices. See [File Storage Guide](docs/FILE_STORAGE_MIGRATION.md) for details.
 
 3. **Run Database Migrations**:
    ```bash
