@@ -741,11 +741,11 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               overflow: 'hidden',
               flexShrink: 0
             }}>
-              {data.profilePicture.startsWith('data:') || data.profilePicture.startsWith('profile_') ? (
-                // Handle base64 data URLs and localStorage image IDs with regular img tag
+              {data.profilePicture.startsWith('data:') ? (
+                // Handle base64 data URLs with regular img tag
                 // eslint-disable-next-line @next/next/no-img-element
                 <img 
-                  src={data.profilePicture.startsWith('data:') ? data.profilePicture : (getImage(data.profilePicture) || '')}
+                  src={data.profilePicture}
                   alt="Profile"
                   style={{
                     width: '100%',
@@ -762,6 +762,32 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     }
                   }}
                 />
+              ) : data.profilePicture.startsWith('profile_') ? (
+                // Handle localStorage image IDs
+                (() => {
+                  const storedImage = getImage(data.profilePicture);
+                  return storedImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img 
+                      src={storedImage}
+                      alt="Profile"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '10%',
+                        display: 'block'
+                      }}
+                      onError={(e) => {
+                        // Hide the image container on error
+                        const container = e.currentTarget.parentElement;
+                        if (container) {
+                          container.style.display = 'none';
+                        }
+                      }}
+                    />
+                  ) : null;
+                })()
               ) : data.profilePicture && data.profilePicture.trim() !== '' ? (
                 // Handle regular URLs with Next.js Image component
                 <Image 
