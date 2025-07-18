@@ -154,24 +154,39 @@ export async function GET(
     // Launch Puppeteer with serverless-compatible configuration
     console.log('Launching Puppeteer...');
     
-    // Try different Chrome paths for Vercel
-    const chromePaths = [
-      '/usr/bin/google-chrome',
-      '/usr/bin/google-chrome-stable',
-      '/usr/bin/chromium-browser',
-      '/usr/bin/chromium',
-      process.env.CHROME_BIN
-    ].filter(Boolean);
-    
+    // Try to launch Puppeteer without specifying executable path (let it find Chrome automatically)
+    console.log('Attempting to launch Puppeteer without explicit Chrome path...');
     let browser;
-    let lastError;
     
-    for (const chromePath of chromePaths) {
+    try {
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-web-security',
+          '--allow-running-insecure-content',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding'
+        ]
+      });
+      console.log('Puppeteer launched successfully without explicit Chrome path');
+    } catch (error) {
+      console.log('Failed to launch Puppeteer without explicit path, trying with executable path...');
+      
+      // Try with executable path as fallback
       try {
-        console.log(`Trying Chrome path: ${chromePath}`);
         browser = await puppeteer.launch({
           headless: true,
-          executablePath: chromePath,
+          executablePath: '/usr/bin/google-chrome',
           args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -184,21 +199,11 @@ export async function GET(
             '--single-process'
           ]
         });
-        console.log(`Puppeteer launched successfully with Chrome path: ${chromePath}`);
-        break;
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.log(`Failed with Chrome path ${chromePath}:`, errorMessage);
-        lastError = error;
-        if (browser) {
-          await browser.close();
-        }
+        console.log('Puppeteer launched successfully with explicit Chrome path');
+      } catch (fallbackError) {
+        const errorMessage = fallbackError instanceof Error ? fallbackError.message : 'Unknown error';
+        throw new Error(`Failed to launch Puppeteer. Last error: ${errorMessage}`);
       }
-    }
-    
-    if (!browser) {
-      const lastErrorMessage = lastError instanceof Error ? lastError.message : 'Unknown error';
-      throw new Error(`Failed to launch Puppeteer with any Chrome path. Last error: ${lastErrorMessage}`);
     }
 
     const page = await browser.newPage();
