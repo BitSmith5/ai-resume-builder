@@ -433,7 +433,22 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
   );
 
   // Render right column content for a specific page
-  const renderRightColumn = (pageContent: PageContent, isFirstPage: boolean = false) => (
+  const renderRightColumn = (pageContent: PageContent, isFirstPage: boolean = false, pageIndex: number = 0, allPages: PageContent[] = []) => {
+    // Track which sections have already been started on previous pages
+    const sectionsStarted = {
+      workExperience: false,
+      courses: false,
+      education: false
+    };
+    
+    // Check previous pages to see which sections have already started
+    for (let i = 0; i < pageIndex; i++) {
+      if (allPages[i].workExperience.length > 0) sectionsStarted.workExperience = true;
+      if (allPages[i].courses.length > 0) sectionsStarted.courses = true;
+      if (allPages[i].education.length > 0) sectionsStarted.education = true;
+    }
+    
+    return (
     <div style={{ 
       width: '629px', // Always 629px (850px - 221px) to maintain left sidebar space
       margin: '24px 24px 90px 0', // Balanced bottom margin
@@ -445,19 +460,23 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       {/* Work Experience */}
       {pageContent.workExperience.length > 0 && (
         <div style={{ marginBottom: 'clamp(16px, 3vw, 32px)' }}>
-          <div style={{ 
-            fontWeight: 700, 
-            fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: MASTER_COLOR, 
-            marginBottom: 4,
-            marginLeft: '20px'
-          }}>WORK EXPERIENCE</div>
-          <div style={{ 
-            width: '100%', 
-            height: 2, 
-            background: MASTER_COLOR, 
-            margin: '4px 0 12px 0' 
-          }} />
+          {!sectionsStarted.workExperience && (
+            <>
+              <div style={{ 
+                fontWeight: 700, 
+                fontSize: 'clamp(14px, 2.2vw, 18px)', 
+                color: MASTER_COLOR, 
+                marginBottom: 4,
+                marginLeft: '20px'
+              }}>WORK EXPERIENCE</div>
+              <div style={{ 
+                width: '100%', 
+                height: 2, 
+                background: MASTER_COLOR, 
+                margin: '4px 0 12px 0' 
+              }} />
+            </>
+          )}
           {pageContent.workExperience.map((exp, i) => (
             <div key={i} style={{ marginBottom: 12, marginLeft: '20px' }}>
               <div style={{ 
@@ -535,19 +554,23 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       {/* Courses & Trainings */}
       {pageContent.courses.length > 0 && (
         <div style={{ marginBottom: '16px' }}>
-          <div style={{ 
-            fontWeight: 700, 
-            fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: MASTER_COLOR, 
-            marginBottom: 8,
-            marginLeft: '20px'
-          }}>COURSES & TRAININGS</div>
-          <div style={{ 
-            width: '100%', 
-            height: 2, 
-            background: MASTER_COLOR, 
-            margin: '4px 0 12px 0' 
-          }} />
+          {!sectionsStarted.courses && (
+            <>
+              <div style={{ 
+                fontWeight: 700, 
+                fontSize: 'clamp(14px, 2.2vw, 18px)', 
+                color: MASTER_COLOR, 
+                marginBottom: 8,
+                marginLeft: '20px'
+              }}>COURSES & TRAININGS</div>
+              <div style={{ 
+                width: '100%', 
+                height: 2, 
+                background: MASTER_COLOR, 
+                margin: '4px 0 12px 0' 
+              }} />
+            </>
+          )}
           {pageContent.courses.map((course, i) => (
             <div key={i} style={{ marginBottom: 8, marginLeft: '20px' }}>
               <div style={{ 
@@ -598,19 +621,23 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       {/* Education */}
       {pageContent.education.length > 0 && (
         <div style={{ marginBottom: 'clamp(16px, 3vw, 32px)' }}>
-          <div style={{ 
-            fontWeight: 700, 
-            fontSize: 'clamp(14px, 2.2vw, 18px)', 
-            color: MASTER_COLOR, 
-            marginBottom: 8,
-            marginLeft: '20px'
-          }}>EDUCATION</div>
-          <div style={{ 
-            width: '100%', 
-            height: 2, 
-            background: MASTER_COLOR, 
-            margin: '4px 0 12px 0' 
-          }} />
+          {!sectionsStarted.education && (
+            <>
+              <div style={{ 
+                fontWeight: 700, 
+                fontSize: 'clamp(14px, 2.2vw, 18px)', 
+                color: MASTER_COLOR, 
+                marginBottom: 8,
+                marginLeft: '20px'
+              }}>EDUCATION</div>
+              <div style={{ 
+                width: '100%', 
+                height: 2, 
+                background: MASTER_COLOR, 
+                margin: '4px 0 12px 0' 
+              }} />
+            </>
+          )}
           {pageContent.education.map((edu, i) => (
             <div key={i} style={{ marginBottom: 12, marginLeft: '20px' }}>
               <div style={{ 
@@ -664,6 +691,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       )}
     </div>
   );
+  };
 
   // Render a single page
   const renderPage = (pageContent: PageContent, pageIndex: number) => {
@@ -682,7 +710,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           overflow: 'hidden',
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
           width: '850px',
-          height: '1100px',
+          height: '1100px', // Letter size aspect ratio: 8.5:11 = 0.773, 850/1100 = 0.773 ✓
           position: 'relative',
           margin: '0 auto',
           marginBottom: pageIndex < pages.length - 1 ? '20px' : '0', // Add spacing between pages
@@ -859,20 +887,36 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
           {/* Technical Skills - on all pages to allow overflow */}
           {pageContent.leftColumnContent.skills && pageContent.leftColumnContent.skills.length > 0 && (
             <div style={{ width: '100%', maxWidth: '180px', marginBottom: '32px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: 16 }}>
-                <div style={{ 
-                  fontWeight: 700, 
-                  fontSize: '16px', 
-                  color: MASTER_COLOR,
-                  textAlign: 'left',
-                }}>TECHNICAL SKILLS</div>
-                <div style={{ width: '100%', height: 2, background: MASTER_COLOR, margin: '2px 0 0 0' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} style={{ width: 2, height: 5, background: MASTER_COLOR, borderRadius: 0 }} />
-                  ))}
+              {/* Only show title on first page that has skills */}
+              {(() => {
+                // Check if this is the first page that has skills
+                let isFirstPageWithSkills = false;
+                for (let i = 0; i <= pageIndex; i++) {
+                  if (i === pageIndex) {
+                    isFirstPageWithSkills = true;
+                    break;
+                  }
+                  if (pages[i].leftColumnContent.skills.length > 0) {
+                    break;
+                  }
+                }
+                return isFirstPageWithSkills;
+              })() && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: 16 }}>
+                  <div style={{ 
+                    fontWeight: 700, 
+                    fontSize: '16px', 
+                    color: MASTER_COLOR,
+                    textAlign: 'left',
+                  }}>TECHNICAL SKILLS</div>
+                  <div style={{ width: '100%', height: 2, background: MASTER_COLOR, margin: '2px 0 0 0' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} style={{ width: 2, height: 5, background: MASTER_COLOR, borderRadius: 0 }} />
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               {pageContent.leftColumnContent.skills.map((s, i) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ 
@@ -885,7 +929,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                   }}>{s.skillName}</div>
                   <div style={{ 
                     width: '100%', 
-                    height: 10, 
+                    height: '10px', 
                     backgroundColor: 'transparent', 
                     border: `2px solid ${MASTER_COLOR}`,
                     overflow: 'hidden'
@@ -945,7 +989,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
         </div>
         
         {/* Right Column */}
-        {renderRightColumn(pageContent, isFirstPage)}
+        {renderRightColumn(pageContent, isFirstPage, pageIndex, pages)}
       </div>
     );
   };

@@ -338,12 +338,12 @@ export default function ResumeEditor({
     }
   }, [resumeId, loadResume, isClient]);
 
-  // Update selectedTemplate when resume data is loaded
+  // Update selectedTemplate when resume data is loaded (only if different from current)
   useEffect(() => {
-    if (resumeData.template && !loading) {
+    if (resumeData.template && !loading && isClient && resumeData.template !== selectedTemplate) {
       setSelectedTemplate(resumeData.template);
     }
-  }, [resumeData.template, loading]);
+  }, [resumeData.template, loading, isClient, selectedTemplate]);
 
   // Cleanup effect for local profile picture
   useEffect(() => {
@@ -891,27 +891,45 @@ export default function ResumeEditor({
               flexDirection: { xs: "column", sm: "row" },
             }}
           >
-            <FormControl
-              size="small"
-              sx={{
-                minWidth: { xs: "100%", sm: 200 },
-                width: { xs: "100%", sm: "auto" },
-                maxWidth: { xs: "100%", sm: "none" },
-              }}
-            >
-              <InputLabel>Template</InputLabel>
-              <Select
-                value={selectedTemplate}
-                label="Template"
-                onChange={(e) => setSelectedTemplate(e.target.value)}
+            {isClient ? (
+              <FormControl
+                size="small"
+                sx={{
+                  minWidth: { xs: "100%", sm: 200 },
+                  width: { xs: "100%", sm: "auto" },
+                  maxWidth: { xs: "100%", sm: "none" },
+                }}
               >
-                {isClient && AVAILABLE_TEMPLATES.map((template) => (
-                  <MenuItem key={template.id} value={template.id}>
-                    {template.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                <InputLabel>Template</InputLabel>
+                                              <Select
+                  value={isClient ? selectedTemplate : "modern"}
+                  label="Template"
+                  onChange={(e) => setSelectedTemplate(e.target.value)}
+                >
+                  {AVAILABLE_TEMPLATES.map((template) => (
+                    <MenuItem key={template.id} value={template.id}>
+                      {template.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
+              <Box
+                sx={{
+                  minWidth: { xs: "100%", sm: 200 },
+                  width: { xs: "100%", sm: "auto" },
+                  maxWidth: { xs: "100%", sm: "none" },
+                  height: 40,
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CircularProgress size={20} />
+              </Box>
+            )}
           </Box>
         </Box>
       </Paper>
@@ -2210,6 +2228,9 @@ export default function ResumeEditor({
           >
             {isClient && (() => {
               try {
+                // Ensure selectedTemplate is valid
+                const validTemplate = selectedTemplate || "modern";
+                
                 const templateData = {
                   id: 0,
                   title: resumeData.title,
@@ -2254,14 +2275,10 @@ export default function ResumeEditor({
                   createdAt: new Date().toISOString(),
                 };
 
-
-                
-
-                
                 return (
                   <ResumeTemplateRegistry
                     data={templateData}
-                    templateId={selectedTemplate}
+                    templateId={validTemplate}
                   />
                 );
               } catch (error) {

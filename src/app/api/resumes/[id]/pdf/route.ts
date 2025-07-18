@@ -39,18 +39,34 @@ export async function GET(
 
     // Convert profile picture URL to absolute URL if it's a relative path
     let profilePictureUrl = resume.profilePicture;
+    console.log('Original profile picture URL:', profilePictureUrl);
+    
     if (profilePictureUrl) {
       if (profilePictureUrl.startsWith('data:')) {
         // Data URL - use as is
         profilePictureUrl = profilePictureUrl;
+        console.log('Using data URL as is:', profilePictureUrl.substring(0, 50) + '...');
       } else if (profilePictureUrl.startsWith('http')) {
         // Absolute URL - use as is
         profilePictureUrl = profilePictureUrl;
+        console.log('Using absolute URL as is:', profilePictureUrl);
       } else {
         // Relative path - convert to absolute URL
-        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3001';
-        profilePictureUrl = `${baseUrl}/uploads/profile-pictures/${profilePictureUrl}`;
+        // Use the request URL to get the proper base URL
+        const requestUrl = new URL(request.url);
+        const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
+        
+        // Check if the path already includes the uploads directory
+        if (profilePictureUrl.startsWith('/uploads/')) {
+          profilePictureUrl = `${baseUrl}${profilePictureUrl}`;
+        } else {
+          profilePictureUrl = `${baseUrl}/uploads/profile-pictures/${profilePictureUrl}`;
+        }
+        
+        console.log('Converted to absolute URL:', profilePictureUrl);
       }
+    } else {
+      console.log('No profile picture URL found');
     }
 
     // Transform work experience data
@@ -89,7 +105,7 @@ export async function GET(
 
     const resumeData = {
       title: resume.title,
-      jobTitle: resume.jobTitle || undefined,
+      jobTitle: (resume as any).jobTitle || undefined,
       profilePicture: profilePictureUrl || undefined,
       content: {
         personalInfo: {
@@ -111,6 +127,13 @@ export async function GET(
       interests: resume.interests || []
     };
 
+    console.log('Resume data for PDF generation:', {
+      title: resumeData.title,
+      jobTitle: resumeData.jobTitle,
+      profilePicture: resumeData.profilePicture,
+      hasProfilePicture: !!resumeData.profilePicture
+    });
+
     // Use the existing HTML renderer but with improved styling
     const template = (resume as { template?: string }).template || 'modern';
     const html = renderResumeToHtml(resumeData, template);
@@ -118,7 +141,7 @@ export async function GET(
     // Launch Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security']
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-running-insecure-content']
     });
 
     const page = await browser.newPage();
@@ -130,12 +153,18 @@ export async function GET(
       deviceScaleFactor: 2
     });
 
+    // Enable images and wait for them to load
+    await page.setRequestInterception(false);
+    
     // Set content and wait for images to load
     await page.setContent(html, { waitUntil: 'networkidle0' });
+    
+    // Additional wait to ensure images are loaded
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Generate PDF with proper page breaks
+    // Generate PDF with proper page breaks - using Letter size to match template aspect ratio
     const pdf = await page.pdf({
-      format: 'A4',
+      format: 'Letter',
       printBackground: true,
       margin: {
         top: '0',
