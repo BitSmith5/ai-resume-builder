@@ -11,5 +11,8 @@
       "FORCE_REDEPLOY": "true"
     }
   },
+  "env": {
+    "CHROME_BIN": "/usr/bin/google-chrome-stable"
+  },
   "version": 2
 } 

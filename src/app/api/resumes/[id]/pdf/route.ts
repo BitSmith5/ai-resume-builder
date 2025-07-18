@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
 interface ResumeWithTemplate {
@@ -151,11 +151,24 @@ export async function GET(
     console.log('Using template for PDF generation:', template);
     const html = renderResumeToHtml(resumeData, template);
 
-    // Launch Puppeteer
+    // Launch Puppeteer with serverless-compatible configuration
+    console.log('Launching Puppeteer...');
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-running-insecure-content']
+      executablePath: process.env.CHROME_BIN || '/usr/bin/google-chrome-stable',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-web-security',
+        '--allow-running-insecure-content',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process'
+      ]
     });
+    console.log('Puppeteer launched successfully');
 
     const page = await browser.newPage();
     
@@ -217,8 +230,13 @@ export async function GET(
 
   } catch (error) {
     console.error('PDF generation error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      name: error instanceof Error ? error.name : 'Unknown error type'
+    });
     return NextResponse.json(
-      { error: 'Failed to generate PDF' },
+      { error: 'Failed to generate PDF', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
