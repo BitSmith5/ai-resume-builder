@@ -14,5 +14,5 @@
   "env": {
     "CHROME_BIN": "/usr/bin/google-chrome"
   },
-  "version": 2
+  "version": 3
 } 
