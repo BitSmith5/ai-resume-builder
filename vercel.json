@@ -1,18 +1,7 @@
 {
   "functions": {
     "src/app/api/resumes/[id]/pdf/route.ts": {
-      "maxDuration": 60,
-      "memory": 3008
+      "maxDuration": 60
     }
-  },
-  "build": {
-    "env": {
-      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
-      "FORCE_REDEPLOY": "true"
-    }
-  },
-  "env": {
-    "CHROME_BIN": "/usr/bin/google-chrome"
-  },
-  "version": 2
+  }
 } 
