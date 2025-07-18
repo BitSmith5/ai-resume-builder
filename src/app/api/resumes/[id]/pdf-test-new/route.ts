@@ -166,24 +166,24 @@ export async function GET(
     
     // Check what's actually available in the system
     try {
-      const { execSync } = require('child_process');
+      const { execSync } = await import('child_process');
       console.log('Checking system for Chrome installations...');
       try {
         const whichChrome = execSync('which google-chrome', { encoding: 'utf8' }).trim();
         console.log('Found google-chrome at:', whichChrome);
-      } catch (e) {
+      } catch {
         console.log('google-chrome not found in PATH');
       }
       try {
         const whichChromium = execSync('which chromium-browser', { encoding: 'utf8' }).trim();
         console.log('Found chromium-browser at:', whichChromium);
-      } catch (e) {
+      } catch {
         console.log('chromium-browser not found in PATH');
       }
       try {
         const whichChromium2 = execSync('which chromium', { encoding: 'utf8' }).trim();
         console.log('Found chromium at:', whichChromium2);
-      } catch (e) {
+      } catch {
         console.log('chromium not found in PATH');
       }
     } catch (error) {
