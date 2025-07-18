@@ -187,6 +187,7 @@ export default function ResumeEditor({
   const [localProfilePicture, setLocalProfilePicture] = useState<string | null>(null);
   const [removedProfilePicture, setRemovedProfilePicture] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   // Robust React-based zooming with aspect ratio preservation
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -758,6 +759,7 @@ export default function ResumeEditor({
 
     try {
       setError("");
+      setGeneratingPDF(true);
       const response = await fetch(`/api/resumes/${resumeId}/pdf?template=${selectedTemplate}`);
 
       if (!response.ok) {
@@ -778,6 +780,8 @@ export default function ResumeEditor({
     } catch (error) {
       console.error("Error generating PDF:", error);
       setError("Failed to generate PDF. Please try again.");
+    } finally {
+      setGeneratingPDF(false);
     }
   };
 
@@ -859,11 +863,12 @@ export default function ResumeEditor({
           </Button>
           <Button
             variant="outlined"
-            startIcon={<DownloadIcon />}
+            startIcon={generatingPDF ? <CircularProgress size={20} /> : <DownloadIcon />}
             onClick={handleDownloadPDF}
+            disabled={generatingPDF}
             sx={{ width: { xs: "100%", sm: "auto" } }}
           >
-            Download PDF
+            {generatingPDF ? "Generating..." : "Download PDF"}
           </Button>
         </Stack>
       </Box>
