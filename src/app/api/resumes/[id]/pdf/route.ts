@@ -16,6 +16,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const templateParam = searchParams.get('template');
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -140,7 +142,8 @@ export async function GET(
     });
 
     // Use the existing HTML renderer but with improved styling
-    const template = (resume as ResumeWithTemplate).template || 'modern';
+    const template = templateParam || (resume as ResumeWithTemplate).template || 'modern';
+    console.log('Using template for PDF generation:', template);
     const html = renderResumeToHtml(resumeData, template);
 
     // Launch Puppeteer

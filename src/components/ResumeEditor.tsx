@@ -343,7 +343,14 @@ export default function ResumeEditor({
     if (resumeData.template && !loading && isClient && resumeData.template !== selectedTemplate) {
       setSelectedTemplate(resumeData.template);
     }
-  }, [resumeData.template, loading, isClient, selectedTemplate]);
+  }, [resumeData.template, loading, isClient]); // Removed selectedTemplate from dependencies
+
+  // Handle template prop changes
+  useEffect(() => {
+    if (template && template !== selectedTemplate) {
+      setSelectedTemplate(template);
+    }
+  }, [template]);
 
   // Cleanup effect for local profile picture
   useEffect(() => {
@@ -751,7 +758,7 @@ export default function ResumeEditor({
 
     try {
       setError("");
-      const response = await fetch(`/api/resumes/${resumeId}/pdf`);
+      const response = await fetch(`/api/resumes/${resumeId}/pdf?template=${selectedTemplate}`);
 
       if (!response.ok) {
         throw new Error("Failed to generate PDF");
@@ -904,7 +911,10 @@ export default function ResumeEditor({
                                               <Select
                   value={isClient ? selectedTemplate : "modern"}
                   label="Template"
-                  onChange={(e) => setSelectedTemplate(e.target.value)}
+                  onChange={(e) => {
+                    console.log('Template changed from', selectedTemplate, 'to', e.target.value);
+                    setSelectedTemplate(e.target.value);
+                  }}
                 >
                   {AVAILABLE_TEMPLATES.map((template) => (
                     <MenuItem key={template.id} value={template.id}>
@@ -2230,6 +2240,7 @@ export default function ResumeEditor({
               try {
                 // Ensure selectedTemplate is valid
                 const validTemplate = selectedTemplate || "modern";
+                console.log('Rendering template:', validTemplate);
                 
                 const templateData = {
                   id: 0,
