@@ -154,8 +154,8 @@ export async function GET(
     // Launch Puppeteer with serverless-compatible configuration
     console.log('Launching Puppeteer...');
     
-    // Try to launch Puppeteer without specifying executable path (let it find Chrome automatically)
-    console.log('Attempting to launch Puppeteer without explicit Chrome path...');
+    // Launch Puppeteer with minimal configuration for Vercel
+    console.log('Launching Puppeteer with minimal configuration...');
     let browser;
     
     try {
@@ -164,46 +164,18 @@ export async function GET(
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-web-security',
-          '--allow-running-insecure-content',
           '--disable-dev-shm-usage',
           '--disable-gpu',
           '--no-first-run',
           '--no-zygote',
-          '--single-process',
-          '--disable-extensions',
-          '--disable-plugins',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding'
+          '--single-process'
         ]
       });
-      console.log('Puppeteer launched successfully without explicit Chrome path');
-    } catch {
-      console.log('Failed to launch Puppeteer without explicit path, trying with executable path...');
-      
-      // Try with executable path as fallback
-      try {
-        browser = await puppeteer.launch({
-          headless: true,
-          executablePath: '/usr/bin/google-chrome',
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-web-security',
-            '--allow-running-insecure-content',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process'
-          ]
-        });
-        console.log('Puppeteer launched successfully with explicit Chrome path');
-      } catch (fallbackError) {
-        const errorMessage = fallbackError instanceof Error ? fallbackError.message : 'Unknown error';
-        throw new Error(`Failed to launch Puppeteer. Last error: ${errorMessage}`);
-      }
+      console.log('Puppeteer launched successfully');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to launch Puppeteer:', errorMessage);
+      throw new Error(`Failed to launch Puppeteer: ${errorMessage}`);
     }
 
     const page = await browser.newPage();
