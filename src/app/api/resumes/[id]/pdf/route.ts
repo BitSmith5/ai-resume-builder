@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from 'chrome-aws-lambda';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
 interface ResumeWithTemplate {
@@ -149,10 +150,12 @@ export async function GET(
     console.log('Using template for PDF generation:', template);
     const html = renderResumeToHtml(resumeData, template);
 
-    // Launch Puppeteer
+    // Launch Puppeteer with serverless-compatible Chrome
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-running-insecure-content']
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
@@ -190,7 +193,7 @@ export async function GET(
 
     // Generate PDF with proper page breaks - using Letter size to match template aspect ratio
     const pdf = await page.pdf({
-      format: 'Letter',
+      format: 'letter',
       printBackground: true,
       margin: {
         top: '0',
