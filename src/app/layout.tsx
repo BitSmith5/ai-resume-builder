@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   description: "Create professional resumes with AI assistance",
 };
 
+// Force Vercel deployment - updated layout
 export default function RootLayout({
   children,
 }: Readonly<{
