@@ -92,6 +92,10 @@ interface PageContent {
     name: string;
     icon: string;
   }>;
+  // Flags to track which sections have already started on previous pages
+  workExperienceStarted: boolean;
+  coursesStarted: boolean;
+  educationStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -153,138 +157,207 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       return 45; // Section title + border + spacing
     };
     
-    // SIMPLE APPROACH: First, create pages with ONLY main content (no skills/interests)
+    // NEW APPROACH: Calculate all section heights first
+    const sections: Array<{
+      type: 'work' | 'courses' | 'education';
+      items: any[];
+      height: number;
+    }> = [];
+    
+    if (data.workExperience && data.workExperience.length > 0) {
+      const workHeight = estimateSectionHeaderHeight() + data.workExperience.reduce((total, item) => total + estimateContentHeight(item, 'work') + itemSpacing, 0);
+      sections.push({ type: 'work', items: data.workExperience, height: workHeight });
+    }
+    
+    if (data.courses && data.courses.length > 0) {
+      const coursesHeight = estimateSectionHeaderHeight() + data.courses.reduce((total, item) => total + estimateContentHeight(item, 'course') + itemSpacing, 0);
+      sections.push({ type: 'courses', items: data.courses, height: coursesHeight });
+    }
+    
+    if (data.education && data.education.length > 0) {
+      const educationHeight = estimateSectionHeaderHeight() + data.education.reduce((total, item) => total + estimateContentHeight(item, 'education') + itemSpacing, 0);
+      sections.push({ type: 'education', items: data.education, height: educationHeight });
+    }
+    
+    // NEW APPROACH: Process sections in correct visual order but optimize Education placement
     let currentPage: PageContent = {
       workExperience: [],
       education: [],
       courses: [],
-      skills: [], // EMPTY - no skills on main content pages
-      interests: [] // EMPTY - no interests on main content pages
+      skills: [],
+      interests: [],
+      workExperienceStarted: false,
+      coursesStarted: false,
+      educationStarted: false
     };
     
-    let currentHeight = headerHeight; // Start with header height for first page
+    let currentPageHeight = headerHeight; // Start with header height for first page
     
-    // Helper function to add a new page
-    const addNewPage = () => {
-      // Only add the current page if it has content
-      if (currentPage.workExperience.length > 0 || 
-          currentPage.education.length > 0 || 
-          currentPage.courses.length > 0) {
-        pages.push(currentPage);
+    // Calculate Education section height for comparison
+    const educationSection = sections.find(s => s.type === 'education');
+    const educationHeight = educationSection ? educationSection.height : 0;
+    
+
+    
+    // Process sections in correct visual order: work, courses, education
+    for (const section of sections) {
+      
+      if (section.type === 'education') {
+        // For Education, check if it can fit on current page
+        const availableSpace = maxContentHeight - bottomMargin - 20 - currentPageHeight;
+        
+        // Force Education to fit on current page if we're on page 1 or 2
+        const currentPageNumber = pages.length + 1;
+        
+        if (currentPageNumber <= 2 || currentPageHeight + section.height <= maxContentHeight - bottomMargin - 20) {
+          // Add Education to current page
+          currentPage.education = section.items as any[];
+          currentPage.educationStarted = false;
+          currentPageHeight += section.height;
+        } else {
+          // Start new page for Education
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+            pages.push(currentPage);
+          }
+          
+          currentPage = {
+            workExperience: [],
+            education: [],
+            courses: [],
+            skills: [],
+            interests: [],
+            workExperienceStarted: false,
+            coursesStarted: false,
+            educationStarted: false
+          };
+          currentPageHeight = 0;
+          
+          currentPage.education = section.items as any[];
+          currentPage.educationStarted = false;
+          currentPageHeight += section.height;
+        }
+        continue;
       }
       
-      // Create new page
-      currentPage = {
-        workExperience: [],
-        education: [],
-        courses: [],
-        skills: [], // EMPTY - no skills on main content pages
-        interests: [] // EMPTY - no interests on main content pages
-      };
-      currentHeight = 0; // No header on subsequent pages
-    };
-    
-    // Helper function to check if we need a new page
-    const needsNewPage = (additionalHeight: number): boolean => {
-      return currentHeight + additionalHeight > maxContentHeight - bottomMargin - 20;
-    };
-    
-    // Add work experience section
-    if (data.workExperience && data.workExperience.length > 0) {
+      // For Work Experience and Courses, process items individually to allow splitting
       const sectionHeaderHeight = estimateSectionHeaderHeight();
       
-      // Check if we need a new page for the section header
-      if (needsNewPage(sectionHeaderHeight)) {
-        addNewPage();
-      }
-      
-      currentHeight += sectionHeaderHeight;
-      
-      // Add each work experience item
-      for (const exp of data.workExperience) {
-        const itemHeight = estimateContentHeight(exp, 'work');
-        
-        // Check if we need a new page for this item
-        if (needsNewPage(itemHeight)) {
-          addNewPage();
-          currentHeight += sectionHeaderHeight; // Add section header to new page
+      // Check if section header fits
+      if (currentPageHeight + sectionHeaderHeight > maxContentHeight - bottomMargin - 20) {
+        // Start new page
+        if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+          pages.push(currentPage);
         }
         
-        currentPage.workExperience.push(exp);
-        currentHeight += itemHeight + itemSpacing;
+        currentPage = {
+          workExperience: [],
+          education: [],
+          courses: [],
+          skills: [],
+          interests: [],
+          workExperienceStarted: false,
+          coursesStarted: false,
+          educationStarted: false
+        };
+        currentPageHeight = 0;
+      }
+      
+      // Add section header
+      currentPageHeight += sectionHeaderHeight;
+      switch (section.type) {
+        case 'work':
+          currentPage.workExperienceStarted = false;
+          break;
+        case 'courses':
+          currentPage.coursesStarted = false;
+          break;
+      }
+      
+      // Process items individually
+      for (const item of section.items) {
+        const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : section.type) + itemSpacing;
+        
+        // Check if item fits on current page
+        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin - 20) {
+          // Start new page
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+            pages.push(currentPage);
+          }
+          
+          currentPage = {
+            workExperience: [],
+            education: [],
+            courses: [],
+            skills: [],
+            interests: [],
+            workExperienceStarted: true, // Section already started - don't show header again
+            coursesStarted: true, // Section already started - don't show header again
+            educationStarted: false
+          };
+          currentPageHeight = 0;
+          
+          // Re-add section header on new page
+          currentPageHeight += sectionHeaderHeight;
+          switch (section.type) {
+            case 'work':
+              currentPage.workExperienceStarted = true; // Don't show header again
+              break;
+            case 'courses':
+              currentPage.coursesStarted = true; // Don't show header again
+              break;
+          }
+        }
+        
+        // Add item to current page
+        switch (section.type) {
+          case 'work':
+            currentPage.workExperience.push(item as any);
+            break;
+          case 'courses':
+            currentPage.courses.push(item as any);
+            break;
+        }
+        currentPageHeight += itemHeight;
       }
     }
     
-    // Add courses section
-    if (data.courses && data.courses.length > 0) {
-      const sectionHeaderHeight = estimateSectionHeaderHeight();
-      
-      // Check if we need a new page for the section header
-      if (needsNewPage(sectionHeaderHeight)) {
-        addNewPage();
-      }
-      
-      currentHeight += sectionHeaderHeight;
-      
-      // Add each course item
-      for (const course of data.courses) {
-        const itemHeight = estimateContentHeight(course, 'course');
-        
-        // Check if we need a new page for this item
-        if (needsNewPage(itemHeight)) {
-          addNewPage();
-          currentHeight += sectionHeaderHeight; // Add section header to new page
-        }
-        
-        currentPage.courses.push(course);
-        currentHeight += itemHeight + itemSpacing;
-      }
-    }
-    
-    // Add education section
-    if (data.education && data.education.length > 0) {
-      const sectionHeaderHeight = estimateSectionHeaderHeight();
-      
-      // Check if we need a new page for the section header
-      if (needsNewPage(sectionHeaderHeight)) {
-        addNewPage();
-      }
-      
-      currentHeight += sectionHeaderHeight;
-      
-      // Add each education item
-      for (const edu of data.education) {
-        const itemHeight = estimateContentHeight(edu, 'education');
-        
-        // Check if we need a new page for this item
-        if (needsNewPage(itemHeight)) {
-          addNewPage();
-          currentHeight += sectionHeaderHeight; // Add section header to new page
-        }
-        
-        currentPage.education.push(edu);
-        currentHeight += itemHeight + itemSpacing;
-      }
-    }
-    
-    // Add the final page with content (still no skills/interests)
-    if (currentPage.workExperience.length > 0 || 
-        currentPage.education.length > 0 || 
-        currentPage.courses.length > 0) {
+    // Add the final page
+    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
       pages.push(currentPage);
     }
     
-    // NOW, after ALL main content pages are created, add skills/interests to the VERY LAST page
+    // Add skills and interests to the last page, but check for overflow
     if (pages.length > 0) {
       const lastPage = pages[pages.length - 1];
       
-      // Add skills and interests ONLY to the last page
-      if (data.strengths && data.strengths.length > 0) {
-        lastPage.skills = [...data.strengths];
-      }
+      // Estimate skills and interests height
+      const skillsHeight = data.strengths && data.strengths.length > 0 ? 60 : 0; // Section header + content
+      const interestsHeight = data.interests && data.interests.length > 0 ? 60 : 0; // Section header + content
+      const totalSkillsInterestsHeight = skillsHeight + interestsHeight;
       
-      if (data.interests && data.interests.length > 0) {
-        lastPage.interests = [...data.interests];
+      // Check if skills/interests would overflow the bottom margin
+      if (currentPageHeight + totalSkillsInterestsHeight > maxContentHeight - bottomMargin - 20) {
+        // Create a new page for skills and interests
+        const newPage: PageContent = {
+          workExperience: [],
+          education: [],
+          courses: [],
+          skills: data.strengths || [],
+          interests: data.interests || [],
+          workExperienceStarted: true,
+          coursesStarted: true,
+          educationStarted: true
+        };
+        pages.push(newPage);
+      } else {
+        // Add to current page
+        if (data.strengths && data.strengths.length > 0) {
+          lastPage.skills = [...data.strengths];
+        }
+        
+        if (data.interests && data.interests.length > 0) {
+          lastPage.interests = [...data.interests];
+        }
       }
     }
     
@@ -295,7 +368,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         education: [],
         courses: [],
         skills: data.strengths || [],
-        interests: data.interests || []
+        interests: data.interests || [],
+        workExperienceStarted: false,
+        coursesStarted: false,
+        educationStarted: false
       });
     }
     
@@ -304,7 +380,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
 
   // Calculate pages
   const pages = calculatePages();
-
+  
   // Render header (same for all pages)
   const renderHeader = () => (
     <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '2px solid #000', paddingBottom: '16px' }}>
@@ -369,8 +445,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           background: '#fff', 
           color: '#000', 
           padding: '40px',
-          width: '850px',
-          height: '1100px',
+          width: '816px', // 8.5 inches at 96 DPI
+          height: '1056px', // 11 inches at 96 DPI
           margin: '0 auto',
           marginBottom: pageIndex < pages.length - 1 ? '20px' : '0',
           lineHeight: '1.6',
@@ -414,16 +490,18 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         {/* Work Experience */}
         {pageContent.workExperience.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ 
-              fontSize: '18px', 
-              fontWeight: 'bold', 
-              margin: '0 0 12px 0',
-              textTransform: 'uppercase',
-              borderBottom: '1px solid #000',
-              paddingBottom: '4px'
-            }}>
-              Work Experience
-            </h2>
+            {!pageContent.workExperienceStarted && (
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                margin: '0 0 12px 0',
+                textTransform: 'uppercase',
+                borderBottom: '1px solid #000',
+                paddingBottom: '4px'
+              }}>
+                Work Experience
+              </h2>
+            )}
             {pageContent.workExperience.map((exp, index) => (
               <div key={index} style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
@@ -472,19 +550,23 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </div>
         )}
 
+
+
         {/* Courses */}
         {pageContent.courses.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ 
-              fontSize: '18px', 
-              fontWeight: 'bold', 
-              margin: '0 0 12px 0',
-              textTransform: 'uppercase',
-              borderBottom: '1px solid #000',
-              paddingBottom: '4px'
-            }}>
-              Courses & Certifications
-            </h2>
+            {!pageContent.coursesStarted && (
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                margin: '0 0 12px 0',
+                textTransform: 'uppercase',
+                borderBottom: '1px solid #000',
+                paddingBottom: '4px'
+              }}>
+                Courses & Certifications
+              </h2>
+            )}
             {pageContent.courses.map((course, index) => (
               <div key={index} style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
@@ -520,17 +602,19 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
 
         {/* Education */}
         {pageContent.education.length > 0 && (
-          <div>
-            <h2 style={{ 
-              fontSize: '18px', 
-              fontWeight: 'bold', 
-              margin: '0 0 12px 0',
-              textTransform: 'uppercase',
-              borderBottom: '1px solid #000',
-              paddingBottom: '4px'
-            }}>
-              Education
-            </h2>
+          <div style={{ marginBottom: '20px' }}>
+            {!pageContent.educationStarted && (
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                margin: '0 0 12px 0',
+                textTransform: 'uppercase',
+                borderBottom: '1px solid #000',
+                paddingBottom: '4px'
+              }}>
+                Education
+              </h2>
+            )}
             {pageContent.education.map((edu, index) => (
               <div key={index} style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
@@ -564,7 +648,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             ))}
           </div>
         )}
-
+        
         {/* Skills */}
         {pageContent.skills.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
