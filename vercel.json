@@ -9,5 +9,6 @@
     "env": {
       "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true"
     }
-  }
+  },
+  "version": 2
 } 
