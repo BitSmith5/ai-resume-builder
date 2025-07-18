@@ -173,7 +173,56 @@ export async function GET(
   }
 }
 
-function generatePDFWithJsPDF(data: any, template: string): Uint8Array {
+function generatePDFWithJsPDF(data: {
+  title: string;
+  jobTitle?: string;
+  profilePicture?: string;
+  content: {
+    personalInfo: {
+      name: string;
+      email: string;
+      phone: string;
+      city: string;
+      state: string;
+      summary: string;
+      website?: string;
+      linkedin?: string;
+      github?: string;
+    };
+  };
+  strengths: Array<{
+    skillName: string;
+    rating: number;
+  }>;
+  workExperience: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    bulletPoints: Array<{
+      description: string;
+    }>;
+  }>;
+  education: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    gpa?: number;
+  }>;
+  courses: Array<{
+    title: string;
+    provider: string;
+    link?: string;
+  }>;
+  interests: Array<{
+    name: string;
+    icon: string;
+  }>;
+}, template: string): Uint8Array {
   const { personalInfo } = data.content;
   
   // Create PDF document
