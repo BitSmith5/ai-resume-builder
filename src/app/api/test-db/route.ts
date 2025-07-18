@@ -14,48 +14,47 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Test creating a simple resume to see if createdAt is set
-    const testResume = await prisma.resume.create({
-      data: {
-        title: "Test Resume - " + new Date().toISOString(),
-        content: { test: true },
-        userId: user.id,
-      },
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    // Check if template field exists using raw SQL
+    const tableInfo = await prisma.$queryRaw`
+      SELECT column_name, data_type, is_nullable, column_default 
+      FROM information_schema.columns 
+      WHERE table_name = 'Resume' AND column_name = 'template'
+    `;
+
+    // Get all resumes for the user using raw SQL to include template field
+    const allResumes = await prisma.$queryRaw`
+      SELECT id, title, "jobTitle", template, "createdAt", "updatedAt"
+      FROM "Resume" 
+      WHERE "userId" = ${user.id}
+      ORDER BY id DESC
+    `;
+
+    // Test creating a resume with template using raw SQL
+    const testResume = await prisma.$executeRaw`
+      INSERT INTO "Resume" (title, template, "jobTitle", content, "userId", "createdAt", "updatedAt")
+      VALUES (${"Test Resume - " + new Date().toISOString()}, 'classic', 'Test Job', '{"test": true}', ${user.id}, NOW(), NOW())
+    `;
+
+    // Get the last inserted resume to verify template was saved
+    const lastResume = await prisma.$queryRaw`
+      SELECT id, title, "jobTitle", template, "createdAt", "updatedAt"
+      FROM "Resume" 
+      WHERE "userId" = ${user.id}
+      ORDER BY id DESC
+      LIMIT 1
+    `;
 
     // Delete the test resume
-    await prisma.resume.delete({
-      where: {
-        id: testResume.id,
-      },
-    });
-
-    // Get all resumes for the user
-    const allResumes = await prisma.resume.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: {
-        id: "desc",
-      },
-    });
+    if (lastResume && Array.isArray(lastResume) && lastResume.length > 0) {
+      const testId = (lastResume[0] as any).id;
+      await prisma.$executeRaw`DELETE FROM "Resume" WHERE id = ${testId}`;
+    }
 
     return NextResponse.json({
-      testResume,
+      tableInfo,
       allResumes,
-      message: "Database test completed"
+      lastResume,
+      message: "Database test completed - template field verified with raw SQL"
     });
   } catch (error) {
     console.error("Test error:", error);
