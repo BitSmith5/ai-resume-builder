@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import puppeteer from 'puppeteer-core';
-import chromium from 'chrome-aws-lambda';
+import puppeteer from 'puppeteer';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
 interface ResumeWithTemplate {
@@ -150,12 +149,10 @@ export async function GET(
     console.log('Using template for PDF generation:', template);
     const html = renderResumeToHtml(resumeData, template);
 
-    // Launch Puppeteer with serverless-compatible Chrome
+    // Launch Puppeteer
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-running-insecure-content']
     });
 
     const page = await browser.newPage();

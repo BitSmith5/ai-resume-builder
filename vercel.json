@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "src/app/api/resumes/[id]/pdf/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "build": {
+    "env": {
+      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true"
+    }
+  }
+} 
