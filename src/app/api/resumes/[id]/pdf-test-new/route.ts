@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
 export const runtime = 'nodejs';
@@ -154,10 +154,41 @@ export async function GET(
       '/usr/bin/chromium-browser',
       '/usr/bin/chromium',
       '/opt/google/chrome/chrome',
+      '/usr/bin/chrome',
+      '/usr/bin/chrome-browser',
+      '/snap/bin/chromium',
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/chromium-browser-stable',
       process.env.CHROME_BIN,
     ].filter(Boolean);
 
     console.log('Available Chrome paths:', chromePaths);
+    
+    // Check what's actually available in the system
+    try {
+      const { execSync } = require('child_process');
+      console.log('Checking system for Chrome installations...');
+      try {
+        const whichChrome = execSync('which google-chrome', { encoding: 'utf8' }).trim();
+        console.log('Found google-chrome at:', whichChrome);
+      } catch (e) {
+        console.log('google-chrome not found in PATH');
+      }
+      try {
+        const whichChromium = execSync('which chromium-browser', { encoding: 'utf8' }).trim();
+        console.log('Found chromium-browser at:', whichChromium);
+      } catch (e) {
+        console.log('chromium-browser not found in PATH');
+      }
+      try {
+        const whichChromium2 = execSync('which chromium', { encoding: 'utf8' }).trim();
+        console.log('Found chromium at:', whichChromium2);
+      } catch (e) {
+        console.log('chromium not found in PATH');
+      }
+    } catch (error) {
+      console.log('Could not check system for Chrome installations:', error);
+    }
     
     let browser;
     let launchError;
