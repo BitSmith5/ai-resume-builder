@@ -179,7 +179,7 @@ export async function GET(
         ]
       });
       console.log('Puppeteer launched successfully without explicit Chrome path');
-    } catch (error) {
+    } catch {
       console.log('Failed to launch Puppeteer without explicit path, trying with executable path...');
       
       // Try with executable path as fallback
