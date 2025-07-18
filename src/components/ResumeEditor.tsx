@@ -29,7 +29,7 @@ import {
 import ResumeTemplateRegistry, {
   AVAILABLE_TEMPLATES,
 } from "./ResumeTemplateRegistry";
-import { storeImage, getImage, getLatestUserImage, deleteImage } from "@/lib/imageStorage";
+import { storeImage, getImage, deleteImage } from "@/lib/imageStorage";
 // import { generateResumePDF } from './ResumePDF';
 
 // Available icons for interests
