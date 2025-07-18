@@ -442,8 +442,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           background: '#fff', 
           color: '#000', 
           padding: '40px',
-          width: '816px', // 8.5 inches at 96 DPI
-          height: '1056px', // 11 inches at 96 DPI
+          width: '850px', // Match modern template width
+          height: '1100px', // Letter size aspect ratio: 8.5:11 = 0.773, 850/1100 = 0.773 ✓
           margin: '0 auto',
           marginBottom: pageIndex < pages.length - 1 ? '20px' : '0',
           lineHeight: '1.6',

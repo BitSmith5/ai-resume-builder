@@ -154,10 +154,12 @@ export async function GET(
 
     const page = await browser.newPage();
     
-    // Set viewport to A4 size
+    // Set viewport to match the template dimensions exactly
+    const viewportWidth = template === 'classic' ? 850 : 850; // Both templates now use 850px
+    const viewportHeight = template === 'classic' ? 1100 : 1100; // Both templates now use 1100px
     await page.setViewport({
-      width: 850,
-      height: 1100,
+      width: viewportWidth,
+      height: viewportHeight,
       deviceScaleFactor: 2
     });
 
@@ -167,8 +169,21 @@ export async function GET(
     // Set content and wait for images to load
     await page.setContent(html, { waitUntil: 'networkidle0' });
     
-    // Additional wait to ensure images are loaded
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Additional wait to ensure images are loaded and fonts are rendered
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Debug: Check if profile picture is visible
+    if (resumeData.profilePicture) {
+      try {
+        const profilePictureVisible = await page.evaluate(() => {
+          const profileDiv = document.querySelector('div[style*="background-image"]');
+          return profileDiv !== null;
+        });
+        console.log('Profile picture div found:', profilePictureVisible);
+      } catch (error) {
+        console.log('Error checking profile picture visibility:', error);
+      }
+    }
 
     // Generate PDF with proper page breaks - using Letter size to match template aspect ratio
     const pdf = await page.pdf({

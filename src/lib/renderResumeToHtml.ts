@@ -1,4 +1,4 @@
-// Direct HTML generation for PDF creation with exact template styling
+// Direct HTML generation for PDF creation with template styling
 
 interface ResumeData {
   title: string;
@@ -121,7 +121,7 @@ function renderModernTemplateWithPageBreaks(data: ResumeData): string {
     };
     
     let currentHeight = 0;
-    const headerHeight = 120;
+    const headerHeight = 180; // Match React component
     const sectionSpacing = 32;
     const itemSpacing = 12;
     
@@ -130,7 +130,7 @@ function renderModernTemplateWithPageBreaks(data: ResumeData): string {
       
       switch (type) {
         case 'work':
-          height = 90; // EXACTLY like React template
+          height = 90; // Base height for work experience items
           if (content.bulletPoints && content.bulletPoints.length > 0) {
             height += content.bulletPoints.length * 25;
           }
@@ -232,7 +232,7 @@ function renderModernTemplateWithPageBreaks(data: ResumeData): string {
       });
     }
     
-    // Helper function to distribute left column content - EXACTLY like React template
+    // Helper function to distribute left column content
     const distributeLeftColumnContent = () => {
       let skillIndex = 0;
       let interestIndex = 0;
@@ -583,11 +583,13 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
 function renderClassicTemplate(data: ResumeData): string {
   const { personalInfo } = data.content;
 
+  // Function to format dates as MM/YYYY
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return dateString;
+      
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       return `${month}/${year}`;
@@ -596,68 +598,733 @@ function renderClassicTemplate(data: ResumeData): string {
     }
   };
 
-  const contactInfo = [
-    personalInfo.email && `Email: ${personalInfo.email}`,
-    personalInfo.phone && `Phone: ${personalInfo.phone}`,
-    (personalInfo.city || personalInfo.state) && `Location: ${[personalInfo.city, personalInfo.state].filter(Boolean).join(', ')}`,
-    personalInfo.website && `Website: ${personalInfo.website}`,
-    personalInfo.linkedin && `LinkedIn: ${personalInfo.linkedin}`,
-    personalInfo.github && `GitHub: ${personalInfo.github}`
-  ].filter(Boolean).join(' | ');
+  // Function to format URLs by removing http/https prefix
+  const formatUrl = (url: string): string => {
+    if (!url) return '';
+    return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+  };
 
-  const skillsHtml = data.strengths.map(skill => 
-    `<span style="display: inline-block; margin: 2px 8px 2px 0; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; font-size: 11px;">${skill.skillName}</span>`
-  ).join('');
-
-  const workExperienceHtml = data.workExperience.map(work => {
-    const dateRange = work.current 
-      ? `${formatDate(work.startDate)} - Present`
-      : `${formatDate(work.startDate)} - ${formatDate(work.endDate)}`;
+  // Calculate content distribution across pages
+  const calculatePages = (): Array<{
+    workExperience: Array<{
+      company: string;
+      position: string;
+      startDate: string;
+      endDate: string;
+      current: boolean;
+      city?: string;
+      state?: string;
+      bulletPoints: Array<{
+        description: string;
+      }>;
+    }>;
+    education: Array<{
+      institution: string;
+      degree: string;
+      field: string;
+      startDate: string;
+      endDate: string;
+      current: boolean;
+      gpa?: number;
+    }>;
+    courses: Array<{
+      title: string;
+      provider: string;
+      link?: string;
+    }>;
+    skills: Array<{
+      skillName: string;
+      rating: number;
+    }>;
+    interests: Array<{
+      name: string;
+      icon: string;
+    }>;
+    workExperienceStarted: boolean;
+    coursesStarted: boolean;
+    educationStarted: boolean;
+  }> => {
+    const pages: Array<{
+      workExperience: Array<{
+        company: string;
+        position: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+        city?: string;
+        state?: string;
+        bulletPoints: Array<{
+          description: string;
+        }>;
+      }>;
+      education: Array<{
+        institution: string;
+        degree: string;
+        field: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+        gpa?: number;
+      }>;
+      courses: Array<{
+        title: string;
+        provider: string;
+        link?: string;
+      }>;
+      skills: Array<{
+        skillName: string;
+        rating: number;
+      }>;
+      interests: Array<{
+        name: string;
+        icon: string;
+      }>;
+      workExperienceStarted: boolean;
+      coursesStarted: boolean;
+      educationStarted: boolean;
+    }> = [];
+    const maxContentHeight = 900; // Maximum content height per page
+    const bottomMargin = 80; // Bottom margin for content
+    const headerHeight = 180; // Only on first page
+    const itemSpacing = 15;
     
-    const bulletPoints = work.bulletPoints.map(bullet => 
-      `<li style="margin-bottom: 4px; font-size: 11px;">${bullet.description}</li>`
-    ).join('');
+         // Helper function to estimate content height
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     const estimateContentHeight = (content: any, type: 'work' | 'courses' | 'education'): number => {
+      let height = 0;
+      
+             switch (type) {
+         case 'work':
+           height = 80;
+           if (content.bulletPoints && content.bulletPoints.length > 0) {
+             height += content.bulletPoints.length * 22;
+           }
+           break;
+         case 'courses':
+           height = 45;
+           break;
+         case 'education':
+           height = 60;
+           break;
+       }
+      
+      return height;
+    };
+    
+    // Helper function to estimate section header height
+    const estimateSectionHeaderHeight = (): number => {
+      return 45; // Section title + border + spacing
+    };
+    
+         // Calculate all section heights first
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     const sections: Array<{
+       type: 'work' | 'courses' | 'education';
+       items: any[];
+       height: number;
+     }> = [];
+    
+    if (data.workExperience && data.workExperience.length > 0) {
+      const workHeight = estimateSectionHeaderHeight() + data.workExperience.reduce((total, item) => total + estimateContentHeight(item, 'work') + itemSpacing, 0);
+      sections.push({ type: 'work', items: data.workExperience, height: workHeight });
+    }
+    
+         if (data.courses && data.courses.length > 0) {
+       const coursesHeight = estimateSectionHeaderHeight() + data.courses.reduce((total, item) => total + estimateContentHeight(item, 'courses') + itemSpacing, 0);
+       sections.push({ type: 'courses', items: data.courses, height: coursesHeight });
+     }
+    
+    if (data.education && data.education.length > 0) {
+      const educationHeight = estimateSectionHeaderHeight() + data.education.reduce((total, item) => total + estimateContentHeight(item, 'education') + itemSpacing, 0);
+      sections.push({ type: 'education', items: data.education, height: educationHeight });
+    }
+    
+    let currentPage: {
+      workExperience: Array<{
+        company: string;
+        position: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+        city?: string;
+        state?: string;
+        bulletPoints: Array<{
+          description: string;
+        }>;
+      }>;
+      education: Array<{
+        institution: string;
+        degree: string;
+        field: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+        gpa?: number;
+      }>;
+      courses: Array<{
+        title: string;
+        provider: string;
+        link?: string;
+      }>;
+      skills: Array<{
+        skillName: string;
+        rating: number;
+      }>;
+      interests: Array<{
+        name: string;
+        icon: string;
+      }>;
+      workExperienceStarted: boolean;
+      coursesStarted: boolean;
+      educationStarted: boolean;
+    } = {
+      workExperience: [],
+      education: [],
+      courses: [],
+      skills: [],
+      interests: [],
+      workExperienceStarted: false,
+      coursesStarted: false,
+      educationStarted: false
+    };
+    
+    let currentPageHeight = headerHeight; // Start with header height for first page
+    
+    // Track which sections have actually started across all pages
+    let workExperienceStarted = false;
+    let coursesStarted = false;
+    let educationStarted = false;
+    
+    // Process sections in correct visual order: work, courses, education
+    for (const section of sections) {
+      
+      if (section.type === 'education') {
+        // For Education, check if it can fit on current page
+        
+        // Force Education to fit on current page if we're on page 1 or 2
+        const currentPageNumber = pages.length + 1;
+        
+        if (currentPageNumber <= 2 || currentPageHeight + section.height <= maxContentHeight - bottomMargin - 20) {
+          // Add Education to current page
+          currentPage.education = section.items;
+          currentPage.educationStarted = educationStarted;
+          educationStarted = true; // Mark as started
+          currentPageHeight += section.height;
+        } else {
+          // Start new page for Education
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+            pages.push(currentPage);
+          }
+          
+          currentPage = {
+            workExperience: [],
+            education: [],
+            courses: [],
+            skills: [],
+            interests: [],
+            workExperienceStarted: workExperienceStarted,
+            coursesStarted: coursesStarted,
+            educationStarted: educationStarted
+          };
+          currentPageHeight = 0;
+          
+          currentPage.education = section.items;
+          currentPage.educationStarted = educationStarted;
+          educationStarted = true; // Mark as started
+          currentPageHeight += section.height;
+        }
+        continue;
+      }
+      
+      // For Work Experience and Courses, process items individually to allow splitting
+      const sectionHeaderHeight = estimateSectionHeaderHeight();
+      
+      // Check if section header fits
+      if (currentPageHeight + sectionHeaderHeight > maxContentHeight - bottomMargin - 20) {
+        // Start new page
+        if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+          pages.push(currentPage);
+        }
+        
+        currentPage = {
+          workExperience: [],
+          education: [],
+          courses: [],
+          skills: [],
+          interests: [],
+          workExperienceStarted: workExperienceStarted,
+          coursesStarted: coursesStarted,
+          educationStarted: educationStarted
+        };
+        currentPageHeight = 0;
+      }
+      
+      // Add section header and mark section as started
+      currentPageHeight += sectionHeaderHeight;
+      if (section.type === 'work') {
+        currentPage.workExperienceStarted = workExperienceStarted;
+        workExperienceStarted = true;
+      } else if (section.type === 'courses') {
+        currentPage.coursesStarted = coursesStarted;
+        coursesStarted = true;
+      }
+      
+      // Process items in the section
+      for (let i = 0; i < section.items.length; i++) {
+        const item = section.items[i];
+        const itemHeight = estimateContentHeight(item, section.type as 'work' | 'courses' | 'education');
+        
+        // Check if item fits on current page
+        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin - 20) {
+          // Start new page
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+            pages.push(currentPage);
+          }
+          
+          currentPage = {
+            workExperience: [],
+            education: [],
+            courses: [],
+            skills: [],
+            interests: [],
+            workExperienceStarted: workExperienceStarted, // Use actual started state
+            coursesStarted: coursesStarted,
+            educationStarted: educationStarted
+          };
+          currentPageHeight = 0; // Start with 0 height like React template
+        }
+        
+        // Add item to current page
+        switch (section.type as 'work' | 'courses' | 'education') {
+          case 'work':
+            currentPage.workExperience.push(item);
+            break;
+          case 'courses':
+            currentPage.courses.push(item);
+            break;
+          case 'education':
+            currentPage.education.push(item);
+            break;
+        }
+        
+        currentPageHeight += itemHeight + itemSpacing;
+      }
+    }
+    
+    // Add remaining content to pages
+    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.skills.length > 0 || currentPage.interests.length > 0) {
+      pages.push(currentPage);
+    }
+    
+    // Only create a page if we have content to show
+    if (pages.length === 0 && (data.strengths && data.strengths.length > 0 || data.interests && data.interests.length > 0)) {
+      pages.push({
+        workExperience: [],
+        education: [],
+        courses: [],
+        skills: data.strengths || [],
+        interests: data.interests || [],
+        workExperienceStarted: false,
+        coursesStarted: false,
+        educationStarted: false
+      });
+    }
+    
+    // Add skills and interests to the last page, but check for overflow
+    if (pages.length > 0) {
+      const lastPage = pages[pages.length - 1];
+      
+      // Estimate skills and interests height
+      const skillsHeight = data.strengths && data.strengths.length > 0 ? 40 : 0; // Reduced height estimate
+      const interestsHeight = data.interests && data.interests.length > 0 ? 40 : 0; // Reduced height estimate
+      const totalSkillsInterestsHeight = skillsHeight + interestsHeight;
+      
+      // Check if skills/interests would overflow the bottom margin
+      if (currentPageHeight + totalSkillsInterestsHeight > maxContentHeight - bottomMargin - 20) {
+        // Create a new page for skills and interests
+        const newPage = {
+          workExperience: [],
+          education: [],
+          courses: [],
+          skills: data.strengths || [],
+          interests: data.interests || [],
+          workExperienceStarted: true,
+          coursesStarted: true,
+          educationStarted: true
+        };
+        pages.push(newPage);
+      } else {
+        // Add to current page
+        if (data.strengths && data.strengths.length > 0) {
+          lastPage.skills = [...data.strengths];
+        }
+        
+        if (data.interests && data.interests.length > 0) {
+          lastPage.interests = [...data.interests];
+        }
+      }
+    }
+    
+    return pages;
+  };
 
-    return `
-      <div style="margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div style="font-weight: bold; font-size: 14px;">${work.position}</div>
-          <div style="font-size: 12px; color: #666;">${dateRange}</div>
+  const pages = calculatePages();
+
+  // Filter out empty pages to prevent blank pages
+  const filteredPages = pages.filter(page => 
+    page.workExperience.length > 0 || 
+    page.education.length > 0 || 
+    page.courses.length > 0 || 
+    page.skills.length > 0 || 
+    page.interests.length > 0
+  );
+
+  // Render header (same for all pages)
+  const renderHeader = () => `
+    <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #000; padding-bottom: 16px;">
+      ${data.profilePicture ? `
+        <div style="
+          width: 120px;
+          height: 120px;
+          border-radius: 50%; 
+          background-image: url('${data.profilePicture}');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          margin: 0 auto 12px auto;
+          border: 3px solid #000;
+          background-color: #f0f0f0;
+        "></div>
+      ` : ''}
+      <h1 style="
+        font-size: 32px; 
+        font-weight: bold; 
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-family: 'Times New Roman', serif;
+      ">
+        ${personalInfo.name}
+      </h1>
+      ${data.jobTitle ? `
+        <div style="
+          font-size: 18px; 
+          font-weight: bold; 
+          margin: 0 0 10px 0;
+          font-style: italic;
+          color: #333;
+          font-family: 'Times New Roman', serif;
+        ">
+          ${data.jobTitle}
         </div>
-        <div style="font-weight: 500; font-size: 13px; color: #666; margin-bottom: 8px;">${work.company}</div>
-        <ul style="margin: 0; padding-left: 20px;">
-          ${bulletPoints}
-        </ul>
+      ` : ''}
+      <div style="font-size: 14px; color: #333; font-family: 'Times New Roman', serif;">
+        ${personalInfo.email ? `<span style="margin-right: 20px;">${personalInfo.email}</span>` : ''}
+        ${personalInfo.phone ? `<span style="margin-right: 20px;">${personalInfo.phone}</span>` : ''}
+        ${(personalInfo.city || personalInfo.state) ? 
+          `<span>${[personalInfo.city, personalInfo.state].filter(Boolean).join(', ')}</span>` : ''
+        }
+      </div>
+      ${(personalInfo.website || personalInfo.linkedin || personalInfo.github) ? `
+        <div style="font-size: 12px; color: #666; margin-top: 5px; font-family: 'Times New Roman', serif;">
+          ${personalInfo.website ? `<span style="margin-right: 15px;">${formatUrl(personalInfo.website)}</span>` : ''}
+          ${personalInfo.linkedin ? `<span style="margin-right: 15px;">${formatUrl(personalInfo.linkedin)}</span>` : ''}
+          ${personalInfo.github ? `<span>${formatUrl(personalInfo.github)}</span>` : ''}
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  // Render a single page
+  const renderPage = (pageContent: any, pageIndex: number) => {
+    const isFirstPage = pageIndex === 0;
+    
+
+    
+    return `
+      <div style="
+        font-family: 'Times New Roman', serif; 
+        background: transparent; 
+        color: #000; 
+        padding: 40px;
+        width: 850px; /* Match modern template width */
+        height: 1056px; /* Letter size: 8.5" x 11" = 816 x 1056 points */
+        margin: 0 auto;
+        margin-bottom: ${pageIndex < filteredPages.length - 1 ? '20px' : '0'};
+        line-height: 1.6;
+        position: relative;
+        overflow: hidden;
+        page-break-after: ${pageIndex < filteredPages.length - 1 ? 'always' : 'avoid'};
+        box-sizing: border-box;
+      ">
+        <!-- Content wrapper that respects bottom margin -->
+        <div style="
+          padding-bottom: 80px; /* Ensure content doesn't overlap with bottom margin */
+          padding-top: ${isFirstPage ? '0' : '0'}; /* No extra top padding for non-first pages */
+          box-sizing: border-box;
+          width: 100%;
+        ">
+
+          
+          <!-- Header - only on first page -->
+          ${isFirstPage ? renderHeader() : ''}
+
+          <!-- Summary - only on first page -->
+          ${isFirstPage && personalInfo.summary ? `
+            <div style="margin-bottom: 20px;">
+              <h2 style="
+                font-size: 18px; 
+                font-weight: bold; 
+                margin: 0 0 8px 0;
+                text-transform: uppercase;
+                border-bottom: 1px solid #000;
+                padding-bottom: 4px;
+                font-family: 'Times New Roman', serif;
+              ">
+                Professional Summary
+              </h2>
+              <p style="font-size: 14px; margin: 0; text-align: justify; font-family: 'Times New Roman', serif; line-height: 1.6;">
+                ${personalInfo.summary}
+              </p>
+            </div>
+          ` : ''}
+
+          <!-- Work Experience -->
+          ${pageContent.workExperience.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              ${!pageContent.workExperienceStarted ? `
+                <h2 style="
+                  font-size: 18px; 
+                  font-weight: bold; 
+                  margin: 0 0 12px 0;
+                  text-transform: uppercase;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 4px;
+                  font-family: 'Times New Roman', serif;
+                ">
+                  Work Experience
+                </h2>
+              ` : ''}
+              ${pageContent.workExperience.map((exp: any) => `
+                <div style="margin-bottom: 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <h3 style="
+                      font-size: 16px; 
+                      font-weight: bold; 
+                      margin: 0;
+                      text-transform: uppercase;
+                      font-family: 'Times New Roman', serif;
+                    ">
+                      ${exp.position}
+                    </h3>
+                    <span style="font-size: 12px; color: #666; font-family: 'Times New Roman', serif;">
+                      ${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate)}
+                    </span>
+                  </div>
+                  <div style="
+                    font-size: 14px; 
+                    font-weight: bold; 
+                    color: #333;
+                    margin-bottom: 8px;
+                    font-style: italic;
+                    font-family: 'Times New Roman', serif;
+                  ">
+                    ${exp.company}
+                    ${(exp.city || exp.state) ? `
+                      <span style="font-size: 12px; color: #666; font-weight: normal; font-family: 'Times New Roman', serif;">
+                        {' - '}${[exp.city, exp.state].filter(Boolean).join(', ')}
+                      </span>
+                    ` : ''}
+                  </div>
+                  ${exp.bulletPoints.length > 0 ? `
+                    <ul style="
+                      font-size: 13px; 
+                      margin: 0; 
+                      padding-left: 20px;
+                      text-align: justify;
+                      font-family: 'Times New Roman', serif;
+                      line-height: 1.6;
+                    ">
+                      ${exp.bulletPoints.map((bullet: any) => `
+                        <li style="margin-bottom: 2px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+                          ${bullet.description}
+                        </li>
+                      `).join('')}
+                    </ul>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <!-- Courses -->
+          ${pageContent.courses.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              ${!pageContent.coursesStarted ? `
+                <h2 style="
+                  font-size: 18px; 
+                  font-weight: bold; 
+                  margin: 0 0 12px 0;
+                  text-transform: uppercase;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 4px;
+                  font-family: 'Times New Roman', serif;
+                ">
+                  Courses & Certifications
+                </h2>
+              ` : ''}
+              ${pageContent.courses.map((course: any) => `
+                <div style="margin-bottom: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <h3 style="
+                      font-size: 16px; 
+                      font-weight: bold; 
+                      margin: 0;
+                      text-transform: uppercase;
+                      font-family: 'Times New Roman', serif;
+                    ">
+                      ${course.title}
+                    </h3>
+                  </div>
+                  <div style="
+                    font-size: 14px; 
+                    font-weight: bold; 
+                    color: #333;
+                    margin-bottom: 3px;
+                    font-style: italic;
+                    font-family: 'Times New Roman', serif;
+                  ">
+                    ${course.provider}
+                  </div>
+                  ${course.link ? `
+                    <div style="font-size: 12px; color: #666; font-family: 'Times New Roman', serif;">
+                      <a href="${course.link}" target="_blank" rel="noopener noreferrer" style="color: #666; text-decoration: underline;">
+                        ${formatUrl(course.link)}
+                      </a>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <!-- Education -->
+          ${pageContent.education.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              ${!pageContent.educationStarted ? `
+                <h2 style="
+                  font-size: 18px; 
+                  font-weight: bold; 
+                  margin: 0 0 12px 0;
+                  text-transform: uppercase;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 4px;
+                  font-family: 'Times New Roman', serif;
+                ">
+                  Education
+                </h2>
+              ` : ''}
+              ${pageContent.education.map((edu: any) => `
+                <div style="margin-bottom: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <h3 style="
+                      font-size: 16px; 
+                      font-weight: bold; 
+                      margin: 0;
+                      text-transform: uppercase;
+                      font-family: 'Times New Roman', serif;
+                    ">
+                      ${edu.degree} in ${edu.field}
+                    </h3>
+                    <span style="font-size: 12px; color: #666; font-family: 'Times New Roman', serif;">
+                      ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
+                    </span>
+                  </div>
+                  <div style="
+                    font-size: 14px; 
+                    font-weight: bold; 
+                    color: #333;
+                    margin-bottom: 3px;
+                    font-style: italic;
+                    font-family: 'Times New Roman', serif;
+                  ">
+                    ${edu.institution}
+                  </div>
+                  ${edu.gpa ? `
+                    <div style="font-size: 13px; color: #666; font-family: 'Times New Roman', serif;">
+                      GPA: ${edu.gpa}
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+          
+          <!-- Skills -->
+          ${pageContent.skills.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              <h2 style="
+                font-size: 18px; 
+                font-weight: bold; 
+                margin: 0 0 8px 0;
+                text-transform: uppercase;
+                border-bottom: 1px solid #000;
+                padding-bottom: 4px;
+                font-family: 'Times New Roman', serif;
+              ">
+                Skills
+              </h2>
+                          <div style="font-size: 14px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+              ${pageContent.skills.map((strength: any) => `
+                <span style="
+                  display: inline-block;
+                  margin-right: 15px;
+                  margin-bottom: 4px;
+                  font-weight: bold;
+                  font-family: 'Times New Roman', serif;
+                  line-height: 1.6;
+                ">
+                  ${strength.skillName} (${strength.rating}/10)
+                </span>
+              `).join('')}
+            </div>
+            </div>
+          ` : ''}
+
+          <!-- Interests -->
+          ${pageContent.interests.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              <h2 style="
+                font-size: 18px; 
+                font-weight: bold; 
+                margin: 0 0 8px 0;
+                text-transform: uppercase;
+                border-bottom: 1px solid #000;
+                padding-bottom: 4px;
+                font-family: 'Times New Roman', serif;
+              ">
+                Interests
+              </h2>
+                          <div style="font-size: 14px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+              ${pageContent.interests.map((interest: any) => `
+                <span style="
+                  display: inline-block;
+                  margin-right: 15px;
+                  margin-bottom: 4px;
+                  font-family: 'Times New Roman', serif;
+                  line-height: 1.6;
+                ">
+                  ${interest.icon} ${interest.name}
+                </span>
+              `).join('')}
+            </div>
+            </div>
+          ` : ''}
+        </div> <!-- Close content wrapper -->
       </div>
     `;
-  }).join('');
-
-  const educationHtml = data.education.map(edu => {
-    const dateRange = edu.current 
-      ? `${formatDate(edu.startDate)} - Present`
-      : `${formatDate(edu.startDate)} - ${formatDate(edu.endDate)}`;
-    
-    const gpaText = edu.gpa ? ` | GPA: ${edu.gpa}` : '';
-    
-    return `
-      <div style="margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-          <div style="font-weight: bold; font-size: 13px;">${edu.degree} in ${edu.field}</div>
-          <div style="font-size: 11px; color: #666;">${dateRange}${gpaText}</div>
-        </div>
-        <div style="font-weight: 500; font-size: 12px; color: #666;">${edu.institution}</div>
-      </div>
-    `;
-  }).join('');
-
-  const coursesHtml = data.courses && data.courses.length > 0 ? data.courses.map(course => 
-    `<span style="display: inline-block; margin: 2px 8px 2px 0; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; font-size: 11px;">${course.title} - ${course.provider}</span>`
-  ).join('') : '';
-
-  const interestsHtml = data.interests && data.interests.length > 0 ? data.interests.map(interest => 
-    `<span style="display: inline-block; margin: 2px 8px 2px 0; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; font-size: 11px;">${interest.icon} ${interest.name}</span>`
-  ).join('') : '';
-
+  };
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -665,47 +1332,41 @@ function renderClassicTemplate(data: ResumeData): string {
       <meta charset="UTF-8">
       <title>${data.title}</title>
       <style>
-        body { margin: 0; padding: 20px; font-family: 'Times New Roman', serif; }
-        .resume { max-width: 800px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .name { font-size: 28px; font-weight: bold; margin-bottom: 8px; }
-        .contact { font-size: 12px; color: #666; margin-bottom: 16px; }
-        .summary { font-size: 12px; line-height: 1.5; margin-bottom: 24px; text-align: justify; }
-        .section { margin-bottom: 24px; }
-        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        @page {
+          size: Letter;
+          margin: 0;
+        }
+        * {
+          box-sizing: border-box;
+        }
+        body { 
+          margin: 0; 
+          padding: 0; 
+          font-family: 'Times New Roman', serif;
+          background: transparent;
+          line-height: 1.6;
+          -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+        }
+        .resume-container {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          width: 100%;
+          background: transparent;
+        }
+        p, div, span, li {
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+        }
       </style>
     </head>
     <body>
-      <div class="resume">
-        <div class="header">
-          <div class="name">${personalInfo.name}</div>
-          <div class="contact">${contactInfo}</div>
-        </div>
-        <div class="summary">${personalInfo.summary}</div>
-        <div class="section">
-          <div class="section-title">Skills</div>
-          ${skillsHtml}
-        </div>
-        <div class="section">
-          <div class="section-title">Work Experience</div>
-          ${workExperienceHtml}
-        </div>
-        <div class="section">
-          <div class="section-title">Education</div>
-          ${educationHtml}
-        </div>
-        ${coursesHtml ? `
-        <div class="section">
-          <div class="section-title">Courses</div>
-          ${coursesHtml}
-        </div>
-        ` : ''}
-        ${interestsHtml ? `
-        <div class="section">
-          <div class="section-title">Interests</div>
-          ${interestsHtml}
-        </div>
-        ` : ''}
+      <div class="resume-container">
+        ${filteredPages.map((pageContent, pageIndex) => {
+          return renderPage(pageContent, pageIndex);
+        }).join('')}
       </div>
     </body>
     </html>
