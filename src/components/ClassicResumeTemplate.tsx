@@ -160,7 +160,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     // NEW APPROACH: Calculate all section heights first
     const sections: Array<{
       type: 'work' | 'courses' | 'education';
-      items: any[];
+      items: ResumeData['workExperience'] | NonNullable<ResumeData['courses']> | ResumeData['education'];
       height: number;
     }> = [];
     
@@ -193,9 +193,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
     let currentPageHeight = headerHeight; // Start with header height for first page
     
-    // Calculate Education section height for comparison
-    const educationSection = sections.find(s => s.type === 'education');
-    const educationHeight = educationSection ? educationSection.height : 0;
+
     
 
     
@@ -204,14 +202,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       
       if (section.type === 'education') {
         // For Education, check if it can fit on current page
-        const availableSpace = maxContentHeight - bottomMargin - 20 - currentPageHeight;
         
         // Force Education to fit on current page if we're on page 1 or 2
         const currentPageNumber = pages.length + 1;
         
         if (currentPageNumber <= 2 || currentPageHeight + section.height <= maxContentHeight - bottomMargin - 20) {
           // Add Education to current page
-          currentPage.education = section.items as any[];
+          currentPage.education = section.items as ResumeData['education'];
           currentPage.educationStarted = false;
           currentPageHeight += section.height;
         } else {
@@ -232,7 +229,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           };
           currentPageHeight = 0;
           
-          currentPage.education = section.items as any[];
+          currentPage.education = section.items as ResumeData['education'];
           currentPage.educationStarted = false;
           currentPageHeight += section.height;
         }
@@ -311,10 +308,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         // Add item to current page
         switch (section.type) {
           case 'work':
-            currentPage.workExperience.push(item as any);
+            currentPage.workExperience.push(item as ResumeData['workExperience'][0]);
             break;
           case 'courses':
-            currentPage.courses.push(item as any);
+            currentPage.courses.push(item as NonNullable<ResumeData['courses']>[0]);
             break;
         }
         currentPageHeight += itemHeight;
