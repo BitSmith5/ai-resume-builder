@@ -16,6 +16,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  console.log('PDF generation function started');
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -149,7 +150,9 @@ export async function GET(
     // Use the existing HTML renderer but with improved styling
     const template = templateParam || (resume as ResumeWithTemplate).template || 'modern';
     console.log('Using template for PDF generation:', template);
+    console.log('About to render HTML...');
     const html = renderResumeToHtml(resumeData, template);
+    console.log('HTML rendered successfully, length:', html.length);
 
     // Launch Puppeteer with serverless-compatible configuration
     console.log('Launching Puppeteer...');
@@ -178,7 +181,9 @@ export async function GET(
       throw new Error(`Failed to launch Puppeteer: ${errorMessage}`);
     }
 
+    console.log('Creating new page...');
     const page = await browser.newPage();
+    console.log('Page created successfully');
     
     // Set viewport to match the template dimensions exactly
     const viewportWidth = template === 'classic' ? 850 : 850; // Both templates now use 850px
