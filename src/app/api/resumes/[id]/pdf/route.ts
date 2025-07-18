@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import puppeteer from 'puppeteer';
-import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
+import jsPDF from 'jspdf';
 
 interface ResumeWithTemplate {
   template?: string;
@@ -149,65 +148,11 @@ export async function GET(
       hasProfilePicture: !!resumeData.profilePicture
     });
 
-    // Use the existing HTML renderer but with improved styling
+    // Use jsPDF for PDF generation
     const template = templateParam || (resume as ResumeWithTemplate).template || 'modern';
     console.log('Using template for PDF generation:', template);
-    const html = renderResumeToHtml(resumeData, template);
-
-    // Launch Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-running-insecure-content']
-    });
-
-    const page = await browser.newPage();
     
-    // Set viewport to match the template dimensions exactly
-    const viewportWidth = template === 'classic' ? 850 : 850; // Both templates now use 850px
-    const viewportHeight = template === 'classic' ? 1100 : 1100; // Both templates now use 1100px
-    await page.setViewport({
-      width: viewportWidth,
-      height: viewportHeight,
-      deviceScaleFactor: 2
-    });
-
-    // Enable images and wait for them to load
-    await page.setRequestInterception(false);
-    
-    // Set content and wait for images to load
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    
-    // Additional wait to ensure images are loaded and fonts are rendered
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Debug: Check if profile picture is visible
-    if (resumeData.profilePicture) {
-      try {
-        const profilePictureVisible = await page.evaluate(() => {
-          const profileDiv = document.querySelector('div[style*="background-image"]');
-          return profileDiv !== null;
-        });
-        console.log('Profile picture div found:', profilePictureVisible);
-      } catch (error) {
-        console.log('Error checking profile picture visibility:', error);
-      }
-    }
-
-    // Generate PDF with proper page breaks - using Letter size to match template aspect ratio
-    const pdf = await page.pdf({
-      format: 'Letter',
-      printBackground: true,
-      margin: {
-        top: '0',
-        right: '0',
-        bottom: '0',
-        left: '0'
-      },
-      preferCSSPageSize: true,
-      displayHeaderFooter: false
-    });
-
-    await browser.close();
+    const pdf = generatePDFWithJsPDF(resumeData, template);
 
     // Return PDF with proper headers
     return new NextResponse(pdf, {
@@ -226,4 +171,336 @@ export async function GET(
       { status: 500 }
     );
   }
+}
+
+function generatePDFWithJsPDF(data: any, template: string): Uint8Array {
+  const { personalInfo } = data.content;
+  
+  // Create PDF document
+  const pdf = new jsPDF('p', 'pt', 'letter');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 40;
+  const contentWidth = pageWidth - (margin * 2);
+  
+  let yPosition = margin;
+  
+  // Helper function to format dates
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${month}/${year}`;
+    } catch {
+      return dateString;
+    }
+  };
+  
+  // Helper function to format URLs
+  const formatUrl = (url: string): string => {
+    if (!url) return '';
+    return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+  };
+  
+  // Helper function to add text with word wrapping
+  const addWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize: number = 12) => {
+    pdf.setFontSize(fontSize);
+    const lines = pdf.splitTextToSize(text, maxWidth);
+    pdf.text(lines, x, y);
+    return lines.length * fontSize * 0.4; // Return height used
+  };
+  
+  // Helper function to check if we need a new page
+  const checkNewPage = (requiredHeight: number) => {
+    if (yPosition + requiredHeight > pageHeight - margin) {
+      pdf.addPage();
+      yPosition = margin;
+      return true;
+    }
+    return false;
+  };
+  
+  if (template === 'modern') {
+    // Modern template styling
+    const MASTER_COLOR = '#c8665b';
+    
+    // Header section
+    pdf.setFillColor(parseInt(MASTER_COLOR.slice(1, 3), 16), parseInt(MASTER_COLOR.slice(3, 5), 16), parseInt(MASTER_COLOR.slice(5, 7), 16));
+    
+    // Name
+    pdf.setFontSize(32);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(personalInfo.name, margin, yPosition + 30);
+    yPosition += 50;
+    
+    // Job title
+    if (data.jobTitle) {
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(data.jobTitle, margin, yPosition);
+      yPosition += 30;
+    }
+    
+    // Contact info
+    pdf.setFontSize(12);
+    const contactInfo = [];
+    if (personalInfo.email) contactInfo.push(personalInfo.email);
+    if (personalInfo.phone) contactInfo.push(personalInfo.phone);
+    if (personalInfo.city || personalInfo.state) contactInfo.push([personalInfo.city, personalInfo.state].filter(Boolean).join(', '));
+    
+    if (contactInfo.length > 0) {
+      pdf.text(contactInfo.join(' • '), margin, yPosition);
+      yPosition += 25;
+    }
+    
+    // Links
+    const links = [];
+    if (personalInfo.website) links.push(formatUrl(personalInfo.website));
+    if (personalInfo.linkedin) links.push(formatUrl(personalInfo.linkedin));
+    if (personalInfo.github) links.push(formatUrl(personalInfo.github));
+    
+    if (links.length > 0) {
+      pdf.setFontSize(10);
+      pdf.text(links.join(' • '), margin, yPosition);
+      yPosition += 20;
+    }
+    
+    yPosition += 20;
+    
+    // Summary
+    if (personalInfo.summary) {
+      checkNewPage(50);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('PROFESSIONAL SUMMARY', margin, yPosition);
+      yPosition += 20;
+      
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      const summaryHeight = addWrappedText(personalInfo.summary, margin, yPosition, contentWidth);
+      yPosition += summaryHeight + 20;
+    }
+    
+    // Work Experience
+    if (data.workExperience && data.workExperience.length > 0) {
+      checkNewPage(80);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('WORK EXPERIENCE', margin, yPosition);
+      yPosition += 25;
+      
+      for (const work of data.workExperience) {
+        checkNewPage(100);
+        
+        // Position and dates
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(work.position, margin, yPosition);
+        
+        const dateText = `${formatDate(work.startDate)} - ${work.current ? 'Present' : formatDate(work.endDate)}`;
+        const dateWidth = pdf.getTextWidth(dateText);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(dateText, pageWidth - margin - dateWidth, yPosition);
+        yPosition += 20;
+        
+        // Company
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(work.company, margin, yPosition);
+        yPosition += 18;
+        
+        // Bullet points
+        if (work.bulletPoints && work.bulletPoints.length > 0) {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          for (const bullet of work.bulletPoints) {
+            checkNewPage(20);
+            const bulletText = `• ${bullet.description}`;
+            const bulletHeight = addWrappedText(bulletText, margin + 10, yPosition, contentWidth - 10);
+            yPosition += bulletHeight + 5;
+          }
+        }
+        
+        yPosition += 15;
+      }
+    }
+    
+    // Education
+    if (data.education && data.education.length > 0) {
+      checkNewPage(80);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('EDUCATION', margin, yPosition);
+      yPosition += 25;
+      
+      for (const edu of data.education) {
+        checkNewPage(60);
+        
+        // Degree
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(edu.degree, margin, yPosition);
+        
+        const dateText = `${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}`;
+        const dateWidth = pdf.getTextWidth(dateText);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(dateText, pageWidth - margin - dateWidth, yPosition);
+        yPosition += 20;
+        
+        // Institution and field
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(edu.institution, margin, yPosition);
+        yPosition += 18;
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(edu.field, margin, yPosition);
+        yPosition += 25;
+      }
+    }
+    
+    // Skills
+    if (data.strengths && data.strengths.length > 0) {
+      checkNewPage(80);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('TECHNICAL SKILLS', margin, yPosition);
+      yPosition += 25;
+      
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      for (const skill of data.strengths) {
+        checkNewPage(20);
+        pdf.text(`${skill.skillName}`, margin, yPosition);
+        yPosition += 18;
+      }
+    }
+    
+  } else {
+    // Classic template styling
+    pdf.setFontSize(24);
+    pdf.setFont('times', 'bold');
+    pdf.text(personalInfo.name, pageWidth / 2, yPosition + 20, { align: 'center' });
+    yPosition += 40;
+    
+    if (data.jobTitle) {
+      pdf.setFontSize(16);
+      pdf.setFont('times', 'italic');
+      pdf.text(data.jobTitle, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 25;
+    }
+    
+    // Contact info
+    pdf.setFontSize(12);
+    pdf.setFont('times', 'normal');
+    const contactInfo = [];
+    if (personalInfo.email) contactInfo.push(personalInfo.email);
+    if (personalInfo.phone) contactInfo.push(personalInfo.phone);
+    if (personalInfo.city || personalInfo.state) contactInfo.push([personalInfo.city, personalInfo.state].filter(Boolean).join(', '));
+    
+    if (contactInfo.length > 0) {
+      pdf.text(contactInfo.join(' | '), pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 20;
+    }
+    
+    yPosition += 20;
+    
+    // Summary
+    if (personalInfo.summary) {
+      checkNewPage(50);
+      pdf.setFontSize(14);
+      pdf.setFont('times', 'bold');
+      pdf.text('PROFESSIONAL SUMMARY', margin, yPosition);
+      yPosition += 20;
+      
+      pdf.setFontSize(12);
+      pdf.setFont('times', 'normal');
+      const summaryHeight = addWrappedText(personalInfo.summary, margin, yPosition, contentWidth);
+      yPosition += summaryHeight + 20;
+    }
+    
+    // Work Experience
+    if (data.workExperience && data.workExperience.length > 0) {
+      checkNewPage(80);
+      pdf.setFontSize(14);
+      pdf.setFont('times', 'bold');
+      pdf.text('WORK EXPERIENCE', margin, yPosition);
+      yPosition += 25;
+      
+      for (const work of data.workExperience) {
+        checkNewPage(100);
+        
+        // Position
+        pdf.setFontSize(12);
+        pdf.setFont('times', 'bold');
+        pdf.text(work.position, margin, yPosition);
+        
+        const dateText = `${formatDate(work.startDate)} - ${work.current ? 'Present' : formatDate(work.endDate)}`;
+        const dateWidth = pdf.getTextWidth(dateText);
+        pdf.setFont('times', 'normal');
+        pdf.text(dateText, pageWidth - margin - dateWidth, yPosition);
+        yPosition += 18;
+        
+        // Company
+        pdf.setFontSize(11);
+        pdf.setFont('times', 'bold');
+        pdf.text(work.company, margin, yPosition);
+        yPosition += 16;
+        
+        // Bullet points
+        if (work.bulletPoints && work.bulletPoints.length > 0) {
+          pdf.setFontSize(10);
+          pdf.setFont('times', 'normal');
+          for (const bullet of work.bulletPoints) {
+            checkNewPage(20);
+            const bulletText = `• ${bullet.description}`;
+            const bulletHeight = addWrappedText(bulletText, margin + 10, yPosition, contentWidth - 10);
+            yPosition += bulletHeight + 5;
+          }
+        }
+        
+        yPosition += 15;
+      }
+    }
+    
+    // Education
+    if (data.education && data.education.length > 0) {
+      checkNewPage(80);
+      pdf.setFontSize(14);
+      pdf.setFont('times', 'bold');
+      pdf.text('EDUCATION', margin, yPosition);
+      yPosition += 25;
+      
+      for (const edu of data.education) {
+        checkNewPage(60);
+        
+        // Degree
+        pdf.setFontSize(12);
+        pdf.setFont('times', 'bold');
+        pdf.text(edu.degree, margin, yPosition);
+        
+        const dateText = `${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}`;
+        const dateWidth = pdf.getTextWidth(dateText);
+        pdf.setFont('times', 'normal');
+        pdf.text(dateText, pageWidth - margin - dateWidth, yPosition);
+        yPosition += 18;
+        
+        // Institution and field
+        pdf.setFontSize(11);
+        pdf.setFont('times', 'bold');
+        pdf.text(edu.institution, margin, yPosition);
+        yPosition += 16;
+        
+        pdf.setFont('times', 'normal');
+        pdf.text(edu.field, margin, yPosition);
+        yPosition += 25;
+      }
+    }
+  }
+  
+  return new Uint8Array(pdf.output('arraybuffer'));
 } 
