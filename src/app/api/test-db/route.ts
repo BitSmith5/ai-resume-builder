@@ -30,7 +30,7 @@ export async function GET() {
     `;
 
     // Test creating a resume with template using raw SQL
-    const testResume = await prisma.$executeRaw`
+    await prisma.$executeRaw`
       INSERT INTO "Resume" (title, template, "jobTitle", content, "userId", "createdAt", "updatedAt")
       VALUES (${"Test Resume - " + new Date().toISOString()}, 'classic', 'Test Job', '{"test": true}', ${user.id}, NOW(), NOW())
     `;
@@ -46,7 +46,7 @@ export async function GET() {
 
     // Delete the test resume
     if (lastResume && Array.isArray(lastResume) && lastResume.length > 0) {
-      const testId = (lastResume[0] as any).id;
+      const testId = (lastResume[0] as { id: number }).id;
       await prisma.$executeRaw`DELETE FROM "Resume" WHERE id = ${testId}`;
     }
 

@@ -343,14 +343,14 @@ export default function ResumeEditor({
     if (resumeData.template && !loading && isClient && resumeData.template !== selectedTemplate) {
       setSelectedTemplate(resumeData.template);
     }
-  }, [resumeData.template, loading, isClient]); // Removed selectedTemplate from dependencies
+  }, [resumeData.template, loading, isClient]); // Removed selectedTemplate to prevent infinite loop
 
   // Handle template prop changes
   useEffect(() => {
     if (template && template !== selectedTemplate) {
       setSelectedTemplate(template);
     }
-  }, [template]);
+  }, [template]); // Removed selectedTemplate to prevent infinite loop
 
   // Cleanup effect for local profile picture
   useEffect(() => {
