@@ -51,6 +51,7 @@ interface ResumeData {
   }>;
 }
 
+//Page content for modern template
 interface PageContent {
   workExperience: Array<{
     company: string;
