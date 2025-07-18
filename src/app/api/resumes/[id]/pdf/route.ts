@@ -220,8 +220,9 @@ export async function GET(
 
   } catch (error) {
     console.error('PDF generation error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: 'Failed to generate PDF' },
+      { error: `Failed to generate PDF: ${errorMessage}` },
       { status: 500 }
     );
   }

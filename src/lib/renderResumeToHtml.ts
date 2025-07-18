@@ -558,7 +558,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
         box-sizing: border-box;
         overflow: hidden;
       ">
-        ${isFirstPage && data.profilePicture && data.profilePicture.trim() !== '' ? `<div style="width: 160px; height: 160px; border-radius: 10%; margin-bottom: 20px; overflow: hidden; flex-shrink: 0;"><img src="${data.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10%; display: block;" onerror="this.parentElement.style.display='none';" /></div>` : ''}
+        ${isFirstPage && data.profilePicture && data.profilePicture.trim() !== '' && data.profilePicture.startsWith('data:') ? `<div style="width: 160px; height: 160px; border-radius: 10%; margin-bottom: 20px; overflow: hidden; flex-shrink: 0;"><img src="${data.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10%; display: block;" onerror="this.parentElement.style.display='none';" /></div>` : ''}
         ${isFirstPage ? `<div style="width: 160px; margin-bottom: 24px;">${contactInfo}</div>` : ''}
         ${pageContent.leftColumnContent.skills && pageContent.leftColumnContent.skills.length > 0 ? `
         <div style="width: 100%; max-width: 180px; margin-bottom: 32px;">
@@ -927,7 +927,7 @@ function renderClassicTemplate(data: ResumeData): string {
   // Render header (same for all pages)
   const renderHeader = () => `
     <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #000; padding-bottom: 16px;">
-      ${data.profilePicture ? `
+      ${data.profilePicture && data.profilePicture.trim() !== '' && data.profilePicture.startsWith('data:') ? `
         <div style="
           width: 120px;
           height: 120px;

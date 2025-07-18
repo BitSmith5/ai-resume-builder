@@ -788,7 +788,8 @@ export default function ResumeEditor({
       const response = await fetch(`/api/resumes/${resumeId}/pdf?template=${selectedTemplate}`);
 
       if (!response.ok) {
-        throw new Error("Failed to generate PDF");
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || "Failed to generate PDF");
       }
 
       const blob = await response.blob();
