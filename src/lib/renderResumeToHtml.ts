@@ -95,6 +95,71 @@ interface ContentItem {
   [key: string]: unknown;
 }
 
+// Type definitions for classic template
+interface ClassicPageContent {
+  workExperience: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    city?: string;
+    state?: string;
+    bulletPoints: Array<{
+      description: string;
+    }>;
+  }>;
+  education: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    gpa?: number;
+  }>;
+  courses: Array<{
+    title: string;
+    provider: string;
+    link?: string;
+  }>;
+  skills: Array<{
+    skillName: string;
+    rating: number;
+  }>;
+  interests: Array<{
+    name: string;
+    icon: string;
+  }>;
+  workExperienceStarted: boolean;
+  coursesStarted: boolean;
+  educationStarted: boolean;
+}
+
+interface ClassicSection {
+  type: 'work' | 'courses' | 'education';
+  items: Array<{
+    company?: string;
+    position?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    city?: string;
+    state?: string;
+    bulletPoints?: Array<{
+      description: string;
+    }>;
+    institution?: string;
+    degree?: string;
+    field?: string;
+    gpa?: number;
+    title?: string;
+    provider?: string;
+    link?: string;
+  }>;
+  height: number;
+}
+
 export function renderResumeToHtml(data: ResumeData, template: string): string {
   if (template === 'classic') {
     return renderClassicTemplate(data);
@@ -605,92 +670,15 @@ function renderClassicTemplate(data: ResumeData): string {
   };
 
   // Calculate content distribution across pages
-  const calculatePages = (): Array<{
-    workExperience: Array<{
-      company: string;
-      position: string;
-      startDate: string;
-      endDate: string;
-      current: boolean;
-      city?: string;
-      state?: string;
-      bulletPoints: Array<{
-        description: string;
-      }>;
-    }>;
-    education: Array<{
-      institution: string;
-      degree: string;
-      field: string;
-      startDate: string;
-      endDate: string;
-      current: boolean;
-      gpa?: number;
-    }>;
-    courses: Array<{
-      title: string;
-      provider: string;
-      link?: string;
-    }>;
-    skills: Array<{
-      skillName: string;
-      rating: number;
-    }>;
-    interests: Array<{
-      name: string;
-      icon: string;
-    }>;
-    workExperienceStarted: boolean;
-    coursesStarted: boolean;
-    educationStarted: boolean;
-  }> => {
-    const pages: Array<{
-      workExperience: Array<{
-        company: string;
-        position: string;
-        startDate: string;
-        endDate: string;
-        current: boolean;
-        city?: string;
-        state?: string;
-        bulletPoints: Array<{
-          description: string;
-        }>;
-      }>;
-      education: Array<{
-        institution: string;
-        degree: string;
-        field: string;
-        startDate: string;
-        endDate: string;
-        current: boolean;
-        gpa?: number;
-      }>;
-      courses: Array<{
-        title: string;
-        provider: string;
-        link?: string;
-      }>;
-      skills: Array<{
-        skillName: string;
-        rating: number;
-      }>;
-      interests: Array<{
-        name: string;
-        icon: string;
-      }>;
-      workExperienceStarted: boolean;
-      coursesStarted: boolean;
-      educationStarted: boolean;
-    }> = [];
+  const calculatePages = (): Array<ClassicPageContent> => {
+    const pages: Array<ClassicPageContent> = [];
     const maxContentHeight = 900; // Maximum content height per page
     const bottomMargin = 80; // Bottom margin for content
     const headerHeight = 180; // Only on first page
     const itemSpacing = 15;
     
          // Helper function to estimate content height
-     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-     const estimateContentHeight = (content: any, type: 'work' | 'courses' | 'education'): number => {
+           const estimateContentHeight = (content: ClassicSection['items'][0], type: 'work' | 'courses' | 'education'): number => {
       let height = 0;
       
              switch (type) {
@@ -717,12 +705,7 @@ function renderClassicTemplate(data: ResumeData): string {
     };
     
          // Calculate all section heights first
-     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-     const sections: Array<{
-       type: 'work' | 'courses' | 'education';
-       items: any[];
-       height: number;
-     }> = [];
+     const sections: Array<ClassicSection> = [];
     
     if (data.workExperience && data.workExperience.length > 0) {
       const workHeight = estimateSectionHeaderHeight() + data.workExperience.reduce((total, item) => total + estimateContentHeight(item, 'work') + itemSpacing, 0);
@@ -739,45 +722,7 @@ function renderClassicTemplate(data: ResumeData): string {
       sections.push({ type: 'education', items: data.education, height: educationHeight });
     }
     
-    let currentPage: {
-      workExperience: Array<{
-        company: string;
-        position: string;
-        startDate: string;
-        endDate: string;
-        current: boolean;
-        city?: string;
-        state?: string;
-        bulletPoints: Array<{
-          description: string;
-        }>;
-      }>;
-      education: Array<{
-        institution: string;
-        degree: string;
-        field: string;
-        startDate: string;
-        endDate: string;
-        current: boolean;
-        gpa?: number;
-      }>;
-      courses: Array<{
-        title: string;
-        provider: string;
-        link?: string;
-      }>;
-      skills: Array<{
-        skillName: string;
-        rating: number;
-      }>;
-      interests: Array<{
-        name: string;
-        icon: string;
-      }>;
-      workExperienceStarted: boolean;
-      coursesStarted: boolean;
-      educationStarted: boolean;
-    } = {
+    let currentPage: ClassicPageContent = {
       workExperience: [],
       education: [],
       courses: [],
@@ -806,7 +751,7 @@ function renderClassicTemplate(data: ResumeData): string {
         
         if (currentPageNumber <= 2 || currentPageHeight + section.height <= maxContentHeight - bottomMargin - 20) {
           // Add Education to current page
-          currentPage.education = section.items;
+          currentPage.education = section.items as ClassicPageContent['education'];
           currentPage.educationStarted = educationStarted;
           educationStarted = true; // Mark as started
           currentPageHeight += section.height;
@@ -828,7 +773,7 @@ function renderClassicTemplate(data: ResumeData): string {
           };
           currentPageHeight = 0;
           
-          currentPage.education = section.items;
+          currentPage.education = section.items as ClassicPageContent['education'];
           currentPage.educationStarted = educationStarted;
           educationStarted = true; // Mark as started
           currentPageHeight += section.height;
@@ -897,13 +842,13 @@ function renderClassicTemplate(data: ResumeData): string {
         // Add item to current page
         switch (section.type as 'work' | 'courses' | 'education') {
           case 'work':
-            currentPage.workExperience.push(item);
+            currentPage.workExperience.push(item as ClassicPageContent['workExperience'][0]);
             break;
           case 'courses':
-            currentPage.courses.push(item);
+            currentPage.courses.push(item as ClassicPageContent['courses'][0]);
             break;
           case 'education':
-            currentPage.education.push(item);
+            currentPage.education.push(item as ClassicPageContent['education'][0]);
             break;
         }
         
@@ -1036,7 +981,7 @@ function renderClassicTemplate(data: ResumeData): string {
   `;
 
   // Render a single page
-  const renderPage = (pageContent: any, pageIndex: number) => {
+  const renderPage = (pageContent: ClassicPageContent, pageIndex: number) => {
     const isFirstPage = pageIndex === 0;
     
 
@@ -1105,7 +1050,7 @@ function renderClassicTemplate(data: ResumeData): string {
                   Work Experience
                 </h2>
               ` : ''}
-              ${pageContent.workExperience.map((exp: any) => `
+              ${pageContent.workExperience.map((exp) => `
                 <div style="margin-bottom: 16px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <h3 style="
@@ -1145,7 +1090,7 @@ function renderClassicTemplate(data: ResumeData): string {
                       font-family: 'Times New Roman', serif;
                       line-height: 1.6;
                     ">
-                      ${exp.bulletPoints.map((bullet: any) => `
+                      ${exp.bulletPoints.map((bullet) => `
                         <li style="margin-bottom: 2px; font-family: 'Times New Roman', serif; line-height: 1.6;">
                           ${bullet.description}
                         </li>
@@ -1173,7 +1118,7 @@ function renderClassicTemplate(data: ResumeData): string {
                   Courses & Certifications
                 </h2>
               ` : ''}
-              ${pageContent.courses.map((course: any) => `
+              ${pageContent.courses.map((course) => `
                 <div style="margin-bottom: 12px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <h3 style="
@@ -1224,7 +1169,7 @@ function renderClassicTemplate(data: ResumeData): string {
                   Education
                 </h2>
               ` : ''}
-              ${pageContent.education.map((edu: any) => `
+              ${pageContent.education.map((edu) => `
                 <div style="margin-bottom: 12px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <h3 style="
@@ -1275,7 +1220,7 @@ function renderClassicTemplate(data: ResumeData): string {
                 Skills
               </h2>
                           <div style="font-size: 14px; font-family: 'Times New Roman', serif; line-height: 1.6;">
-              ${pageContent.skills.map((strength: any) => `
+              ${pageContent.skills.map((strength) => `
                 <span style="
                   display: inline-block;
                   margin-right: 15px;
@@ -1306,7 +1251,7 @@ function renderClassicTemplate(data: ResumeData): string {
                 Interests
               </h2>
                           <div style="font-size: 14px; font-family: 'Times New Roman', serif; line-height: 1.6;">
-              ${pageContent.interests.map((interest: any) => `
+              ${pageContent.interests.map((interest) => `
                 <span style="
                   display: inline-block;
                   margin-right: 15px;
