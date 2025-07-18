@@ -72,6 +72,8 @@ export default function ViewResumePage() {
         if (response.ok) {
           const resume = await response.json();
           setResumeData(resume);
+          // Set the selected template to the saved template from the database
+          setSelectedTemplate(resume.template || 'modern');
         } else {
           setError('Failed to load resume');
         }
