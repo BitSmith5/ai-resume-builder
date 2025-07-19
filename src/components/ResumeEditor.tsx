@@ -803,9 +803,9 @@ export default function ResumeEditor({
       setError("");
       setGeneratingPDF(true);
       
-      // TEMPORARY: Using redirect route for testing
-      // Open the redirect route in a new tab
-      const url = `/api/resumes/${resumeId}/pdf-test-redirect?template=${selectedTemplate}`;
+      // TEMPORARY: Using MODERN FIXED route for testing
+      // Open the MODERN FIXED route in a new tab
+      const url = `/api/resumes/${resumeId}/pdf-test-modern-fixed?template=${selectedTemplate}`;
       window.open(url, '_blank');
       
       setSuccess("PDF generation page opened in new tab");
