@@ -584,7 +584,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
           })() ? `
           <div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 16;">
             <div style="font-weight: 700; font-size: 16px; color: #c8665b; text-align: left;">TECHNICAL SKILLS</div>
-            <div style="width: 100%; height: 2; background: #c8665b; margin: 2px 0 0 0;"></div>
+            <div style="width: 100%; height: 4px; background: #c8665b; margin: 2px 0 0 0;"></div>
             <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 10;">
               <div style="width: 2; height: 5; background: #c8665b; border-radius: 0;"></div>
               <div style="width: 2; height: 5; background: #c8665b; border-radius: 0;"></div>
@@ -606,7 +606,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
         ${pageContent.leftColumnContent.interests && pageContent.leftColumnContent.interests.length > 0 ? `
         <div style="width: 100%; max-width: 180px; justify-content: flex-start;">
           <div style="font-weight: 700; font-size: 16px; color: #c8665b; text-align: left;">INTERESTS</div>
-          <div style="width: 100%; height: 2; background: #c8665b; margin: 2px 0 12px 0;"></div>
+                      <div style="width: 100%; height: 4px; background: #c8665b; margin: 2px 0 12px 0;"></div>
           ${pageContent.leftColumnContent.interests.map((interest) => 
             `<div style="margin-bottom: 8px; font-size: 12px;">• ${interest.name}</div>`
           ).join('')}
@@ -623,7 +623,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
           <div style="margin-bottom: clamp(16px, 3vw, 32px);">
             ${!sectionsStarted.workExperience ? `
               <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 4; margin-left: 20px;">WORK EXPERIENCE</div>
-              <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
+              <div style="width: 100%; height: 4px; background: #c8665b; margin: 4px 0 12px 0;"></div>
             ` : ''}
             ${workExperienceHtml}
           </div>
@@ -631,14 +631,14 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
         ${pageContent.courses && pageContent.courses.length > 0 ? `
           <div style="margin-bottom: 16px;">
             <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">COURSES & TRAININGS</div>
-            <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
+            <div style="width: 100%; height: 4px; background: #c8665b; margin: 4px 0 12px 0;"></div>
             ${coursesHtml}
           </div>
         ` : ''}
         ${pageContent.education.length > 0 ? `
           <div style="margin-bottom: clamp(16px, 3vw, 32px);">
             <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">EDUCATION</div>
-            <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
+            <div style="width: 100%; height: 4px; background: #c8665b; margin: 4px 0 12px 0;"></div>
             ${educationHtml}
           </div>
         ` : ''}

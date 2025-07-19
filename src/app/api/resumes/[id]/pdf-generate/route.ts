@@ -213,6 +213,33 @@ export async function GET(
               print-color-adjust: exact !important;
             }
             
+            /* Make section header lines thicker and more visible */
+            div[style*="height: 2"] {
+              height: 4px !important;
+              min-height: 4px !important;
+              background-color: #c8665b !important;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            
+            /* Prevent extra blank pages */
+            @page {
+              size: A4;
+              margin: 0.5in;
+            }
+            
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            
+            /* Remove any extra spacing that might cause blank pages */
+            .resume-container {
+              page-break-after: avoid;
+              break-after: avoid;
+            }
+            
             @media print {
               body { margin: 0; }
               .resume-page { page-break-inside: avoid; }
