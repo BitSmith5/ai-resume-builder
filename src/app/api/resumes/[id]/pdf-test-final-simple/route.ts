@@ -15,7 +15,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log('FINAL SIMPLE PDF generation function started');
+  console.log('🎯 FINAL SIMPLE PDF generation function started - MODERN TEMPLATE FORCED!');
   
   try {
     const { id } = await params;
