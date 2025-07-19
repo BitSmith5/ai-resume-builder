@@ -20,11 +20,12 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Redirect to a dedicated HTML page
+    // Redirect to a dedicated HTML page - use relative URL to work in both local and production
     const redirectUrl = `/dashboard/resumes/${id}/pdf-view?template=${templateParam || 'modern'}`;
     console.log('Redirecting to:', redirectUrl);
     
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
+    // Use relative redirect to work in both local and production environments
+    return NextResponse.redirect(redirectUrl);
 
   } catch (error) {
     console.error('PDF REDIRECT error:', error);

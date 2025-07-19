@@ -803,8 +803,8 @@ export default function ResumeEditor({
       setError("");
       setGeneratingPDF(true);
       
-      // TEMPORARY: Using MODERN FIXED route for testing
-      // Open the MODERN FIXED route in a new tab
+      // TEMPORARY: Using MODERN FIXED route for testing - DIRECT ACCESS
+      // Open the MODERN FIXED route directly in a new tab (no redirect)
       const url = `/api/resumes/${resumeId}/pdf-test-modern-fixed?template=${selectedTemplate}`;
       window.open(url, '_blank');
       
