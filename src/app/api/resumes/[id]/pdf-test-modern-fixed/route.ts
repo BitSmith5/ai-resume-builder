@@ -19,7 +19,6 @@ export async function GET(
   
   try {
     const { id } = await params;
-    const { searchParams } = new URL(request.url);
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
