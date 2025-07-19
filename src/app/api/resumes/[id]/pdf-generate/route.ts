@@ -198,6 +198,21 @@ export async function GET(
               color-adjust: exact !important;
             }
             
+            /* Ensure section header lines show up in PDF */
+            div[style*="background: #c8665b"] {
+              background-color: #c8665b !important;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            
+            /* Force all red background elements to show */
+            div[style*="background: #c8665b"] {
+              background-color: #c8665b !important;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            
             @media print {
               body { margin: 0; }
               .resume-page { page-break-inside: avoid; }
