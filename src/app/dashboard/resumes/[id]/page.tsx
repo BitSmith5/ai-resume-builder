@@ -94,9 +94,9 @@ export default function ViewResumePage() {
     
     setDownloading(true);
     try {
-      // TEMPORARY: Using MODERN FIXED route for testing - DIRECT ACCESS
-      // Open the MODERN FIXED route directly in a new tab (no redirect)
-      const url = `/api/resumes/${resumeId}/pdf-test-modern-fixed?template=${selectedTemplate}`;
+      // TEMPORARY: Using DIRECT LOCAL route for testing - NO REDIRECTS
+      // Open the DIRECT LOCAL route directly in a new tab (stays on localhost)
+      const url = `/api/resumes/${resumeId}/pdf-test-direct-local?template=${selectedTemplate}`;
       window.open(url, '_blank');
     } catch (error) {
       console.error('Failed to generate PDF:', error);
