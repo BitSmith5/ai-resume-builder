@@ -805,8 +805,8 @@ export default function ResumeEditor({
       
       console.log('🎯 Starting PDF download for resume:', resumeId);
       
-      // Use the new PDF generation route that returns actual PDF files
-      const url = `/api/resumes/${resumeId}/pdf-generate?template=${selectedTemplate}`;
+      // Use the working PDF route (temporarily while we fix the new one)
+      const url = `/api/resumes/${resumeId}/pdf-test-direct-local?template=${selectedTemplate}`;
       console.log('🎯 PDF URL:', url);
       
       // First, test if the endpoint is working
