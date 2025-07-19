@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
-import puppeteer from 'puppeteer';
 
 interface ResumeWithTemplate {
   template?: string;
@@ -16,6 +15,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
     const templateParam = searchParams.get('template');
@@ -129,48 +129,7 @@ export async function GET(
     const renderedHtml = renderResumeToHtml(resumeData, template);
     console.log('🎯 PDF GENERATE - HTML rendered, length:', renderedHtml.length);
 
-    // Create full HTML document
-    const fullHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>${resumeData.title} - Resume</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body {
-              margin: 0;
-              padding: 0;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background: white;
-            }
-            
-            /* Force background colors to show in PDF */
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-            
-            .header-background {
-              background-color: #c8665b !important;
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-            
-            .skill-bar-fill {
-              background-color: #c8665b !important;
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          </style>
-        </head>
-        <body>
-          ${renderedHtml}
-        </body>
-      </html>
-    `;
-
-        // Use HTML with auto-print (works reliably in both local and production)
+    // Use HTML with auto-print (works reliably in both local and production)
     console.log('🎯 PDF GENERATE - Using HTML with auto-print method...');
     
     const htmlWithAutoPrint = `
@@ -233,6 +192,14 @@ export async function GET(
     response.headers.set('Content-Type', 'text/html');
     console.log('🎯 PDF GENERATE - Returning HTML with auto-print');
     return response;
-    }
 
+  } catch (error) {
+    console.error('🎯 PDF GENERATE - Error:', error);
+    
+    // Fallback: return error response
+    return NextResponse.json(
+      { error: 'Failed to generate PDF', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
 } 
