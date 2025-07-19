@@ -21,7 +21,7 @@ export default function PDFViewPage() {
     const loadResumeHTML = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/resumes/${resumeId}/pdf-test-final-simple?template=${template}`);
+        const response = await fetch(`/api/resumes/${resumeId}/pdf-test-modern-fixed?template=${template}`);
         
         if (!response.ok) {
           throw new Error('Failed to load resume');
