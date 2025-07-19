@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import puppeteer from 'puppeteer-core';
+import chromium from 'chrome-aws-lambda';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
 export const runtime = 'nodejs';
@@ -145,112 +146,125 @@ export async function GET(
     const html = renderResumeToHtml(resumeData, template);
     console.log('HTML rendered successfully, length:', html.length);
 
-    // Launch Puppeteer with serverless-compatible configuration
-    console.log('Launching Puppeteer with NEW approach...');
-    
-    // Try to find Chrome in common serverless locations
-    const chromePaths = [
-      '/usr/bin/google-chrome',
-      '/usr/bin/chromium-browser',
-      '/usr/bin/chromium',
-      '/opt/google/chrome/chrome',
-      '/usr/bin/chrome',
-      '/usr/bin/chrome-browser',
-      '/snap/bin/chromium',
-      '/usr/bin/google-chrome-stable',
-      '/usr/bin/chromium-browser-stable',
-      process.env.CHROME_BIN,
-    ].filter(Boolean);
-
-    console.log('Available Chrome paths:', chromePaths);
-    
-    // Check what's actually available in the system
-    try {
-      const { execSync } = await import('child_process');
-      console.log('Checking system for Chrome installations...');
-      try {
-        const whichChrome = execSync('which google-chrome', { encoding: 'utf8' }).trim();
-        console.log('Found google-chrome at:', whichChrome);
-      } catch {
-        console.log('google-chrome not found in PATH');
-      }
-      try {
-        const whichChromium = execSync('which chromium-browser', { encoding: 'utf8' }).trim();
-        console.log('Found chromium-browser at:', whichChromium);
-      } catch {
-        console.log('chromium-browser not found in PATH');
-      }
-      try {
-        const whichChromium2 = execSync('which chromium', { encoding: 'utf8' }).trim();
-        console.log('Found chromium at:', whichChromium2);
-      } catch {
-        console.log('chromium not found in PATH');
-      }
-    } catch (error) {
-      console.log('Could not check system for Chrome installations:', error);
-    }
+    // Launch Puppeteer with chrome-aws-lambda (designed for serverless)
+    console.log('Launching Puppeteer with chrome-aws-lambda...');
     
     let browser;
     let launchError;
 
-    // Try launching with different configurations
-    for (const chromePath of chromePaths) {
-      try {
-        console.log(`Trying to launch Chrome from: ${chromePath}`);
-        browser = await puppeteer.launch({
-          headless: true,
-          executablePath: chromePath,
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-extensions',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-            '--disable-features=TranslateUI',
-            '--disable-ipc-flooding-protection',
-          ]
-        });
-        console.log('Puppeteer launched successfully with Chrome path:', chromePath);
-        break;
-      } catch (error) {
-        console.log(`Failed to launch with Chrome path ${chromePath}:`, error instanceof Error ? error.message : 'Unknown error');
-        launchError = error;
-        continue;
-      }
-    }
+    try {
+      console.log('Trying to launch with chrome-aws-lambda...');
+      browser = await puppeteer.launch({
+        headless: true,
+        executablePath: await chromium.executablePath,
+        args: chromium.args,
+      });
+      console.log('Puppeteer launched successfully with chrome-aws-lambda');
+    } catch (error) {
+      console.log('Failed to launch with chrome-aws-lambda:', error instanceof Error ? error.message : 'Unknown error');
+      launchError = error;
+      
+      // Fallback: Try to find Chrome in common serverless locations
+      console.log('Trying fallback Chrome paths...');
+      const chromePaths = [
+        '/usr/bin/google-chrome',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/opt/google/chrome/chrome',
+        '/usr/bin/chrome',
+        '/usr/bin/chrome-browser',
+        '/snap/bin/chromium',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium-browser-stable',
+        process.env.CHROME_BIN,
+      ].filter(Boolean);
 
-    // If no Chrome found, try without executablePath
-    if (!browser) {
+      console.log('Available Chrome paths:', chromePaths);
+      
+      // Check what's actually available in the system
       try {
-        console.log('Trying to launch Puppeteer without executablePath...');
-        browser = await puppeteer.launch({
-          headless: true,
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-extensions',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-            '--disable-features=TranslateUI',
-            '--disable-ipc-flooding-protection',
-          ]
-        });
-        console.log('Puppeteer launched successfully without executablePath');
+        const { execSync } = await import('child_process');
+        console.log('Checking system for Chrome installations...');
+        try {
+          const whichChrome = execSync('which google-chrome', { encoding: 'utf8' }).trim();
+          console.log('Found google-chrome at:', whichChrome);
+        } catch {
+          console.log('google-chrome not found in PATH');
+        }
+        try {
+          const whichChromium = execSync('which chromium-browser', { encoding: 'utf8' }).trim();
+          console.log('Found chromium-browser at:', whichChromium);
+        } catch {
+          console.log('chromium-browser not found in PATH');
+        }
+        try {
+          const whichChromium2 = execSync('which chromium', { encoding: 'utf8' }).trim();
+          console.log('Found chromium at:', whichChromium2);
+        } catch {
+          console.log('chromium not found in PATH');
+        }
       } catch (error) {
-        console.error('Failed to launch Puppeteer without executablePath:', error instanceof Error ? error.message : 'Unknown error');
-        throw new Error(`Failed to launch Puppeteer: ${launchError instanceof Error ? launchError.message : 'Unknown error'}`);
+        console.log('Could not check system for Chrome installations:', error);
+      }
+
+      // Try launching with different configurations
+      for (const chromePath of chromePaths) {
+        try {
+          console.log(`Trying to launch Chrome from: ${chromePath}`);
+          browser = await puppeteer.launch({
+            headless: true,
+            executablePath: chromePath,
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-gpu',
+              '--no-first-run',
+              '--no-zygote',
+              '--single-process',
+              '--disable-extensions',
+              '--disable-background-timer-throttling',
+              '--disable-backgrounding-occluded-windows',
+              '--disable-renderer-backgrounding',
+              '--disable-features=TranslateUI',
+              '--disable-ipc-flooding-protection',
+            ]
+          });
+          console.log('Puppeteer launched successfully with Chrome path:', chromePath);
+          break;
+        } catch (error) {
+          console.log(`Failed to launch with Chrome path ${chromePath}:`, error instanceof Error ? error.message : 'Unknown error');
+          continue;
+        }
+      }
+
+      // If no Chrome found, try without executablePath
+      if (!browser) {
+        try {
+          console.log('Trying to launch Puppeteer without executablePath...');
+          browser = await puppeteer.launch({
+            headless: true,
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-gpu',
+              '--no-first-run',
+              '--no-zygote',
+              '--single-process',
+              '--disable-extensions',
+              '--disable-background-timer-throttling',
+              '--disable-backgrounding-occluded-windows',
+              '--disable-renderer-backgrounding',
+              '--disable-features=TranslateUI',
+              '--disable-ipc-flooding-protection',
+            ]
+          });
+          console.log('Puppeteer launched successfully without executablePath');
+        } catch (error) {
+          console.error('Failed to launch Puppeteer without executablePath:', error instanceof Error ? error.message : 'Unknown error');
+          throw new Error(`Failed to launch Puppeteer: ${launchError instanceof Error ? launchError.message : 'Unknown error'}`);
+        }
       }
     }
 
