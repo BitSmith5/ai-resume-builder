@@ -140,7 +140,7 @@ export async function GET(
 
     console.log('Using template for HTML generation:', template);
 
-    // Generate HTML content
+    // Generate HTML content matching the original PDF design exactly
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -157,10 +157,11 @@ export async function GET(
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
+            line-height: 1.4;
             color: #333;
             background: #fff;
             padding: 40px;
+            font-size: 14px;
         }
         
         .resume-container {
@@ -171,11 +172,13 @@ export async function GET(
         }
         
         .left-column {
-            width: 30%;
+            width: 33%;
+            flex-shrink: 0;
         }
         
         .right-column {
-            width: 70%;
+            width: 67%;
+            flex-grow: 1;
         }
         
         .profile-picture {
@@ -184,6 +187,7 @@ export async function GET(
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 30px;
+            display: block;
         }
         
         .section {
@@ -195,7 +199,9 @@ export async function GET(
             font-weight: bold;
             margin-bottom: 16px;
             color: #333;
-            border-bottom: 2px solid #007bff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #007bff;
             padding-bottom: 8px;
         }
         
@@ -204,21 +210,25 @@ export async function GET(
             font-weight: bold;
             margin-bottom: 8px;
             color: #007bff;
+            line-height: 1.2;
         }
         
         .job-title {
             font-size: 20px;
-            color: #666;
+            color: #333;
             margin-bottom: 20px;
+            font-weight: normal;
         }
         
         .skill-item {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         
         .skill-name {
             font-size: 14px;
             font-weight: bold;
+            color: #333;
+            margin-bottom: 2px;
         }
         
         .skill-rating {
@@ -226,22 +236,30 @@ export async function GET(
             color: #666;
         }
         
-        .work-item, .education-item, .course-item {
+        .work-item {
             margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
         }
         
-        .work-position, .education-institution, .course-title {
+        .work-item:last-child {
+            border-bottom: none;
+        }
+        
+        .work-position {
             font-size: 16px;
             font-weight: bold;
             color: #007bff;
+            margin-bottom: 4px;
         }
         
-        .work-company, .education-degree, .course-provider {
+        .work-company {
             font-size: 14px;
-            color: #666;
+            color: #333;
+            margin-bottom: 4px;
         }
         
-        .work-dates, .education-dates {
+        .work-dates {
             font-size: 12px;
             color: #999;
             margin-bottom: 8px;
@@ -256,6 +274,7 @@ export async function GET(
             margin-bottom: 4px;
             padding-left: 16px;
             position: relative;
+            line-height: 1.4;
         }
         
         .bullet-point:before {
@@ -263,6 +282,7 @@ export async function GET(
             position: absolute;
             left: 0;
             color: #007bff;
+            font-weight: bold;
         }
         
         .interest-item {
@@ -277,14 +297,63 @@ export async function GET(
             position: absolute;
             left: 0;
             color: #007bff;
+            font-weight: bold;
+        }
+        
+        .education-item {
+            margin-bottom: 20px;
+        }
+        
+        .education-institution {
+            font-size: 16px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 4px;
+        }
+        
+        .education-degree {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .education-dates {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .course-item {
+            margin-bottom: 16px;
+        }
+        
+        .course-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 2px;
+        }
+        
+        .course-provider {
+            font-size: 12px;
+            color: #666;
         }
         
         @media print {
             body {
                 padding: 0;
+                font-size: 12px;
             }
             .resume-container {
                 max-width: none;
+            }
+            .section-title {
+                font-size: 16px;
+            }
+            .name {
+                font-size: 28px;
+            }
+            .job-title {
+                font-size: 18px;
             }
         }
     </style>
