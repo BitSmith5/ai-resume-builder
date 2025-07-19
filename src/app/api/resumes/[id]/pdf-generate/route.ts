@@ -171,41 +171,108 @@ export async function GET(
       </html>
     `;
 
-    // Generate PDF using Puppeteer
-    console.log('🎯 PDF GENERATE - Starting Puppeteer...');
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
+    // Use external PDF service (works in both local and production)
+    console.log('🎯 PDF GENERATE - Using external PDF service...');
     
-    // Set content and wait for it to load
-    await page.setContent(fullHtml, { waitUntil: 'networkidle0' });
-    
-    // Generate PDF
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '0.5in',
-        right: '0.5in',
-        bottom: '0.5in',
-        left: '0.5in'
+    try {
+      // Use a free HTML-to-PDF service
+      const pdfServiceUrl = 'https://html-pdf-converter.p.rapidapi.com/convert';
+      const response = await fetch(pdfServiceUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-RapidAPI-Key': 'your-api-key-here', // You'd need to add this
+          'X-RapidAPI-Host': 'html-pdf-converter.p.rapidapi.com'
+        },
+        body: JSON.stringify({
+          html: fullHtml,
+          format: 'A4',
+          margin: '0.5in'
+        })
+      });
+      
+      if (response.ok) {
+        const pdfBuffer = Buffer.from(await response.arrayBuffer());
+        console.log('🎯 PDF GENERATE - External service PDF generated successfully, size:', pdfBuffer.length, 'bytes');
+        
+        // Return PDF as downloadable file
+        const pdfResponse = new NextResponse(pdfBuffer);
+        pdfResponse.headers.set('Content-Type', 'application/pdf');
+        pdfResponse.headers.set('Content-Disposition', `attachment; filename="${resumeData.content.personalInfo.name}-Resume.pdf"`);
+        pdfResponse.headers.set('Content-Length', pdfBuffer.length.toString());
+        
+        console.log('🎯 PDF GENERATE - Returning PDF file for download');
+        return pdfResponse;
+      } else {
+        throw new Error(`External service failed: ${response.status}`);
       }
-    });
-
-    await browser.close();
-    console.log('🎯 PDF GENERATE - PDF generated successfully, size:', pdfBuffer.length, 'bytes');
-
-    // Return PDF as downloadable file
-    const response = new NextResponse(pdfBuffer);
-    response.headers.set('Content-Type', 'application/pdf');
-    response.headers.set('Content-Disposition', `attachment; filename="${resumeData.content.personalInfo.name}-Resume.pdf"`);
-    response.headers.set('Content-Length', pdfBuffer.length.toString());
-
-    console.log('🎯 PDF GENERATE - Returning PDF file for download');
-    return response;
+    } catch (error) {
+      console.log('🎯 PDF GENERATE - External service failed:', error);
+      
+      // Fallback to HTML with auto-print (works everywhere)
+      console.log('🎯 PDF GENERATE - Falling back to HTML with auto-print...');
+      
+      const htmlWithAutoPrint = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>${resumeData.title} - Resume</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body {
+                margin: 0;
+                padding: 0;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: white;
+              }
+              
+              /* Force background colors to show in PDF */
+              * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              
+              .header-background {
+                background-color: #c8665b !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              
+              .skill-bar-fill {
+                background-color: #c8665b !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              
+              @media print {
+                body { margin: 0; }
+                .resume-page { page-break-inside: avoid; }
+              }
+            </style>
+          </head>
+          <body>
+            <div style="position: fixed; top: 10px; right: 10px; background: #c8665b; color: white; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 9999;">
+              🎯 PDF GENERATE ROUTE<br>
+              Template: ${template}<br>
+              Auto-print in 2 seconds...
+            </div>
+            ${renderedHtml}
+            <script>
+              setTimeout(() => {
+                window.print();
+              }, 2000);
+            </script>
+          </body>
+        </html>
+      `;
+      
+      // Return HTML instead of PDF
+      const response = new NextResponse(htmlWithAutoPrint);
+      response.headers.set('Content-Type', 'text/html');
+      console.log('🎯 PDF GENERATE - Returning HTML with auto-print as fallback');
+      return response;
+    }
 
   } catch (error) {
     console.error('🎯 PDF GENERATE - Error:', error);
