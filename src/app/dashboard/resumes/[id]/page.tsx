@@ -96,7 +96,7 @@ export default function ViewResumePage() {
     try {
       // TEMPORARY: Using DIRECT LOCAL route for testing - NO REDIRECTS
       // Open the DIRECT LOCAL route directly in a new tab (stays on localhost)
-      const url = `/api/resumes/${resumeId}/pdf-test-direct-local?template=${selectedTemplate}`;
+              const url = `/api/resumes/${resumeId}/pdf-generate?template=${selectedTemplate}`;
       window.open(url, '_blank');
     } catch (error) {
       console.error('Failed to generate PDF:', error);
