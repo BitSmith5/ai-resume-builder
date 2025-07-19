@@ -152,8 +152,8 @@ export async function GET(
       hasJobTitle: !!resumeData.jobTitle
     });
 
-    // Use the existing HTML renderer
-    const template = templateParam || (resume as ResumeWithTemplate).template || 'modern';
+    // Use the existing HTML renderer - force modern template for now
+    const template = 'modern'; // Force modern template
     console.log('Using template for PDF generation:', template);
     console.log('About to render HTML...');
     const html = renderResumeToHtml(resumeData, template);
