@@ -20,7 +20,6 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const templateParam = searchParams.get('template');
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
@@ -140,48 +139,7 @@ export async function GET(
     const html = renderResumeToHtml(resumeData, template);
     console.log('🎯 DIRECT LOCAL - HTML rendered, length:', html.length);
 
-    // Add print-specific CSS to force PDF rendering
-    const printCSS = `
-      <style>
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          
-          .resume-page {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
-          
-          .skill-bar {
-            background-color: #c8665b !important;
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-          
-          .header-bg {
-            background-color: #c8665b !important;
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-        }
-        
-        /* Force background colors to show in PDF */
-        .skill-bar-fill {
-          background-color: #c8665b !important;
-          -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
-        }
-        
-        .header-background {
-          background-color: #c8665b !important;
-          -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
-        }
-      </style>
-    `;
+
 
     const htmlWithAutoPrint = `
       <!DOCTYPE html>
