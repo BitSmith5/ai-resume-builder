@@ -157,61 +157,179 @@ export async function GET(
     const html = renderResumeToHtml(resumeData, template);
     console.log('HTML rendered successfully, length:', html.length);
 
-    // Simple Puppeteer approach - just like the original working route
-    console.log('Launching Puppeteer...');
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process'
-      ]
-    });
-
-    console.log('Creating new page...');
-    const page = await browser.newPage();
+    // Try Puppeteer first (works locally), then fall back to external service (works in production)
+    console.log('Attempting PDF generation...');
     
-    // Set viewport
-    await page.setViewport({
-      width: 850,
-      height: 1100,
-      deviceScaleFactor: 2
-    });
+    let pdfBuffer: Buffer | null = null;
+    
+    // Method 1: Try Puppeteer (works locally)
+    try {
+      console.log('Trying Puppeteer for PDF generation...');
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process'
+        ]
+      });
+      
+      const page = await browser.newPage();
+      await page.setViewport({
+        width: 850,
+        height: 1100,
+        deviceScaleFactor: 2
+      });
+      
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const pdfData = await page.pdf({
+        format: 'letter',
+        printBackground: true,
+        margin: { top: '0', right: '0', bottom: '0', left: '0' },
+        preferCSSPageSize: true,
+        displayHeaderFooter: false
+      });
+      
+      await browser.close();
+      pdfBuffer = Buffer.from(pdfData);
+      console.log('Puppeteer PDF generation successful, size:', pdfBuffer.length, 'bytes');
+      
+    } catch (puppeteerError) {
+      console.log('Puppeteer failed, trying external service:', puppeteerError instanceof Error ? puppeteerError.message : 'Unknown error');
+      
+      // Method 2: Try external PDF service (works in production)
+      try {
+        console.log('Trying external PDF service...');
+        const pdfResponse = await fetch('https://api.html2pdf.app/v1/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            html: html,
+            options: {
+              format: 'A4',
+              margin: {
+                top: '0.5in',
+                right: '0.5in',
+                bottom: '0.5in',
+                left: '0.5in'
+              },
+              printBackground: true
+            }
+          })
+        });
 
-    // Set content and wait
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Generate PDF
-    console.log('Generating PDF...');
-    const pdf = await page.pdf({
-      format: 'letter',
-      printBackground: true,
-      margin: {
-        top: '0',
-        right: '0',
-        bottom: '0',
-        left: '0'
-      },
-      preferCSSPageSize: true,
-      displayHeaderFooter: false
-    });
-
-    console.log('PDF generated successfully, size:', pdf.length, 'bytes');
-    await browser.close();
-
-    // Return PDF with proper headers
-    return new NextResponse(pdf, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${resume.title || 'resume'}-WORKING.pdf"`,
-        'Cache-Control': 'no-cache'
+        if (pdfResponse.ok) {
+          const arrayBuffer = await pdfResponse.arrayBuffer();
+          pdfBuffer = Buffer.from(arrayBuffer);
+          console.log('External service PDF generation successful, size:', pdfBuffer.length, 'bytes');
+        } else {
+          throw new Error('External service returned error: ' + pdfResponse.status);
+        }
+        
+      } catch (externalError) {
+        console.log('External service failed:', externalError instanceof Error ? externalError.message : 'Unknown error');
+        
+        // Method 3: Try another external service as backup
+        try {
+          console.log('Trying backup PDF service...');
+          const backupResponse = await fetch('https://api.cloudconvert.com/v2/convert', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + (process.env.CLOUDCONVERT_API_KEY || ''),
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              file: Buffer.from(html).toString('base64'),
+              outputformat: 'pdf',
+              input: [{
+                type: 'string',
+                content: html
+              }],
+              output: {
+                type: 'url',
+                format: 'pdf'
+              }
+            })
+          });
+          
+          if (backupResponse.ok) {
+            const result = await backupResponse.json();
+            const downloadResponse = await fetch(result.data.output.url);
+            const arrayBuffer = await downloadResponse.arrayBuffer();
+            pdfBuffer = Buffer.from(arrayBuffer);
+            console.log('Backup service PDF generation successful, size:', pdfBuffer.length, 'bytes');
+          } else {
+            throw new Error('Backup service failed');
+          }
+          
+        } catch (backupError) {
+          console.log('All PDF generation methods failed, falling back to HTML with print instructions');
+          
+          // Final fallback: Return HTML with print instructions
+          const htmlWithPrintInstructions = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>${resumeData.title || 'Resume'}</title>
+              <style>
+                @media print {
+                  body { margin: 0; }
+                  .print-instructions { display: none; }
+                }
+                .print-instructions {
+                  position: fixed;
+                  top: 10px;
+                  right: 10px;
+                  background: #007bff;
+                  color: white;
+                  padding: 10px;
+                  border-radius: 5px;
+                  z-index: 1000;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="print-instructions">
+                <strong>To save as PDF:</strong><br>
+                1. Press Ctrl+P (or Cmd+P on Mac)<br>
+                2. Select "Save as PDF"<br>
+                3. Click Save
+              </div>
+              ${html}
+            </body>
+            </html>
+          `;
+          
+          return new NextResponse(htmlWithPrintInstructions, {
+            headers: {
+              'Content-Type': 'text/html',
+              'Content-Disposition': 'inline; filename="resume.html"'
+            }
+          });
+        }
       }
-    });
+    }
+    
+    if (pdfBuffer) {
+      console.log('PDF generated successfully, returning PDF file');
+      return new NextResponse(pdfBuffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${resume.title || 'resume'}-PRODUCTION.pdf"`,
+          'Cache-Control': 'no-cache'
+        }
+      });
+    } else {
+      throw new Error('Failed to generate PDF through any method');
+    }
 
   } catch (error) {
     console.error('WORKING PDF generation error:', error);
