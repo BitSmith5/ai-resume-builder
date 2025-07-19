@@ -270,8 +270,8 @@ export async function GET(
             throw new Error('Backup service failed');
           }
           
-        } catch (backupError) {
-          console.log('All PDF generation methods failed, falling back to HTML with print instructions');
+                 } catch {
+           console.log('All PDF generation methods failed, falling back to HTML with print instructions');
           
           // Final fallback: Return HTML with print instructions
           const htmlWithPrintInstructions = `
