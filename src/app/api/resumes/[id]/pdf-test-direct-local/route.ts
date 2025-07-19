@@ -140,7 +140,49 @@ export async function GET(
     const html = renderResumeToHtml(resumeData, template);
     console.log('🎯 DIRECT LOCAL - HTML rendered, length:', html.length);
 
-    // Return HTML directly with auto-print
+    // Add print-specific CSS to force PDF rendering
+    const printCSS = `
+      <style>
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .resume-page {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          
+          .skill-bar {
+            background-color: #c8665b !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          
+          .header-bg {
+            background-color: #c8665b !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+        }
+        
+        /* Force background colors to show in PDF */
+        .skill-bar-fill {
+          background-color: #c8665b !important;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        
+        .header-background {
+          background-color: #c8665b !important;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+      </style>
+    `;
+
     const htmlWithAutoPrint = `
       <!DOCTYPE html>
       <html>
