@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import puppeteer from 'puppeteer-core';
 
 export const runtime = 'nodejs';
 
@@ -364,12 +365,71 @@ export async function GET(
 
     console.log('HTML generated successfully, length:', html.length);
 
-    // Return the HTML content
-    return new NextResponse(html, {
-      headers: {
-        'Content-Type': 'text/html',
-        'Cache-Control': 'no-cache',
+    // Generate PDF using Puppeteer
+    console.log('Launching Puppeteer for PDF generation...');
+    
+    let browser;
+    try {
+      // Try to launch Puppeteer with minimal configuration for Vercel
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process'
+        ]
+      });
+      console.log('Puppeteer launched successfully');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to launch Puppeteer:', errorMessage);
+      throw new Error(`Failed to launch Puppeteer: ${errorMessage}`);
+    }
+
+    console.log('Creating new page...');
+    const page = await browser.newPage();
+    console.log('Page created successfully');
+    
+    // Set viewport to match the template dimensions exactly
+    await page.setViewport({
+      width: 850,
+      height: 1100,
+      deviceScaleFactor: 2
+    });
+
+    // Set content and wait for images to load
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    
+    // Additional wait to ensure images are loaded and fonts are rendered
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Generate PDF with proper page breaks - using Letter size to match template aspect ratio
+    const pdf = await page.pdf({
+      format: 'letter',
+      printBackground: true,
+      margin: {
+        top: '0',
+        right: '0',
+        bottom: '0',
+        left: '0'
       },
+      preferCSSPageSize: true,
+      displayHeaderFooter: false
+    });
+
+    await browser.close();
+
+    // Return PDF with proper headers
+    return new NextResponse(pdf, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${resumeData.title || 'resume'}.pdf"`,
+        'Cache-Control': 'no-cache'
+      }
     });
 
   } catch (error) {
