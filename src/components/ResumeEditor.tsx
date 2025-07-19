@@ -813,6 +813,7 @@ export default function ResumeEditor({
       const response = await fetch(url);
       console.log('🎯 Response status:', response.status);
       console.log('🎯 Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('🎯 Response Content-Type:', response.headers.get('Content-Type'));
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -820,9 +821,22 @@ export default function ResumeEditor({
         throw new Error(`PDF generation failed: ${response.status} ${response.statusText}`);
       }
       
+      // Check if we got HTML or PDF
+      const contentType = response.headers.get('Content-Type');
+      console.log('🎯 Content-Type received:', contentType);
+      
+      if (contentType && contentType.includes('text/html')) {
+        console.log('🎯 Received HTML response - opening in new tab');
+        // Open HTML in new tab for auto-print
+        window.open(url, '_blank');
+        setSuccess("PDF generation page opened in new tab - use Cmd+P to save as PDF");
+        return;
+      }
+      
       // Get the PDF blob
       const pdfBlob = await response.blob();
       console.log('🎯 PDF blob size:', pdfBlob.size, 'bytes');
+      console.log('🎯 PDF blob type:', pdfBlob.type);
       
       // Create download link
       const blobUrl = URL.createObjectURL(pdfBlob);

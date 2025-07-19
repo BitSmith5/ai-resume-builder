@@ -156,6 +156,14 @@ export async function GET(
     const renderedHtml = renderResumeToHtml(resumeData, template);
     console.log('🎯 PDF GENERATE - HTML rendered successfully, length:', renderedHtml.length);
 
+    // DEBUG: Log the rendered HTML to see what we're working with
+    console.log('🎯 PDF GENERATE - Rendered HTML preview (first 500 chars):', renderedHtml.substring(0, 500));
+    console.log('🎯 PDF GENERATE - Rendered HTML length:', renderedHtml.length);
+    console.log('🎯 PDF GENERATE - Template used:', template);
+    console.log('🎯 PDF GENERATE - Job title present:', !!resumeData.jobTitle);
+    console.log('🎯 PDF GENERATE - Skills count:', resumeData.strengths.length);
+    console.log('🎯 PDF GENERATE - Skills with ratings > 0:', resumeData.strengths.filter(s => s.rating > 0).length);
+    
     // Create HTML with auto-print - EXACTLY like your working routes
     const htmlWithAutoPrint = `
       <!DOCTYPE html>
@@ -212,10 +220,18 @@ export async function GET(
       </html>
     `;
     
+    // DEBUG: Log the final HTML
+    console.log('🎯 PDF GENERATE - Final HTML length:', htmlWithAutoPrint.length);
+    console.log('🎯 PDF GENERATE - Final HTML preview (first 500 chars):', htmlWithAutoPrint.substring(0, 500));
+    
     // Return HTML with auto-print
     const response = new NextResponse(htmlWithAutoPrint);
     response.headers.set('Content-Type', 'text/html');
-    console.log('🎯 PDF GENERATE - Returning HTML with auto-print');
+    console.log('🎯 PDF GENERATE - Returning HTML with auto-print, Content-Type: text/html');
+    console.log('🎯 PDF GENERATE - Response headers set:', {
+      'Content-Type': 'text/html',
+      'Content-Length': htmlWithAutoPrint.length
+    });
     return response;
 
   } catch (error) {
