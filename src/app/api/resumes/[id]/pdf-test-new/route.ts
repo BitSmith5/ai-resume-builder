@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 
 export const runtime = 'nodejs';
@@ -162,7 +162,16 @@ export async function GET(
       '/snap/bin/chromium',
       '/usr/bin/google-chrome-stable',
       '/usr/bin/chromium-browser-stable',
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/chromium-browser-stable',
+      '/usr/bin/chromium-stable',
+      '/usr/bin/google-chrome-beta',
+      '/usr/bin/chromium-browser-beta',
+      '/usr/bin/google-chrome-dev',
+      '/usr/bin/chromium-browser-dev',
       process.env.CHROME_BIN,
+      process.env.CHROME_PATH,
+      process.env.CHROMIUM_PATH,
     ].filter(Boolean);
 
     console.log('Available Chrome paths:', chromePaths);
@@ -225,31 +234,68 @@ export async function GET(
       }
     }
 
-    // If no Chrome found, try without executablePath
+    // If no Chrome found, try to install Chrome or use a different approach
     if (!browser) {
       try {
-        console.log('Trying to launch Puppeteer without executablePath...');
-        browser = await puppeteer.launch({
-          headless: true,
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-extensions',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-            '--disable-features=TranslateUI',
-            '--disable-ipc-flooding-protection',
-          ]
-        });
-        console.log('Puppeteer launched successfully without executablePath');
+        console.log('Trying to install Chrome using apt-get...');
+        const { execSync } = await import('child_process');
+        
+        try {
+          // Try to install Chrome
+          execSync('apt-get update && apt-get install -y google-chrome-stable', { 
+            stdio: 'pipe',
+            timeout: 30000 
+          });
+          console.log('Chrome installed successfully');
+          
+          // Try launching with the newly installed Chrome
+          browser = await puppeteer.launch({
+            headless: true,
+            executablePath: '/usr/bin/google-chrome-stable',
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-gpu',
+              '--no-first-run',
+              '--no-zygote',
+              '--single-process',
+              '--disable-extensions',
+              '--disable-background-timer-throttling',
+              '--disable-backgrounding-occluded-windows',
+              '--disable-renderer-backgrounding',
+              '--disable-features=TranslateUI',
+              '--disable-ipc-flooding-protection',
+            ]
+          });
+          console.log('Puppeteer launched successfully with newly installed Chrome');
+        } catch (installError) {
+          console.log('Failed to install Chrome:', installError instanceof Error ? installError.message : 'Unknown error');
+          
+          // Try launching without executablePath as last resort
+          console.log('Trying to launch Puppeteer without executablePath...');
+          browser = await puppeteer.launch({
+            headless: true,
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-gpu',
+              '--no-first-run',
+              '--no-zygote',
+              '--single-process',
+              '--disable-extensions',
+              '--disable-background-timer-throttling',
+              '--disable-backgrounding-occluded-windows',
+              '--disable-renderer-backgrounding',
+              '--disable-features=TranslateUI',
+              '--disable-ipc-flooding-protection',
+            ]
+          });
+          console.log('Puppeteer launched successfully without executablePath');
+        }
       } catch (error) {
-        console.error('Failed to launch Puppeteer without executablePath:', error instanceof Error ? error.message : 'Unknown error');
+        console.error('Failed to launch Puppeteer:', error instanceof Error ? error.message : 'Unknown error');
         throw new Error(`Failed to launch Puppeteer: ${launchError instanceof Error ? launchError.message : 'Unknown error'}`);
       }
     }
