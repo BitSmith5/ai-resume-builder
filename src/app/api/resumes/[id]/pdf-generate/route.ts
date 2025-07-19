@@ -213,10 +213,10 @@ export async function GET(
               print-color-adjust: exact !important;
             }
             
-            /* Make section header lines thicker and more visible */
-            div[style*="height: 2"] {
-              height: 4px !important;
-              min-height: 4px !important;
+            /* Make section header lines visible but not too thick */
+            div[style*="height: 2px"] {
+              height: 2px !important;
+              min-height: 2px !important;
               background-color: #c8665b !important;
               -webkit-print-color-adjust: exact !important;
               color-adjust: exact !important;
@@ -226,7 +226,7 @@ export async function GET(
             /* Prevent extra blank pages */
             @page {
               size: A4;
-              margin: 0.5in;
+              margin: 0;
             }
             
             body {
