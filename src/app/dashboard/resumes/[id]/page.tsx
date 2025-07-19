@@ -95,21 +95,9 @@ export default function ViewResumePage() {
     setDownloading(true);
     try {
       // TEMPORARY: Using final simple PDF route for testing
-      const response = await fetch(`/api/resumes/${resumeId}/pdf-test-final-simple?template=${selectedTemplate}`);
-      // TODO: Change back to original route: /api/resumes/${resumeId}/pdf?template=${selectedTemplate}
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${resumeData.title.replace(/\s+/g, '_')}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } else {
-        console.error('Failed to generate PDF');
-      }
+      // Open the HTML in a new tab instead of downloading
+      const url = `/api/resumes/${resumeId}/pdf-test-final-simple?template=${selectedTemplate}`;
+      window.open(url, '_blank');
     } catch (error) {
       console.error('Failed to generate PDF:', error);
     } finally {

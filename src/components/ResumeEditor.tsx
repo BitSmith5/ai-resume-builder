@@ -802,26 +802,13 @@ export default function ResumeEditor({
     try {
       setError("");
       setGeneratingPDF(true);
+      
       // TEMPORARY: Using final simple PDF route for testing
-      const response = await fetch(`/api/resumes/${resumeId}/pdf-test-final-simple?template=${selectedTemplate}`);
-      // TODO: Change back to original route: /api/resumes/${resumeId}/pdf?template=${selectedTemplate}
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || "Failed to generate PDF");
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${resumeData.title || "resume"}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      setSuccess("PDF downloaded successfully");
+      // Open the HTML in a new tab instead of downloading
+      const url = `/api/resumes/${resumeId}/pdf-test-final-simple?template=${selectedTemplate}`;
+      window.open(url, '_blank');
+      
+      setSuccess("PDF generation page opened in new tab");
     } catch (error) {
       console.error("Error generating PDF:", error);
       setError("Failed to generate PDF. Please try again.");
