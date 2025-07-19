@@ -18,7 +18,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const template = request.nextUrl.searchParams.get('template') || 'modern';
+    // const template = request.nextUrl.searchParams.get('template') || 'modern';
 
     console.log('Fetching resume data...');
     const resume = await prisma.resume.findFirst({
