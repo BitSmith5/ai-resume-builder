@@ -146,7 +146,10 @@ export async function GET(
       jobTitle: resumeData.jobTitle,
       profilePicture: resumeData.profilePicture ? resumeData.profilePicture.substring(0, 50) + '...' : 'None',
       hasProfilePicture: !!resumeData.profilePicture,
-      profilePictureType: resumeData.profilePicture ? (resumeData.profilePicture.startsWith('data:') ? 'data URL' : 'other') : 'none'
+      profilePictureType: resumeData.profilePicture ? (resumeData.profilePicture.startsWith('data:') ? 'data URL' : 'other') : 'none',
+      strengths: resumeData.strengths.map(s => ({ skillName: s.skillName, rating: s.rating })),
+      strengthsCount: resumeData.strengths.length,
+      hasJobTitle: !!resumeData.jobTitle
     });
 
     // Use the existing HTML renderer
