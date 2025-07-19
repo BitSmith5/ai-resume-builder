@@ -802,7 +802,9 @@ export default function ResumeEditor({
     try {
       setError("");
       setGeneratingPDF(true);
-      const response = await fetch(`/api/resumes/${resumeId}/pdf?template=${selectedTemplate}`);
+      // TEMPORARY: Using test PDF route for local testing
+      const response = await fetch(`/api/resumes/${resumeId}/pdf-test-working?template=${selectedTemplate}`);
+      // TODO: Change back to original route: /api/resumes/${resumeId}/pdf?template=${selectedTemplate}
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
