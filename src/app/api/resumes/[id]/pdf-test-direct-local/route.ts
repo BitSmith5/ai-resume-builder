@@ -129,7 +129,9 @@ export async function GET(
       jobTitle: resumeData.jobTitle,
       strengths: resumeData.strengths.map(s => ({ skillName: s.skillName, rating: s.rating })),
       strengthsCount: resumeData.strengths.length,
-      hasJobTitle: !!resumeData.jobTitle
+      hasJobTitle: !!resumeData.jobTitle,
+      strengthsWithRatings: resumeData.strengths.filter(s => s.rating > 0).length,
+      totalStrengths: resumeData.strengths.length
     });
 
     // FORCE MODERN TEMPLATE
