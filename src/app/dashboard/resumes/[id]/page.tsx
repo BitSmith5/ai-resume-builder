@@ -94,10 +94,51 @@ export default function ViewResumePage() {
     
     setDownloading(true);
     try {
-      // TEMPORARY: Using DIRECT LOCAL route for testing - NO REDIRECTS
-      // Open the DIRECT LOCAL route directly in a new tab (stays on localhost)
-              const url = `/api/resumes/${resumeId}/pdf-generate?template=${selectedTemplate}`;
-      window.open(url, '_blank');
+      console.log('🎯 Starting PDF download for resume:', resumeId);
+      
+      // Use the PDF generation route
+      const url = `/api/resumes/${resumeId}/pdf-generate?template=${selectedTemplate}`;
+      console.log('🎯 PDF URL:', url);
+      
+      // First, test if the endpoint is working
+      const response = await fetch(url);
+      console.log('🎯 Response status:', response.status);
+      console.log('🎯 Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('🎯 Response Content-Type:', response.headers.get('Content-Type'));
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎯 PDF generation failed:', errorText);
+        throw new Error(`PDF generation failed: ${response.status} ${response.statusText}`);
+      }
+      
+      // Check if we got HTML or PDF
+      const contentType = response.headers.get('Content-Type');
+      console.log('🎯 Content-Type received:', contentType);
+      
+      if (contentType && contentType.includes('text/html')) {
+        console.log('🎯 Received HTML response - opening in new tab');
+        // Open HTML in new tab for auto-print
+        window.open(url, '_blank');
+        return;
+      }
+      
+      // Get the PDF blob
+      const pdfBlob = await response.blob();
+      console.log('🎯 PDF blob size:', pdfBlob.size, 'bytes');
+      console.log('🎯 PDF blob type:', pdfBlob.type);
+      
+      // Create download link
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${resumeData.content.personalInfo.name}-Resume.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
     } finally {
