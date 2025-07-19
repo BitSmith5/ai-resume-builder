@@ -597,7 +597,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
             `<div class="skill-item" style="margin-bottom: 12px; font-size: 12px;">
               <div style="margin-bottom: 4px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.2;">${skill.skillName}</div>
               <div style="width: 100%; height: 10px; background: transparent; border: 2px solid #c8665b; overflow: hidden;">
-                <div style="width: ${(skill.rating / 5) * 100}%; height: 100%; background: #c8665b; padding: 1px;"></div>
+                <div style="width: ${(skill.rating / 10) * 100}%; height: 100%; background: #c8665b; padding: 1px;"></div>
               </div>
             </div>`
           ).join('')}
