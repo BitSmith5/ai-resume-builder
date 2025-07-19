@@ -803,21 +803,43 @@ export default function ResumeEditor({
       setError("");
       setGeneratingPDF(true);
       
+      console.log('🎯 Starting PDF download for resume:', resumeId);
+      
       // Use the new PDF generation route that returns actual PDF files
       const url = `/api/resumes/${resumeId}/pdf-generate?template=${selectedTemplate}`;
+      console.log('🎯 PDF URL:', url);
       
-      // Create a temporary link and trigger download
+      // First, test if the endpoint is working
+      const response = await fetch(url);
+      console.log('🎯 Response status:', response.status);
+      console.log('🎯 Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎯 PDF generation failed:', errorText);
+        throw new Error(`PDF generation failed: ${response.status} ${response.statusText}`);
+      }
+      
+      // Get the PDF blob
+      const pdfBlob = await response.blob();
+      console.log('🎯 PDF blob size:', pdfBlob.size, 'bytes');
+      
+      // Create download link
+      const blobUrl = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
-      link.href = url;
+      link.href = blobUrl;
       link.download = `${resumeData.content.personalInfo.name}-Resume.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+      
       setSuccess("PDF downloaded successfully!");
     } catch (error) {
       console.error("Error generating PDF:", error);
-      setError("Failed to generate PDF. Please try again.");
+      setError(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setGeneratingPDF(false);
     }
