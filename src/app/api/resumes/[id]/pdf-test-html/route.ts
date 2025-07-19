@@ -140,305 +140,227 @@ export async function GET(
 
     console.log('Using template for HTML generation:', template);
 
-    // Generate HTML content matching the original PDF design exactly
-    const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${resumeData.title}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.4;
-            color: #333;
-            background: #fff;
-            padding: 40px;
-            font-size: 14px;
-        }
-        
-        .resume-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            gap: 40px;
-        }
-        
-        .left-column {
-            width: 33%;
-            flex-shrink: 0;
-        }
-        
-        .right-column {
-            width: 67%;
-            flex-grow: 1;
-        }
-        
-        .profile-picture {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 30px;
-            display: block;
-        }
-        
-        .section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 16px;
-            color: #333;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #007bff;
-            padding-bottom: 8px;
-        }
-        
-        .name {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #007bff;
+    // Generate HTML content using the exact same styling as the original PDF route
+    const formatDate = (dateString: string): string => {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${year}`;
+      } catch {
+        return dateString;
+      }
+    };
+
+    const formatUrl = (url: string): string => {
+      if (!url) return '';
+      return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+    };
+
+    const ensureUrlProtocol = (url: string): string => {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+      }
+      return `https://${url}`;
+    };
+
+    const calculateUnderlineWidth = (jobTitle: string): number => {
+      const charWidth = 8.5;
+      const baseWidth = jobTitle.length * charWidth;
+      const calculatedWidth = baseWidth + 20;
+      return Math.min(calculatedWidth, 300);
+    };
+
+    // Contact info for left sidebar
+    const contactInfo = [
+      resumeData.content.personalInfo.email && `<div style="display: flex; flex-direction: column; align-items: flex-start; font-size: clamp(10px, 1.5vw, 12px); margin-bottom: 12px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"><div style="color: #c8665b; margin-bottom: 2px; font-size: 14px;">📧</div><div style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">${resumeData.content.personalInfo.email}</div></div>`,
+      resumeData.content.personalInfo.phone && `<div style="display: flex; flex-direction: column; align-items: flex-start; font-size: clamp(10px, 1.5vw, 12px); margin-bottom: 12px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"><div style="color: #c8665b; margin-bottom: 2px; font-size: 14px;">📞</div><div style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">${resumeData.content.personalInfo.phone}</div></div>`,
+      (resumeData.content.personalInfo.city || resumeData.content.personalInfo.state) && `<div style="display: flex; flex-direction: column; align-items: flex-start; font-size: clamp(10px, 1.5vw, 12px); margin-bottom: 12px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"><div style="color: #c8665b; margin-bottom: 2px; font-size: 14px;">📍</div><div style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">${[resumeData.content.personalInfo.city, resumeData.content.personalInfo.state].filter(Boolean).join(', ')}</div></div>`,
+      resumeData.content.personalInfo.website && `<div style="display: flex; flex-direction: column; align-items: flex-start; font-size: clamp(10px, 1.5vw, 12px); margin-bottom: 12px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"><div style="color: #c8665b; margin-bottom: 2px; font-size: 14px;">🌐</div><a href="${resumeData.content.personalInfo.website}" target="_blank" rel="noopener noreferrer" style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; color: #c8665b; text-decoration: underline;">${formatUrl(resumeData.content.personalInfo.website)}</a></div>`,
+      resumeData.content.personalInfo.linkedin && `<div style="display: flex; flex-direction: column; align-items: flex-start; font-size: clamp(10px, 1.5vw, 12px); margin-bottom: 12px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"><div style="color: #c8665b; margin-bottom: 2px; font-size: 14px;">💼</div><a href="${ensureUrlProtocol(resumeData.content.personalInfo.linkedin)}" target="_blank" rel="noopener noreferrer" style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; color: #c8665b; text-decoration: underline;">${formatUrl(resumeData.content.personalInfo.linkedin)}</a></div>`,
+      resumeData.content.personalInfo.github && `<div style="display: flex; flex-direction: column; align-items: flex-start; font-size: clamp(10px, 1.5vw, 12px); margin-bottom: 12px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"><div style="color: #c8665b; margin-bottom: 2px; font-size: 14px;">💻</div><a href="${resumeData.content.personalInfo.github}" target="_blank" rel="noopener noreferrer" style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; color: #c8665b; text-decoration: underline;">${formatUrl(resumeData.content.personalInfo.github)}</a></div>`
+    ].filter(Boolean).join('');
+
+    // Header section
+    const headerHtml = `
+      <div style="margin-bottom: 16px; background: #c8665b; padding: 12px; border-radius: 0;">
+        <div style="
+          font-size: 30px; 
+          font-weight: 500; 
+          color: white; 
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          white-space: normal;
+          line-height: 1;
+          margin-bottom: 4px;
+        ">${resumeData.content.personalInfo.name}</div>
+        ${resumeData.jobTitle ? `
+          <div style="
+            font-size: 16px; 
+            font-weight: 500; 
+            color: white;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
             line-height: 1.2;
-        }
-        
-        .job-title {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: normal;
-        }
-        
-        .skill-item {
-            margin-bottom: 12px;
-        }
-        
-        .skill-name {
-            font-size: 14px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 2px;
-        }
-        
-        .skill-rating {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .work-item {
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .work-item:last-child {
-            border-bottom: none;
-        }
-        
-        .work-position {
-            font-size: 16px;
-            font-weight: bold;
-            color: #007bff;
-            margin-bottom: 4px;
-        }
-        
-        .work-company {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        
-        .work-dates {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 8px;
-        }
-        
-        .bullet-points {
-            margin-top: 8px;
-        }
-        
-        .bullet-point {
-            font-size: 12px;
-            margin-bottom: 4px;
-            padding-left: 16px;
-            position: relative;
-            line-height: 1.4;
-        }
-        
-        .bullet-point:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #007bff;
-            font-weight: bold;
-        }
-        
-        .interest-item {
-            font-size: 12px;
-            margin-bottom: 6px;
-            padding-left: 16px;
-            position: relative;
-        }
-        
-        .interest-item:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #007bff;
-            font-weight: bold;
-        }
-        
-        .education-item {
-            margin-bottom: 20px;
-        }
-        
-        .education-institution {
-            font-size: 16px;
-            font-weight: bold;
-            color: #007bff;
-            margin-bottom: 4px;
-        }
-        
-        .education-degree {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        
-        .education-dates {
-            font-size: 12px;
-            color: #999;
-        }
-        
-        .course-item {
-            margin-bottom: 16px;
-        }
-        
-        .course-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #007bff;
-            margin-bottom: 2px;
-        }
-        
-        .course-provider {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        @media print {
-            body {
-                padding: 0;
-                font-size: 12px;
-            }
-            .resume-container {
-                max-width: none;
-            }
-            .section-title {
-                font-size: 16px;
-            }
-            .name {
-                font-size: 28px;
-            }
-            .job-title {
-                font-size: 18px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="resume-container">
-        <div class="left-column">
-            ${resumeData.profilePicture ? `<img src="${resumeData.profilePicture}" alt="Profile" class="profile-picture">` : ''}
-            
-            ${resumeData.strengths.length > 0 ? `
-            <div class="section">
-                <h2 class="section-title">SKILLS</h2>
-                ${resumeData.strengths.map(skill => `
-                    <div class="skill-item">
-                        <div class="skill-name">${skill.skillName}</div>
-                        <div class="skill-rating">Rating: ${skill.rating}/5</div>
-                    </div>
-                `).join('')}
-            </div>
-            ` : ''}
-            
-            ${resumeData.interests.length > 0 ? `
-            <div class="section">
-                <h2 class="section-title">INTERESTS</h2>
-                ${resumeData.interests.map(interest => `
-                    <div class="interest-item">${interest.name}</div>
-                `).join('')}
-            </div>
-            ` : ''}
+          ">${resumeData.jobTitle}</div>
+          <div style="
+            width: ${calculateUnderlineWidth(resumeData.jobTitle)}px; 
+            height: 1px; 
+            background: white; 
+            margin: 6px 0 12px 0;
+          "></div>
+        ` : ''}
+        <div style="
+          font-size: 12px; 
+          color: white;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          white-space: normal;
+          line-height: 1;
+          margin-right: 14px;
+        ">${resumeData.content.personalInfo.summary}</div>
+      </div>
+    `;
+
+    // Work experience HTML
+    const workExperienceHtml = resumeData.workExperience.map((work) => {
+      const dateRange = work.current 
+        ? `${formatDate(work.startDate)} - PRESENT`
+        : `${formatDate(work.startDate)} - ${formatDate(work.endDate)}`;
+      
+      const bulletPoints = work.bulletPoints.map((bullet) => 
+        `<div style="margin-bottom: 4px; display: flex; align-items: flex-start; gap: 4px;"><div style="width: 5px; height: 5px; border: 1px solid #c8665b; background: transparent; margin-right: 8px; flex-shrink: 0; margin-top: 6px; border-radius: 0;"></div><div style="flex: 1; font-size: 12px; line-height: 1.4; text-align: justify;">${bullet.description}</div></div>`
+      ).join('');
+
+      return `
+        <div class="work-experience-item" style="margin-bottom: 12px; margin-left: 20px;">
+          <div style="font-weight: 700; font-size: 16px; color: #c8665b; margin-bottom: 8px;">${work.position}</div>
+          <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${work.company}</div>
+          <div style="font-size: 10px; color: #c8665b; font-style: italic; margin-bottom: 8px;">${dateRange}</div>
+          ${bulletPoints ? `<div style="font-size: 12px; line-height: 1.4;">${bulletPoints}</div>` : ''}
         </div>
-        
-        <div class="right-column">
-            <div class="section">
-                <h1 class="name">${resumeData.title}</h1>
-                ${resumeData.jobTitle ? `<h2 class="job-title">${resumeData.jobTitle}</h2>` : ''}
-            </div>
-            
-            ${resumeData.workExperience.length > 0 ? `
-            <div class="section">
-                <h2 class="section-title">WORK EXPERIENCE</h2>
-                ${resumeData.workExperience.map(work => `
-                    <div class="work-item">
-                        <div class="work-position">${work.position}</div>
-                        <div class="work-company">${work.company}</div>
-                        <div class="work-dates">${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
-                        ${work.bulletPoints && work.bulletPoints.length > 0 ? `
-                            <div class="bullet-points">
-                                ${work.bulletPoints.map(point => `
-                                    <div class="bullet-point">${point.description}</div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                `).join('')}
-            </div>
-            ` : ''}
-            
-            ${resumeData.education.length > 0 ? `
-            <div class="section">
-                <h2 class="section-title">EDUCATION</h2>
-                ${resumeData.education.map(edu => `
-                    <div class="education-item">
-                        <div class="education-institution">${edu.institution}</div>
-                        <div class="education-degree">${edu.degree} in ${edu.field}${edu.gpa ? ` - GPA: ${edu.gpa}` : ''}</div>
-                        <div class="education-dates">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
-                    </div>
-                `).join('')}
-            </div>
-            ` : ''}
-            
-            ${resumeData.courses.length > 0 ? `
-            <div class="section">
-                <h2 class="section-title">COURSES & TRAININGS</h2>
-                ${resumeData.courses.map(course => `
-                    <div class="course-item">
-                        <div class="course-title">${course.title}</div>
-                        <div class="course-provider">${course.provider}</div>
-                    </div>
-                `).join('')}
-            </div>
-            ` : ''}
+      `;
+    }).join('');
+
+    // Education HTML
+    const educationHtml = resumeData.education.map((edu) => {
+      const dateRange = edu.current 
+        ? `${formatDate(edu.startDate)} - PRESENT`
+        : `${formatDate(edu.startDate)} - ${formatDate(edu.endDate)}`;
+      
+      return `
+        <div style="margin-bottom: 12px; margin-left: 20px;">
+          <div style="font-weight: 600; font-size: 16px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; color: #c8665b; line-height: 1; margin-bottom: 4px;">${edu.degree} in ${edu.field}</div>
+          <div style="font-size: 14px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 0.7; margin-bottom: 7px;">${edu.institution}</div>
+          <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between;">
+            <div style="font-size: 10px; color: #c8665b; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3; font-style: italic;">${dateRange}</div>
+            ${edu.gpa ? `<div style="font-size: 10px; color: #c8665b; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3; font-style: italic;">GPA: ${edu.gpa}</div>` : ''}
+          </div>
         </div>
-    </div>
-</body>
-</html>`;
+      `;
+    }).join('');
+
+    // Courses HTML
+    const coursesHtml = resumeData.courses && resumeData.courses.length > 0 ? resumeData.courses.map((course) => 
+      `<div style="margin-bottom: 8px; margin-left: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+          <div style="font-size: 14px; font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3; flex: 1;">${course.title}</div>
+          ${course.link ? `<a href="${course.link}" target="_blank" rel="noopener noreferrer" style="color: #c8665b; display: flex; align-items: center; text-decoration: none;">🔗</a>` : ''}
+        </div>
+        <div style="font-size: 10px; color: #888; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.2; font-style: italic;">${course.provider}</div>
+      </div>`
+    ).join('') : '';
+
+    const html = `
+    <div class="resume-page" style="
+      display: flex;
+      font-family: sans-serif;
+      background: #fff;
+      color: #333;
+      width: 850px;
+      height: 1100px;
+      position: relative;
+      margin: 0 auto;
+      flex-shrink: 0;
+    ">
+      <div class="left-column" style="
+        width: 221px;
+        padding: 24px 24px 90px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      ">
+        ${resumeData.profilePicture && resumeData.profilePicture.trim() !== '' && resumeData.profilePicture.startsWith('data:') ? `<div style="width: 160px; height: 160px; border-radius: 10%; margin-bottom: 20px; overflow: hidden; flex-shrink: 0;"><img src="${resumeData.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10%; display: block;" onerror="this.parentElement.style.display='none';" /></div>` : ''}
+        <div style="width: 160px; margin-bottom: 24px;">${contactInfo}</div>
+        ${resumeData.strengths && resumeData.strengths.length > 0 ? `
+        <div style="width: 100%; max-width: 180px; margin-bottom: 32px;">
+          <div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 16;">
+            <div style="font-weight: 700; font-size: 16px; color: #c8665b; text-align: left;">TECHNICAL SKILLS</div>
+            <div style="width: 100%; height: 2; background: #c8665b; margin: 2px 0 0 0;"></div>
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 10;">
+              <div style="width: 2; height: 5; background: #c8665b; border-radius: 0;"></div>
+              <div style="width: 2; height: 5; background: #c8665b; border-radius: 0;"></div>
+              <div style="width: 2; height: 5; background: #c8665b; border-radius: 0;"></div>
+              <div style="width: 2; height: 5; background: #c8665b; border-radius: 0;"></div>
+            </div>
+          </div>
+          ${resumeData.strengths.map((skill) => 
+            `<div class="skill-item" style="margin-bottom: 12px; font-size: 12px;">
+              <div style="margin-bottom: 4px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.2;">${skill.skillName}</div>
+              <div style="width: 100%; height: 10px; background: transparent; border: 2px solid #c8665b; overflow: hidden;">
+                <div style="width: ${(skill.rating / 10) * 100}%; height: 100%; background: #c8665b; padding: 1px;"></div>
+              </div>
+            </div>`
+          ).join('')}
+        </div>
+        ` : ''}
+        ${resumeData.interests && resumeData.interests.length > 0 ? `
+        <div style="width: 100%; max-width: 180px; justify-content: flex-start;">
+          <div style="font-weight: 700; font-size: 16px; color: #c8665b; text-align: left;">INTERESTS</div>
+          <div style="width: 100%; height: 2; background: #c8665b; margin: 2px 0 12px 0;"></div>
+          ${resumeData.interests.map((interest) => 
+            `<div style="margin-bottom: 8px; font-size: 12px;">${interest.icon} ${interest.name}</div>`
+          ).join('')}
+        </div>
+        ` : ''}
+      </div>
+      <div class="right-column" style="
+        width: 629px;
+        margin: 24px 24px 90px 0;
+        box-sizing: border-box;
+      ">
+        ${resumeData.jobTitle ? headerHtml : ''}
+        ${resumeData.workExperience.length > 0 ? `
+          <div style="margin-bottom: clamp(16px, 3vw, 32px);">
+            <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 4; margin-left: 20px;">WORK EXPERIENCE</div>
+            <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
+            ${workExperienceHtml}
+          </div>
+        ` : ''}
+        ${resumeData.courses && resumeData.courses.length > 0 ? `
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">COURSES & TRAININGS</div>
+            <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
+            ${coursesHtml}
+          </div>
+        ` : ''}
+        ${resumeData.education.length > 0 ? `
+          <div style="margin-bottom: clamp(16px, 3vw, 32px);">
+            <div style="font-weight: 700; font-size: clamp(14px, 2.2vw, 18px); color: #c8665b; margin-bottom: 8; margin-left: 20px;">EDUCATION</div>
+            <div style="width: 100%; height: 2; background: #c8665b; margin: 4px 0 12px 0;"></div>
+            ${educationHtml}
+          </div>
+        ` : ''}
+      </div>
+    </div>`;
 
     console.log('HTML generated successfully, length:', html.length);
 
