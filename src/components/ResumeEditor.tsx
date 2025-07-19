@@ -803,12 +803,18 @@ export default function ResumeEditor({
       setError("");
       setGeneratingPDF(true);
       
-      // TEMPORARY: Using DIRECT LOCAL route for testing - NO REDIRECTS
-      // Open the DIRECT LOCAL route directly in a new tab (stays on localhost)
-      const url = `/api/resumes/${resumeId}/pdf-test-direct-local?template=${selectedTemplate}`;
-      window.open(url, '_blank');
+      // Use the new PDF generation route that returns actual PDF files
+      const url = `/api/resumes/${resumeId}/pdf-generate?template=${selectedTemplate}`;
       
-      setSuccess("PDF generation page opened in new tab");
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${resumeData.content.personalInfo.name}-Resume.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setSuccess("PDF downloaded successfully!");
     } catch (error) {
       console.error("Error generating PDF:", error);
       setError("Failed to generate PDF. Please try again.");
