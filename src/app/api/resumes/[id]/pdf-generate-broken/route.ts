@@ -172,11 +172,6 @@ export async function GET(
           </style>
         </head>
         <body>
-          <div style="position: fixed; top: 10px; right: 10px; background: #c8665b; color: white; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 9999;">
-            🎯 PDF GENERATE ROUTE<br>
-            Template: ${template}<br>
-            Auto-print in 2 seconds...
-          </div>
           ${renderedHtml}
           <script>
             setTimeout(() => {
