@@ -94,8 +94,8 @@ export default function ViewResumePage() {
     
     setDownloading(true);
     try {
-      // TEMPORARY: Using test PDF route for local testing
-      const response = await fetch(`/api/resumes/${resumeId}/pdf-test-working?template=${selectedTemplate}`);
+      // TEMPORARY: Using production PDF route for testing
+      const response = await fetch(`/api/resumes/${resumeId}/pdf-test-production?template=${selectedTemplate}`);
       // TODO: Change back to original route: /api/resumes/${resumeId}/pdf?template=${selectedTemplate}
       if (response.ok) {
         const blob = await response.blob();
