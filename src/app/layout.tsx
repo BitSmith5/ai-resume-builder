@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Resume Builder",
-  description: "Create professional resumes with AI assistance",
+  title: "Resume Builder",
+  description: "Create professional resumes",
 };
 
 // Force Vercel deployment - updated layout
