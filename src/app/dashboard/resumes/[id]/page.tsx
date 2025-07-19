@@ -94,9 +94,9 @@ export default function ViewResumePage() {
     
     setDownloading(true);
     try {
-      // TEMPORARY: Using final simple PDF route for testing
-      // Open the HTML in a new tab instead of downloading
-      const url = `/api/resumes/${resumeId}/pdf-test-final-simple?template=${selectedTemplate}`;
+      // TEMPORARY: Using redirect route for testing
+      // Open the redirect route in a new tab
+      const url = `/api/resumes/${resumeId}/pdf-test-redirect?template=${selectedTemplate}`;
       window.open(url, '_blank');
     } catch (error) {
       console.error('Failed to generate PDF:', error);
