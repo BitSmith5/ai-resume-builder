@@ -149,15 +149,12 @@ interface ResumeEditorV2Props {
 
 export default function ResumeEditorV2({
   resumeId,
-  onSave,
   template,
 }: ResumeEditorV2Props) {
   const { data: session } = useSession();
   const [loading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [selectedTemplate] = useState(template || "modern");
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
