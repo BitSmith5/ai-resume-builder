@@ -10,15 +10,10 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  Icon,
   Divider,
 } from "@mui/material";
 import {
@@ -1297,7 +1292,7 @@ export default function ResumeEditorV2({
                 </IconButton>
               </Box>
               <List sx={{ px: 0, pt: 0, pb: 0 }}>
-                {sectionOrder.map((section, index) => (
+                {sectionOrder.map((section) => (
                   <ListItem
                     key={section}
                     sx={{
