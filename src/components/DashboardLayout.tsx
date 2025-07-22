@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   AppBar,
   Box,
@@ -40,6 +40,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mounted, setMounted] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Get current page title based on pathname
+  const getCurrentPageTitle = () => {
+    if (pathname === "/dashboard") return "Dashboard";
+    if (pathname === "/dashboard/resume") return "Resume";
+    if (pathname === "/dashboard/resume/new") return "Create Resume";
+    if (pathname === "/dashboard/resumes") return "My Resumes";
+    if (pathname === "/dashboard/profile") return "Profile";
+    return "Dashboard";
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -78,6 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+    { text: "Resume", icon: <ResumeIcon />, path: "/dashboard/resume" }, // New menu item for Resume section
     { text: "My Resumes", icon: <ResumeIcon />, path: "/dashboard/resumes" },
     { text: "Profile", icon: <ProfileIcon />, path: "/dashboard/profile" },
   ];
@@ -106,9 +118,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <Box sx={{ display: "flex" }}>
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
+          backgroundColor: 'transparent',
+          boxShadow: 'none',
         }}
       >
         <Toolbar>
@@ -121,15 +136,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Dashboard
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, color: 'black' }}>
+            {getCurrentPageTitle()}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography 
               variant="body2" 
               sx={{ 
                 mr: 2,
-                display: { xs: 'none', sm: 'block' }
+                display: { xs: 'none', sm: 'block' },
+                color: 'black'
               }}
             >
               {mounted ? (session?.user?.name || "User") : "..."}

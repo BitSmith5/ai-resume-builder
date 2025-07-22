@@ -25,6 +25,7 @@ export async function GET() {
         location: true,
         phone: true,
         linkedinUrl: true,
+        githubUrl: true,
         portfolioUrl: true,
         preferences: true,
       },
@@ -62,6 +63,7 @@ export async function PUT(request: NextRequest) {
       location, 
       phone, 
       linkedinUrl, 
+      githubUrl,
       portfolioUrl, 
       preferences 
     } = body;
@@ -83,6 +85,7 @@ export async function PUT(request: NextRequest) {
         location: location || null,
         phone: phone || null,
         linkedinUrl: linkedinUrl || null,
+        githubUrl: githubUrl || null,
         portfolioUrl: portfolioUrl || null,
         preferences: preferences || null,
       },
@@ -95,6 +98,7 @@ export async function PUT(request: NextRequest) {
         location: true,
         phone: true,
         linkedinUrl: true,
+        githubUrl: true,
         portfolioUrl: true,
         preferences: true,
       },

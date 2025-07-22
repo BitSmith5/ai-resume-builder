@@ -22,6 +22,7 @@ import {
   Email as EmailIcon,
   Security as SecurityIcon,
   LinkedIn as LinkedInIcon,
+  GitHub as GitHubIcon,
   Language as LanguageIcon,
 } from "@mui/icons-material";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -33,6 +34,7 @@ interface ProfileData {
   location: string;
   linkedinUrl: string;
   portfolioUrl: string;
+  githubUrl: string;
   phone: string;
   preferences: {
     emailNotifications: boolean;
@@ -51,6 +53,7 @@ export default function ProfilePage() {
     location: "",
     linkedinUrl: "",
     portfolioUrl: "",
+    githubUrl: "",
     phone: "",
     preferences: {
       emailNotifications: true,
@@ -78,6 +81,7 @@ export default function ProfilePage() {
           location: userData.location || "",
           linkedinUrl: userData.linkedinUrl || "",
           portfolioUrl: userData.portfolioUrl || "",
+          githubUrl: userData.githubUrl || "",
           phone: userData.phone || "",
           preferences: userData.preferences || prev.preferences,
         }));
@@ -117,6 +121,7 @@ export default function ProfilePage() {
           location: profileData.location,
           linkedinUrl: profileData.linkedinUrl,
           portfolioUrl: profileData.portfolioUrl,
+          githubUrl: profileData.githubUrl,
           phone: profileData.phone,
           preferences: profileData.preferences,
         }),
@@ -251,6 +256,17 @@ export default function ProfilePage() {
                     placeholder="https://linkedin.com/in/yourprofile"
                     InputProps={{
                       startAdornment: <LinkedInIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="GitHub URL"
+                    value={profileData.githubUrl}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, githubUrl: e.target.value }))}
+                    disabled={!isEditing}
+                    placeholder="https://github.com/yourusername"
+                    InputProps={{
+                      startAdornment: <GitHubIcon sx={{ mr: 1, color: "text.secondary" }} />,
                     }}
                   />
                   <TextField
