@@ -1,23 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
   Box,
-  Paper,
   TextField,
   Button,
   Typography,
   IconButton,
-  FormControlLabel,
-  Checkbox,
   Alert,
   CircularProgress,
-  Stack,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -27,19 +19,15 @@ import {
   ListItemText,
   ListItemIcon,
   Icon,
-  Chip,
-  Avatar,
   Divider,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   DeleteOutline as DeleteOutlineIcon,
-  Save as SaveIcon,
   Download as DownloadIcon,
   DragIndicator as DragIndicatorIcon,
   Edit as EditIcon,
-  Visibility as ViewIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
   LocationOn as LocationIcon,
@@ -49,10 +37,7 @@ import {
   Close as CloseIcon,
   Star as StarIcon,
 } from "@mui/icons-material";
-import ResumeTemplateRegistry, {
-  AVAILABLE_TEMPLATES,
-} from "./ResumeTemplateRegistry";
-import { storeImage, getImage, deleteImage } from "@/lib/imageStorage";
+import ResumeTemplateRegistry from "./ResumeTemplateRegistry";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import {
   DndContext,
@@ -75,56 +60,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 // import { useDebouncedCallback } from 'use-debounce';
 
-// Available icons for interests
-const AVAILABLE_ICONS = [
-  { value: '🎵', label: 'Music' },
-  { value: '📚', label: 'Reading' },
-  { value: '🏃‍♂️', label: 'Running' },
-  { value: '🏋️‍♂️', label: 'Gym' },
-  { value: '🎨', label: 'Art' },
-  { value: '📷', label: 'Photography' },
-  { value: '🎮', label: 'Gaming' },
-  { value: '🍳', label: 'Cooking' },
-  { value: '✈️', label: 'Travel' },
-  { value: '🎬', label: 'Movies' },
-  { value: '🎭', label: 'Theater' },
-  { value: '🏊‍♂️', label: 'Swimming' },
-  { value: '🚴‍♂️', label: 'Cycling' },
-  { value: '🎯', label: 'Target Shooting' },
-  { value: '🧘‍♀️', label: 'Yoga' },
-  { value: '🎲', label: 'Board Games' },
-  { value: '🎸', label: 'Guitar' },
-  { value: '🎹', label: 'Piano' },
-  { value: '🎤', label: 'Singing' },
-  { value: '💻', label: 'Programming' },
-  { value: '🔬', label: 'Science' },
-  { value: '🌱', label: 'Gardening' },
-  { value: '🐕', label: 'Dogs' },
-  { value: '🐱', label: 'Cats' },
-  { value: '🏔️', label: 'Hiking' },
-  { value: '🏖️', label: 'Beach' },
-  { value: '🎿', label: 'Skiing' },
-  { value: '🏄‍♂️', label: 'Surfing' },
-  { value: '🎾', label: 'Tennis' },
-  { value: '⚽', label: 'Soccer' },
-  { value: '🏀', label: 'Basketball' },
-  { value: '🏈', label: 'Football' },
-  { value: '⚾', label: 'Baseball' },
-  { value: '🎳', label: 'Bowling' },
-  { value: '♟️', label: 'Chess' },
-  { value: '✏️', label: 'Drawing' },
-  { value: '📝', label: 'Writing' },
-  { value: '📊', label: 'Data Analysis' },
-  { value: '🔍', label: 'Research' },
-  { value: '🌍', label: 'Languages' },
-  { value: '📈', label: 'Investing' },
-  { value: '🏛️', label: 'History' },
-  { value: '🌌', label: 'Astronomy' },
-  { value: '🧬', label: 'Biology' },
-  { value: '⚗️', label: 'Chemistry' },
-  { value: '⚡', label: 'Physics' },
-  { value: '🧮', label: 'Mathematics' }
-];
+
 
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
@@ -209,10 +145,7 @@ interface ResumeEditorV2Props {
   showPreview?: boolean;
 }
 
-interface SectionComponentProps {
-  resumeData: ResumeData;
-  setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>;
-}
+
 
 export default function ResumeEditorV2({
   resumeId,
@@ -247,6 +180,14 @@ export default function ResumeEditorV2({
     "Interests",
   ]);
   // const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const [resumeData, setResumeData] = useState<ResumeData>({
     title: "",
@@ -767,7 +708,11 @@ export default function ResumeEditorV2({
       };
 
       // Custom Sortable Skill Component with real-time feedback
-      const SortableSkill = ({ skill, index, categoryId, onDelete }: any) => {
+      const SortableSkill = ({ skill, categoryId, onDelete }: { 
+        skill: { id: string; name: string }; 
+        categoryId: string; 
+        onDelete: (categoryId: string, skillId: string) => void; 
+      }) => {
         const {
           attributes,
           listeners,
@@ -923,12 +868,7 @@ export default function ResumeEditorV2({
 
                           {/* Skills in this category */}
                           <DndContext
-                            sensors={useSensors(
-                              useSensor(PointerSensor),
-                              useSensor(KeyboardSensor, {
-                                coordinateGetter: sortableKeyboardCoordinates,
-                              })
-                            )}
+                            sensors={sensors}
                             collisionDetection={closestCenter}
                                                          onDragEnd={(event: DragEndEvent) => {
                                const { active, over } = event;
@@ -947,11 +887,10 @@ export default function ResumeEditorV2({
                           >
                             <SortableContext items={category.skills.map(skill => skill.id)} strategy={horizontalListSortingStrategy}>
                               <Box sx={{ display: "flex", minHeight: 40, flexWrap: "wrap", pl: 3 }}>
-                                {category.skills.map((skill, skillIndex) => (
+                                {category.skills.map((skill) => (
                                   <SortableSkill
                                     key={skill.id}
                                     skill={skill}
-                                    index={skillIndex}
                                     categoryId={category.id}
                                     onDelete={deleteSkillFromCategory}
                                   />
