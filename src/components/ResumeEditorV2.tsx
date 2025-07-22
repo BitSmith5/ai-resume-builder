@@ -153,6 +153,10 @@ export default function ResumeEditorV2({
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
   const [addSectionPopupOpen, setAddSectionPopupOpen] = useState(false);
   const [editResumeInfoOpen, setEditResumeInfoOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    jobTitle: "",
+  });
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -1031,11 +1035,17 @@ export default function ResumeEditorV2({
         </Box>
         {/* Right: Action buttons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Button
-              variant="text"
-              size="small"
-              startIcon={<EditIcon />}
-              onClick={() => setEditResumeInfoOpen(true)}
+                                    <Button
+                variant="text"
+                size="small"
+                startIcon={<EditIcon />}
+                onClick={() => {
+                  setEditFormData({
+                    title: resumeData.title,
+                    jobTitle: resumeData.jobTitle || "",
+                  });
+                  setEditResumeInfoOpen(true);
+                }}
               sx={{ 
                 textTransform: 'none', 
                 fontWeight: 500,
@@ -1055,7 +1065,7 @@ export default function ResumeEditorV2({
             >
             Edit Resume Info
           </Button>
-                      <Button
+            <Button
               variant="text"
               size="small"
               startIcon={<DownloadIcon />}
@@ -1078,7 +1088,7 @@ export default function ResumeEditorV2({
             >
             Export
           </Button>
-                      <Button
+            <Button
               variant="text"
               size="small"
               startIcon={<DeleteIcon />}
@@ -1466,12 +1476,12 @@ export default function ResumeEditorV2({
               borderRadius: '0 18px 18px 18px',
               boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 1.5px 8px rgba(0,0,0,0.10)',
               zIndex: 2001,
-              width: 400,
+              width: 500,
               p: 3,
             }}
           >
             {/* Header */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6" fontWeight={600} sx={{ fontSize: '1.1rem' }}>
                 Edit Resume Info
               </Typography>
@@ -1483,6 +1493,7 @@ export default function ResumeEditorV2({
                 <CloseIcon sx={{ fontSize: 18 }} />
               </IconButton>
             </Box>
+            <Box sx={{ mx: 0, mb: 3, height: 1.5, backgroundColor: '#e0e0e0' }} />
 
             {/* Form Fields */}
             <Box sx={{ mb: 3 }}>
@@ -1491,11 +1502,19 @@ export default function ResumeEditorV2({
               </Typography>
               <TextField
                 fullWidth
-                value={resumeData.title}
-                onChange={(e) => setResumeData(prev => ({ ...prev, title: e.target.value }))}
+                value={editFormData.title}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter your resume name"
+                inputProps={{
+                  style: {
+                    fontSize: '14px',
+                  },
+                }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#f5f5f5',
+                    borderRadius: 2,
+                    height: 40,
                     '& fieldset': {
                       border: 'none',
                     },
@@ -1510,12 +1529,19 @@ export default function ResumeEditorV2({
               </Typography>
               <TextField
                 fullWidth
-                value={resumeData.jobTitle || ''}
-                onChange={(e) => setResumeData(prev => ({ ...prev, jobTitle: e.target.value }))}
+                value={editFormData.jobTitle}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, jobTitle: e.target.value }))}
                 placeholder="Enter the job title you're aiming for (e.g., Product Manager)"
+                inputProps={{
+                  style: {
+                    fontSize: '14px',
+                  },
+                }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#f5f5f5',
+                    borderRadius: 2,
+                    height: 40,
                     '& fieldset': {
                       border: 'none',
                     },
@@ -1525,11 +1551,12 @@ export default function ResumeEditorV2({
             </Box>
 
             {/* Action Buttons */}
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
               <Button
                 variant="outlined"
                 onClick={() => setEditResumeInfoOpen(false)}
                 sx={{
+                  flex: 1,
                   borderRadius: 2,
                   border: '1px solid #e0e0e0',
                   color: '#222',
@@ -1541,8 +1568,16 @@ export default function ResumeEditorV2({
               </Button>
               <Button
                 variant="contained"
-                onClick={() => setEditResumeInfoOpen(false)}
+                onClick={() => {
+                  setResumeData(prev => ({
+                    ...prev,
+                    title: editFormData.title,
+                    jobTitle: editFormData.jobTitle,
+                  }));
+                  setEditResumeInfoOpen(false);
+                }}
                 sx={{
+                  flex: 1,
                   borderRadius: 2,
                   background: 'rgb(100, 248, 179)',
                   color: '#222',
