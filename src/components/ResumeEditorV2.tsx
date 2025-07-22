@@ -37,7 +37,7 @@ import {
   Close as CloseIcon,
   Star as StarIcon,
 } from "@mui/icons-material";
-import ResumeTemplateRegistry from "./ResumeTemplateRegistry";
+
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import {
   DndContext,
@@ -153,13 +153,11 @@ export default function ResumeEditorV2({
   template,
 }: ResumeEditorV2Props) {
   const { data: session } = useSession();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState(
-    template || "modern",
-  );
+  const [selectedTemplate] = useState(template || "modern");
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
@@ -324,41 +322,7 @@ export default function ResumeEditorV2({
   //   setSaveStatus('idle');
   //   debouncedSave(resumeData, selectedTemplate);
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [resumeData, selectedTemplate]);
 
-  const handleSave = async () => {
-    setSaving(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
-      const method = resumeId ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...resumeData,
-          template: selectedTemplate,
-        }),
-      });
-
-      if (response.ok) {
-        setSuccess("Resume saved successfully!");
-        onSave?.();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || "Failed to save resume");
-      }
-    } catch {
-      setError("Failed to save resume");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   // Handle drag end for section reordering
   const handleDragEnd = (result: DropResult) => {
@@ -384,7 +348,7 @@ export default function ResumeEditorV2({
 
   // Helper: map section titles to render functions
   const SECTION_COMPONENTS: Record<string, (resumeData: ResumeData, setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>) => JSX.Element> = {
-    "Personal Info": (resumeData, setResumeData) => {
+    "Personal Info": () => {
       console.log('Rendering Personal Info with profileData:', profileData);
       console.log('Session data:', session?.user);
       const hasProfileData = profileData.name || profileData.email || profileData.phone || profileData.location || profileData.linkedinUrl || profileData.githubUrl || profileData.portfolioUrl;
@@ -694,18 +658,7 @@ export default function ResumeEditorV2({
         }));
       };
 
-      const handleSkillDragEnd = (result: DropResult, categoryId: string) => {
-        if (!result.destination) return;
-        
-        const category = (resumeData.skillCategories || skillCategories).find(cat => cat.id === categoryId);
-        if (!category) return;
 
-        const newSkills = Array.from(category.skills);
-        const [removed] = newSkills.splice(result.source.index, 1);
-        newSkills.splice(result.destination.index, 0, removed);
-
-        updateSkillCategory(categoryId, { skills: newSkills });
-      };
 
       // Custom Sortable Skill Component with real-time feedback
       const SortableSkill = ({ skill, categoryId, onDelete }: { 
