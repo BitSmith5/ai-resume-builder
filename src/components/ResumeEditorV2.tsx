@@ -32,6 +32,7 @@ import {
   Close as CloseIcon,
   Star as StarIcon,
   List as ListIcon,
+  TrendingFlat as TrendingFlatIcon,
 } from "@mui/icons-material";
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -105,12 +106,15 @@ interface ResumeData {
     }>;
   }>;
   workExperience: Array<{
+    id: string;
     company: string;
     position: string;
+    location: string;
     startDate: string;
     endDate: string;
     current: boolean;
     bulletPoints: Array<{
+      id: string;
       description: string;
     }>;
   }>;
@@ -157,6 +161,16 @@ export default function ResumeEditorV2({
     title: "",
     jobTitle: "",
   });
+          const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerType, setDatePickerType] = useState<'start' | 'end' | null>(null);
+  const [datePickerWorkId, setDatePickerWorkId] = useState<string | null>(null);
+  const [datePickerCallback, setDatePickerCallback] = useState<((date: string) => void) | null>(null);
+  const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
+  const [editingBulletId, setEditingBulletId] = useState<string | null>(null);
+  const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
+  const [editingDateField, setEditingDateField] = useState<'start' | 'end' | null>(null);
+  const datePickerCallbackRef = React.useRef<((date: string) => void) | null>(null);
+
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -216,6 +230,188 @@ export default function ResumeEditorV2({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Custom Date Picker Component
+  const DatePicker = ({ isOpen, onClose, onSelect }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSelect: (date: string) => void;
+  }) => {
+    const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
+    if (!isOpen) return null;
+
+    return (
+      <>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.3)',
+            zIndex: 3000,
+          }}
+          onClick={() => {
+            onClose();
+            setSelectedYear(null);
+          }}
+        />
+        <Box
+          sx={{
+            position: 'fixed',
+            top: datePickerPosition.y,
+            left: datePickerPosition.x,
+            background: '#fff',
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+            zIndex: 3001,
+            px: 1,
+            minWidth: 100,
+            transform: 'scaleY(0)',
+            transformOrigin: 'top',
+            animation: 'expandDown 0.2s ease-out forwards',
+            '@keyframes expandDown': {
+              '0%': {
+                transform: 'scaleY(0)',
+                opacity: 0,
+              },
+              '100%': {
+                transform: 'scaleY(1)',
+                opacity: 1,
+              },
+            },
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {!selectedYear ? (
+            // Year Selection
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              maxHeight: 200, 
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              alignItems: 'flex-start',
+              pr: 0.5,
+              ml: -0.5,
+              '&::-webkit-scrollbar': {
+                width: '4px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+                margin: '0',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#c0c0c0',
+                borderRadius: '2px',
+                margin: '0',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#a0a0a0',
+              },
+            }}>
+              {Array.from({ length: new Date().getFullYear() - 1900 + 1 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                <Box
+                  key={year}
+                  onClick={() => setSelectedYear(year)}
+                  sx={{
+                    py: 0.25,
+                    px: 1,
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: 'rgb(100, 248, 179)',
+                    },
+                    textAlign: 'left',
+                    fontWeight: 500,
+                    fontSize: '0.9rem',
+                    width: '100%',
+                  }}
+                >
+                  {year}
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            // Month Selection
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              maxHeight: 200, 
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              alignItems: 'flex-start',
+              pr: 1,
+              '&::-webkit-scrollbar': {
+                width: '4px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+                margin: '0',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#c0c0c0',
+                borderRadius: '2px',
+                margin: '0',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#a0a0a0',
+              },
+            }}>
+              {[
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+              ].map((month) => (
+                <Box
+                  key={month}
+                  onClick={() => {
+                    const dateString = `${month} ${selectedYear}`;
+                    onSelect(dateString);
+                    setSelectedYear(null);
+                  }}
+                  sx={{
+                    py: 0.25,
+                    px: 1,
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: 'rgb(100, 248, 179)',
+                    },
+                    textAlign: 'left',
+                    fontWeight: 500,
+                    fontSize: '0.9rem',
+                    width: '100%',
+                  }}
+                >
+                  {month}
+                </Box>
+              ))}
+            </Box>
+          )}
+          
+          {selectedYear && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+              <Button
+                onClick={() => setSelectedYear(null)}
+                sx={{ 
+                  textTransform: 'none', 
+                  fontSize: '0.8rem',
+                  color: '#22c55e',
+                  '&:hover': {
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                  }
+                }}
+              >
+                Back to Years
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </>
+    );
+  };
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -943,6 +1139,604 @@ export default function ResumeEditorV2({
         </Box>
       );
     },
+    "Work Experience": (resumeData, setResumeData) => {
+      // Initialize work experience if not exists
+      const workExperience = resumeData.workExperience || [
+        {
+          id: `work-${Date.now()}`,
+          company: "Playgig Inc.",
+          position: "Game Engineer (Contract)",
+          location: "",
+          startDate: "Mar 2025",
+          endDate: "May 2025",
+          current: false,
+          bulletPoints: [
+            { id: Math.random().toString(), description: "Utilized AI-driven tools to accelerate development workflows, improving iteration speed and team efficiency." },
+            { id: Math.random().toString(), description: "Optimized performance for a mobile title, significantly increasing frame rates and enhancing player experience." },
+            { id: Math.random().toString(), description: "Refactored matchmaking systems to improve reliability and scalability." },
+            { id: Math.random().toString(), description: "Implemented custom gear effects and ability systems." }
+          ]
+        },
+        {
+          id: `work-${Date.now() + 1}`,
+          company: "Battlebound Inc.",
+          position: "Game Engineer",
+          location: "",
+          startDate: "Jan 2024",
+          endDate: "Feb 2025",
+          current: false,
+          bulletPoints: [
+            { id: Math.random().toString(), description: "Enhanced gameplay systems (abilities, stats, quests, camera, AI, UI) for multiple games, including a Web3 Steam title, significantly boosting player engagement and improving game functionality." },
+            { id: Math.random().toString(), description: "Engineered hoverboard racing and turtle racing games with engaging mechanics." },
+            { id: Math.random().toString(), description: "Maintained a live online game with a large user base, submitting updates and hot fixes rapidly." }
+          ]
+        }
+      ];
+
+      const addWorkExperience = () => {
+        const newWork = {
+          id: `work-${Date.now()}`,
+          company: "",
+          position: "",
+          location: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+          bulletPoints: []
+        };
+        setResumeData(prev => ({
+          ...prev,
+          workExperience: [...(prev.workExperience || workExperience), newWork]
+        }));
+      };
+
+      const updateWorkExperience = (workId: string, updates: Partial<{
+        company: string;
+        position: string;
+        location: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+        bulletPoints: Array<{ id: string; description: string }>;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          workExperience: (prev.workExperience || workExperience).map(work =>
+            work.id === workId ? { ...work, ...updates } : work
+          )
+        }));
+      };
+
+      const deleteWorkExperience = (workId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          workExperience: (prev.workExperience || workExperience).filter(work => work.id !== workId)
+        }));
+      };
+
+      const addBulletPoint = (workId: string, description: string = "") => {
+        const newBulletId = Math.random().toString();
+        const newBullet = { id: newBulletId, description: description };
+        setResumeData(prev => ({
+          ...prev,
+          workExperience: (prev.workExperience || workExperience).map(work =>
+            work.id === workId ? { ...work, bulletPoints: [...work.bulletPoints, newBullet] } : work
+          )
+        }));
+        setEditingBulletId(newBulletId);
+      };
+
+      const deleteBulletPoint = (workId: string, bulletId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          workExperience: (prev.workExperience || workExperience).map(work =>
+            work.id === workId ? { ...work, bulletPoints: work.bulletPoints.filter(bullet => bullet.id !== bulletId) } : work
+          )
+        }));
+      };
+
+      const updateBulletPoint = (workId: string, bulletId: string, description: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          workExperience: (prev.workExperience || workExperience).map(work =>
+            work.id === workId ? {
+              ...work,
+              bulletPoints: work.bulletPoints.map(bullet =>
+                bullet.id === bulletId ? { ...bullet, description } : bullet
+              )
+            } : work
+          )
+        }));
+      };
+
+
+
+      // Custom Sortable Bullet Point Component
+      const SortableBulletPoint = ({ bullet, workId, onDelete, onUpdate }: {
+        bullet: { id: string; description: string };
+        workId: string;
+        onDelete: (workId: string, bulletId: string) => void;
+        onUpdate: (workId: string, bulletId: string, description: string) => void;
+      }) => {
+        const {
+          attributes,
+          listeners,
+          setNodeRef,
+          transform,
+          transition,
+          isDragging,
+        } = useSortable({ id: bullet.id });
+
+        const style = {
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.5 : 1,
+        };
+
+        const isEditing = editingBulletId === bullet.id;
+        const isPlaceholder = bullet.description === "Bullet point...";
+
+        return (
+          <Box
+            ref={setNodeRef}
+            style={style}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '80%',
+            }}
+          >
+            <Box
+              {...attributes}
+              {...listeners}
+              sx={{ 
+                mr: 0.25, 
+                display: 'flex',
+                alignItems: 'center',
+                height: '100%',
+                cursor: 'grab'
+              }}
+            >
+              <DragIndicatorIcon sx={{ fontSize: 20, color: '#bbb' }} />
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                py: 0.5,
+                flex: 1,
+                cursor: isEditing ? 'text' : 'default',
+                backgroundColor: isEditing ? '#f5f5f5' : 'transparent',
+                borderRadius: isEditing ? 2 : 0,
+                '&:hover': {
+                  backgroundColor: isEditing ? '#f5f5f5' : '#f5f5f5',
+                  borderRadius: 2,
+                },
+              }}
+            >
+              {isEditing ? (
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0 }}>•</Typography>
+                <Box sx={{ flex: 1 }}>
+                  <TextField
+                  value={bullet.description}
+                  placeholder="Enter bullet point description..."
+                  onChange={(e) => onUpdate(workId, bullet.id, e.target.value)}
+                onBlur={() => {
+                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                    setEditingBulletId(null);
+                  }
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                      setEditingBulletId(null);
+                    }
+                  }
+                }}
+                variant="standard"
+                sx={{
+                  flex: 1,
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    paddingLeft: '0',
+                  },
+                  '& .MuiInput-underline:before': { borderBottom: 'none' },
+                  '& .MuiInput-underline:after': { borderBottom: 'none' },
+                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
+                }}
+                InputProps={{
+                  disableUnderline: true,
+                }}
+                                  autoFocus
+                />
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0 }}>•</Typography>
+                <Typography 
+                  component="span" 
+                  onClick={() => setEditingBulletId(bullet.id)}
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    color: isPlaceholder ? '#999' : 'black',
+                    flex: 1,
+                    cursor: 'text',
+                    '&:hover': {
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 2,
+                    }
+                  }}
+                >
+                  {bullet.description}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+        );
+      };
+
+      const handleWorkDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newWorkExperience = Array.from((resumeData.workExperience || workExperience));
+        const [removed] = newWorkExperience.splice(result.source.index, 1);
+        newWorkExperience.splice(result.destination.index, 0, removed);
+        
+        setResumeData((prev: ResumeData) => ({ ...prev, workExperience: newWorkExperience }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Professional Experience
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleWorkDragEnd}>
+            <Droppable droppableId="work-experience" type="work-experience">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.workExperience || workExperience).length === 0 ? 10 : 100 }}>
+                  {(resumeData.workExperience || workExperience).map((work, workIndex) => (
+                    <React.Fragment key={work.id}>
+                      <Draggable draggableId={work.id} index={workIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                            }}
+                          >
+                            {/* Work Experience Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={work.company || ''}
+                                onChange={(e) => updateWorkExperience(work.id, { company: e.target.value })}
+                                placeholder="New Company..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (work.company && work.company.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteWorkExperience(work.id)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Dates */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={work.startDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      console.log('Updating start date:', date);
+                                      updateWorkExperience(work.id, { startDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="Start Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (work.startDate && work.startDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                              <TrendingFlatIcon sx={{ 
+                                alignSelf: 'center', 
+                                color: '#666',
+                                fontSize: '1.2rem'
+                              }} />
+                              <TextField
+                                size="small"
+                                value={work.endDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      console.log('Updating end date:', date);
+                                      updateWorkExperience(work.id, { endDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="End Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (work.endDate && work.endDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                            </Box>
+
+                            {/* Location */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={work.location || ''}
+                                onChange={(e) => updateWorkExperience(work.id, { location: e.target.value })}
+                                placeholder="Location..."
+                                sx={{ 
+                                  width: 240,
+                                  height: 28,
+                                  backgroundColor: (work.location && work.location.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Job Title */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <TextField
+                                value={work.position || ''}
+                                onChange={(e) => updateWorkExperience(work.id, { position: e.target.value })}
+                                placeholder="Job Title..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 400,
+                                  pl: 1,
+                                  height: 28,
+                                  width: 240,
+                                  backgroundColor: (work.position && work.position.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    borderRadius: 2,
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 400, fontSize: '0.875rem', height: 28 },
+                                  disableUnderline: true,
+                                }}
+                              />
+                            </Box>
+
+                            {/* Bullet Points */}
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={(event: DragEndEvent) => {
+                                const { active, over } = event;
+                                
+                                if (active.id !== over?.id) {
+                                  const currentWork = (resumeData.workExperience || workExperience).find(w => w.id === work.id);
+                                  if (!currentWork) return;
+                                  
+                                  const oldIndex = currentWork.bulletPoints.findIndex(bullet => bullet.id === active.id);
+                                  const newIndex = currentWork.bulletPoints.findIndex(bullet => bullet.id === over?.id);
+                                  
+                                  const newBulletPoints = arrayMove(currentWork.bulletPoints, oldIndex, newIndex);
+                                  updateWorkExperience(work.id, { bulletPoints: newBulletPoints });
+                                }
+                              }}
+                            >
+                              <SortableContext items={work.bulletPoints.map(bullet => bullet.id)}>
+                                <Box sx={{ pl: 3, mb: 1 }}>
+                                  {work.bulletPoints.map((bullet) => (
+                                    <SortableBulletPoint
+                                      key={bullet.id}
+                                      bullet={bullet}
+                                      workId={work.id}
+                                      onDelete={deleteBulletPoint}
+                                      onUpdate={updateBulletPoint}
+                                    />
+                                  ))}
+                                </Box>
+                              </SortableContext>
+                            </DndContext>
+
+                            {/* Add bullet point button */}
+                            <Box sx={{ pl: 3 }}>
+                              <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => addBulletPoint(work.id)}
+                                variant="outlined"
+                                size="small"
+                                sx={{ 
+                                  textTransform: 'none', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'flex-start',
+                                  borderRadius: 2,
+                                  border: '1px solid #e0e0e0',
+                                  color: 'black',
+                                  minWidth: 180,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5'
+                                  }
+                                }}
+                              >
+                                Bullet Points
+                              </Button>
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Work Experience button */}
+          <Box>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addWorkExperience}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Work Experience
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
     // Add more sections as needed...
   };
 
@@ -1448,6 +2242,29 @@ export default function ResumeEditorV2({
           </Box>
         </>
       )}
+
+      {/* Date Picker */}
+      <DatePicker
+        isOpen={datePickerOpen}
+        onClose={() => {
+          console.log('DatePicker onClose called');
+          setDatePickerOpen(false);
+          // Don't clear the callback at all - let onSelect handle it
+        }}
+        onSelect={(date: string) => {
+          console.log('Date selected:', date);
+          console.log('datePickerCallbackRef exists:', !!datePickerCallbackRef.current);
+          
+          if (datePickerCallbackRef.current) {
+            console.log('Calling datePickerCallbackRef with date:', date);
+            datePickerCallbackRef.current(date);
+            console.log('datePickerCallbackRef completed');
+          } else {
+            console.log('No callback available, date picker will not update the field');
+          }
+          setDatePickerOpen(false);
+        }}
+      />
 
       {/* Edit Resume Info Popup - Full Screen Overlay */}
       {editResumeInfoOpen && (
