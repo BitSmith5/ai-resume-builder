@@ -727,7 +727,7 @@ export default function ResumeEditorV2({
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "row", gap: 3, mb: 3, flexWrap: "wrap" }}>
               {profileData.email && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
                   <EmailIcon fontSize="small" color="action" />
                   <Typography variant="body2">{profileData.email}</Typography>
                 </Box>
@@ -749,7 +749,7 @@ export default function ResumeEditorV2({
             {/* Email Column */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {profileData.email && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
                   <EmailIcon fontSize="small" color="action" />
                   <Typography variant="body2">{profileData.email}</Typography>
                 </Box>
@@ -796,7 +796,7 @@ export default function ResumeEditorV2({
             {/* Phone Column */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {profileData.phone && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
                   <PhoneIcon fontSize="small" color="action" />
                   <Typography variant="body2">{formatPhoneNumber(profileData.phone)}</Typography>
                 </Box>
@@ -843,7 +843,7 @@ export default function ResumeEditorV2({
             {/* Location Column */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {profileData.location && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
                   <LocationIcon fontSize="small" color="action" />
                   <Typography variant="body2">{profileData.location}</Typography>
                 </Box>
