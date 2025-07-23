@@ -162,13 +162,8 @@ export default function ResumeEditorV2({
     jobTitle: "",
   });
           const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [datePickerType, setDatePickerType] = useState<'start' | 'end' | null>(null);
-  const [datePickerWorkId, setDatePickerWorkId] = useState<string | null>(null);
-  const [datePickerCallback, setDatePickerCallback] = useState<((date: string) => void) | null>(null);
   const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
   const [editingBulletId, setEditingBulletId] = useState<string | null>(null);
-  const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
-  const [editingDateField, setEditingDateField] = useState<'start' | 'end' | null>(null);
   const datePickerCallbackRef = React.useRef<((date: string) => void) | null>(null);
 
   const [profileData, setProfileData] = useState({
@@ -1252,10 +1247,9 @@ export default function ResumeEditorV2({
 
 
       // Custom Sortable Bullet Point Component
-      const SortableBulletPoint = ({ bullet, workId, onDelete, onUpdate }: {
+      const SortableBulletPoint = ({ bullet, workId, onUpdate }: {
         bullet: { id: string; description: string };
         workId: string;
-        onDelete: (workId: string, bulletId: string) => void;
         onUpdate: (workId: string, bulletId: string, description: string) => void;
       }) => {
         const {
@@ -1660,13 +1654,12 @@ export default function ResumeEditorV2({
                               <SortableContext items={work.bulletPoints.map(bullet => bullet.id)}>
                                 <Box sx={{ pl: 3, mb: 1 }}>
                                   {work.bulletPoints.map((bullet) => (
-                                    <SortableBulletPoint
-                                      key={bullet.id}
-                                      bullet={bullet}
-                                      workId={work.id}
-                                      onDelete={deleteBulletPoint}
-                                      onUpdate={updateBulletPoint}
-                                    />
+                                                                      <SortableBulletPoint
+                                    key={bullet.id}
+                                    bullet={bullet}
+                                    workId={work.id}
+                                    onUpdate={updateBulletPoint}
+                                  />
                                   ))}
                                 </Box>
                               </SortableContext>
