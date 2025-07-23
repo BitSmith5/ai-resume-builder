@@ -970,6 +970,7 @@ export default function ResumeEditorV2({
                           sx={{
                             mb: 2,
                             background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                            ml: -3.5,
                           }}
                         >
                           {/* Category Header with Drag Handle */}
@@ -1414,10 +1415,11 @@ export default function ResumeEditorV2({
                               mb: 3,
                               background: snapshot.isDragging ? '#f5f5f5' : 'white',
                               p: 2,
+                              ml: -5.5,
                             }}
                           >
                             {/* Work Experience Header with Drag Handle */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
                               <Box
                                 {...provided.dragHandleProps}
                                 sx={{
@@ -1426,6 +1428,7 @@ export default function ResumeEditorV2({
                                   cursor: 'grab',
                                   userSelect: 'none',
                                   color: '#bbb',
+                                  mr: 0.5,
                                 }}
                               >
                                 <DragIndicatorIcon sx={{ fontSize: 20 }} />
@@ -1696,7 +1699,7 @@ export default function ResumeEditorV2({
           </DragDropContext>
 
           {/* Add Work Experience button */}
-          <Box>
+          <Box sx={{ ml: -1.5 }}>
             <Button
               startIcon={<AddIcon />}
               onClick={addWorkExperience}
