@@ -33,6 +33,10 @@ import {
   Star as StarIcon,
   List as ListIcon,
   TrendingFlat as TrendingFlatIcon,
+  School as SchoolIcon,
+  Book as BookIcon,
+  Favorite as FavoriteIcon,
+  Check as CheckIcon,
 } from "@mui/icons-material";
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -57,7 +61,96 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 // import { useDebouncedCallback } from 'use-debounce';
 
+// ============================================================================
+// GLOBAL COLOR SYSTEM - Change colors from one location
+// ============================================================================
 
+// ============================================================================
+// MASTER COLOR - IDE-FRIENDLY RGBA FORMAT
+// ============================================================================
+
+// MASTER COLOR - RGBA format for IDE color picker
+const MASTER_COLOR_RGBA = 'rgb(173, 126, 233)'; // Light mint green with 30% opacity
+
+// ============================================================================
+// COLOR SYSTEM - SIMPLIFIED FOR RGBA MASTER COLOR
+// ============================================================================
+
+// All colors are now direct values for IDE color picker support
+
+// ============================================================================
+// COLOR UTILITIES FOR DYNAMIC PALETTE GENERATION
+// ============================================================================
+
+// Extract RGB values from the master color
+const extractRgbFromString = (colorString: string): { r: number, g: number, b: number } => {
+  const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (match) {
+    return {
+      r: parseInt(match[1]),
+      g: parseInt(match[2]), 
+      b: parseInt(match[3])
+    };
+  }
+  return { r: 145, g: 253, b: 145 }; // Fallback to your current color
+};
+
+// RGB to Hex conversion with bounds checking
+const rgbToHex = (r: number, g: number, b: number): string => {
+  // Clamp values to 0-255 range
+  const clampedR = Math.max(0, Math.min(255, Math.round(r)));
+  const clampedG = Math.max(0, Math.min(255, Math.round(g)));
+  const clampedB = Math.max(0, Math.min(255, Math.round(b)));
+  return `#${((1 << 24) + (clampedR << 16) + (clampedG << 8) + clampedB).toString(16).slice(1)}`;
+};
+
+// RGB to RGBA conversion with bounds checking
+const rgbToRgba = (r: number, g: number, b: number, alpha: number): string => {
+  // Clamp values to 0-255 range
+  const clampedR = Math.max(0, Math.min(255, Math.round(r)));
+  const clampedG = Math.max(0, Math.min(255, Math.round(g)));
+  const clampedB = Math.max(0, Math.min(255, Math.round(b)));
+  return `rgba(${clampedR}, ${clampedG}, ${clampedB}, ${alpha})`;
+};
+
+// ============================================================================
+// DYNAMIC COLOR PALETTE GENERATION
+// ============================================================================
+
+// Extract RGB from master color
+const MASTER_RGB = extractRgbFromString(MASTER_COLOR_RGBA);
+
+// Generate color palette dynamically from master color
+const COLORS = {
+  // Primary colors - Generated from master color
+  primary: rgbToHex(MASTER_RGB.r, MASTER_RGB.g, MASTER_RGB.b),
+  primaryLight: rgbToHex(MASTER_RGB.r + 30, MASTER_RGB.g + 30, MASTER_RGB.b + 30),
+  primaryDark: rgbToHex(MASTER_RGB.r - 30, MASTER_RGB.g - 30, MASTER_RGB.b - 30),
+  
+  // Background colors - Generated from master color
+  background: rgbToHex(MASTER_RGB.r + 50, MASTER_RGB.g + 50, MASTER_RGB.b + 50),
+  backgroundLight: rgbToHex(MASTER_RGB.r + 80, MASTER_RGB.g + 80, MASTER_RGB.b + 80),
+  
+  // RGBA variations - Generated from master color
+  shadow: rgbToRgba(MASTER_RGB.r, MASTER_RGB.g, MASTER_RGB.b, 0.3),
+  overlay: rgbToRgba(MASTER_RGB.r, MASTER_RGB.g, MASTER_RGB.b, 0.1),
+  
+  // Hover states - Generated from master color
+  hover: rgbToHex(MASTER_RGB.r + 20, MASTER_RGB.g + 20, MASTER_RGB.b + 20),
+  hoverLight: rgbToHex(MASTER_RGB.r + 40, MASTER_RGB.g + 40, MASTER_RGB.b + 40),
+  
+  // Selection and interactive states - Generated from master color
+  selected: rgbToHex(MASTER_RGB.r + 100, MASTER_RGB.g + 100, MASTER_RGB.b + 100), // Very light version for selections
+  selectedBackground: rgbToRgba(MASTER_RGB.r, MASTER_RGB.g, MASTER_RGB.b, 0.05), // Very light background for selections
+  
+  // UI element colors - Generated from master color
+  uiBackground: rgbToHex(MASTER_RGB.r + 60, MASTER_RGB.g + 60, MASTER_RGB.b + 60), // For UI elements like buttons
+  uiBackgroundLight: rgbToHex(MASTER_RGB.r + 90, MASTER_RGB.g + 90, MASTER_RGB.b + 90), // Lighter UI elements
+};
+
+// ============================================================================
+// END GLOBAL COLOR SYSTEM
+// ============================================================================
 
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
@@ -136,6 +229,66 @@ interface ResumeData {
     name: string;
     icon: string;
   }>;
+  projects?: Array<{
+    id: string;
+    title: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    technologies: string[];
+    link: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+  }>;
+  languages?: Array<{
+    id: string;
+    name: string;
+    proficiency: string;
+  }>;
+  publications?: Array<{
+    id: string;
+    title: string;
+    authors: string;
+    journal: string;
+    year: string;
+    doi: string;
+    link: string;
+  }>;
+  awards?: Array<{
+    id: string;
+    title: string;
+    organization: string;
+    year: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+  }>;
+  volunteerExperience?: Array<{
+    id: string;
+    organization: string;
+    position: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    hoursPerWeek: string;
+  }>;
+  references?: Array<{
+    id: string;
+    name: string;
+    title: string;
+    company: string;
+    email: string;
+    phone: string;
+    relationship: string;
+  }>;
 }
 
 interface ResumeEditorV2Props {
@@ -188,7 +341,7 @@ export default function ResumeEditorV2({
     "Professional Summary",
     "Technical Skills",
     "Work Experience",
-    "Education & Certificates",
+    "Education",
     "Courses",
     "Interests",
   ]);
@@ -216,6 +369,12 @@ export default function ResumeEditorV2({
     education: [],
     courses: [],
     interests: [],
+    projects: [],
+    languages: [],
+    publications: [],
+    awards: [],
+    volunteerExperience: [],
+    references: [],
   });
 
   // DnD sensors
@@ -317,7 +476,7 @@ export default function ResumeEditorV2({
                     cursor: 'pointer',
                     borderRadius: 1,
                     '&:hover': {
-                      backgroundColor: 'rgb(100, 248, 179)',
+                      backgroundColor: COLORS.background,
                     },
                     textAlign: 'left',
                     fontWeight: 500,
@@ -372,7 +531,7 @@ export default function ResumeEditorV2({
                     cursor: 'pointer',
                     borderRadius: 1,
                     '&:hover': {
-                      backgroundColor: 'rgb(100, 248, 179)',
+                      backgroundColor: COLORS.background,
                     },
                     textAlign: 'left',
                     fontWeight: 500,
@@ -393,9 +552,9 @@ export default function ResumeEditorV2({
                 sx={{ 
                   textTransform: 'none', 
                   fontSize: '0.8rem',
-                  color: '#22c55e',
+                  color: COLORS.primary,
                   '&:hover': {
-                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                          backgroundColor: COLORS.overlay,
                   }
                 }}
               >
@@ -589,144 +748,146 @@ export default function ResumeEditorV2({
             {profileData.name || "Your Name"}
           </Typography>
           
-          {/* Contact Information Row */}
-          <Box sx={{ display: "flex", flexDirection: "row", gap: 3, mb: 3, flexWrap: "wrap" }}>
-            {profileData.email && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <EmailIcon fontSize="small" color="action" />
-                <Typography variant="body2">{profileData.email}</Typography>
-              </Box>
-            )}
-            {profileData.phone && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <PhoneIcon fontSize="small" color="action" />
-                <Typography variant="body2">{formatPhoneNumber(profileData.phone)}</Typography>
-              </Box>
-            )}
-            {profileData.location && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <LocationIcon fontSize="small" color="action" />
-                <Typography variant="body2">{profileData.location}</Typography>
-              </Box>
-            )}
-          </Box>
-          
-          {/* Professional Links Row */}
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-            <Box sx={{
-              bgcolor: '#f5f5f5', 
-              borderRadius: 2,
-              minWidth: 270,
-              overflow: 'hidden'
-            }}>
-              {/* LinkedIn */}
-              <Box sx={{ 
-                display: "flex",
-                direction: "row",
-                alignItems: "center", 
-                gap: 0.3, 
-                p: 1,
+          {/* Contact Information and Links Grid */}
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, mb: 3, maxWidth: '900px' }}>
+            {/* Email Column */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {profileData.email && (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <EmailIcon fontSize="small" color="action" />
+                  <Typography variant="body2">{profileData.email}</Typography>
+                </Box>
+              )}
+              <Box sx={{
+                bgcolor: '#f5f5f5', 
+                borderRadius: 2,
+                overflow: 'hidden'
               }}>
-                <LinkedInIcon fontSize="small" />
-                <Typography variant="body2" fontWeight={500}>LinkedIn</Typography>
-              </Box>
-              <Box sx={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 1, 
-                borderBottom: '1px solid #e0e0e0',
-              }}/>
-              <Box sx={{ p: 1 }}>
-                <TextField
-                  size="small"
-                  value={profileData.linkedinUrl || ""}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
-                  placeholder="https://linkedin.com/in/yourprofile"
-                  variant="standard"
-                  fullWidth
-                  InputProps={{
-                    disableUnderline: true,
-                    style: { fontSize: '0.875rem', fontWeight: 500 }
-                  }}
-                />
+                {/* LinkedIn */}
+                <Box sx={{ 
+                  display: "flex",
+                  direction: "row",
+                  alignItems: "center", 
+                  gap: 0.3, 
+                  p: 1,
+                }}>
+                  <LinkedInIcon fontSize="small" />
+                  <Typography variant="body2" fontWeight={500}>LinkedIn</Typography>
+                </Box>
+                <Box sx={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 1, 
+                  borderBottom: '1px solid #e0e0e0',
+                }}/>
+                <Box sx={{ p: 1 }}>
+                  <TextField
+                    size="small"
+                    value={profileData.linkedinUrl || ""}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    variant="standard"
+                    fullWidth
+                    InputProps={{
+                      disableUnderline: true,
+                      style: { fontSize: '0.875rem', fontWeight: 500 }
+                    }}
+                  />
+                </Box>
               </Box>
             </Box>
 
-            <Box sx={{ 
-              bgcolor: '#f5f5f5', 
-              borderRadius: 2,
-              minWidth: 270,
-              overflow: 'hidden'
-            }}>
-              {/* GitHub */}
+            {/* Phone Column */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {profileData.phone && (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <PhoneIcon fontSize="small" color="action" />
+                  <Typography variant="body2">{formatPhoneNumber(profileData.phone)}</Typography>
+                </Box>
+              )}
               <Box sx={{ 
-                display: "flex",
-                direction: "row",
-                alignItems: "center", 
-                gap: 0.3, 
-                p: 1,
+                bgcolor: '#f5f5f5', 
+                borderRadius: 2,
+                overflow: 'hidden'
               }}>
-                <GitHubIcon fontSize="small" />
-                <Typography variant="body2" fontWeight={500}>GitHub</Typography>
-              </Box>
-              <Box sx={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 1, 
-                borderBottom: '1px solid #e0e0e0',
-              }}/>
-              <Box sx={{ p: 1 }}>
-                <TextField
-                  size="small"
-                  value={profileData.githubUrl || ""}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, githubUrl: e.target.value }))}
-                  placeholder="https://github.com/yourusername"
-                  variant="standard"
-                  fullWidth
-                  InputProps={{
-                    disableUnderline: true,
-                    style: { fontSize: '0.875rem', fontWeight: 500 }
-                  }}
-                />
+                {/* GitHub */}
+                <Box sx={{ 
+                  display: "flex",
+                  direction: "row",
+                  alignItems: "center", 
+                  gap: 0.3, 
+                  p: 1,
+                }}>
+                  <GitHubIcon fontSize="small" />
+                  <Typography variant="body2" fontWeight={500}>GitHub</Typography>
+                </Box>
+                <Box sx={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 1, 
+                  borderBottom: '1px solid #e0e0e0',
+                }}/>
+                <Box sx={{ p: 1 }}>
+                  <TextField
+                    size="small"
+                    value={profileData.githubUrl || ""}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, githubUrl: e.target.value }))}
+                    placeholder="https://github.com/yourusername"
+                    variant="standard"
+                    fullWidth
+                    InputProps={{
+                      disableUnderline: true,
+                      style: { fontSize: '0.875rem', fontWeight: 500 }
+                    }}
+                  />
+                </Box>
               </Box>
             </Box>
 
-            <Box sx={{ 
-              bgcolor: '#f5f5f5', 
-              borderRadius: 2,
-              minWidth: 270,
-              overflow: 'hidden'
-            }}>
-              {/* Portfolio */}
+            {/* Location Column */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {profileData.location && (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <LocationIcon fontSize="small" color="action" />
+                  <Typography variant="body2">{profileData.location}</Typography>
+                </Box>
+              )}
               <Box sx={{ 
-                display: "flex",
-                direction: "row",
-                alignItems: "center", 
-                gap: 0.3, 
-                p: 1,
+                bgcolor: '#f5f5f5', 
+                borderRadius: 2,
+                overflow: 'hidden'
               }}>
-                <WebsiteIcon fontSize="small" />
-                <Typography variant="body2" fontWeight={500}>Portfolio</Typography>
-              </Box>
-              <Box sx={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 1, 
-                borderBottom: '1px solid #e0e0e0',
-              }}/>
-              <Box sx={{ p: 1 }}>
-                <TextField
-                  size="small"
-                  value={profileData.portfolioUrl || ""}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
-                  placeholder="https://yourportfolio.com"
-                  variant="standard"
-                  fullWidth
-                  InputProps={{
-                    disableUnderline: true,
-                    style: { fontSize: '0.875rem', fontWeight: 500 }
-                  }}
-                />
+                {/* Website */}
+                <Box sx={{ 
+                  display: "flex",
+                  direction: "row",
+                  alignItems: "center", 
+                  gap: 0.3, 
+                  p: 1,
+                }}>
+                  <WebsiteIcon fontSize="small" />
+                  <Typography variant="body2" fontWeight={500}>Website</Typography>
+                </Box>
+                <Box sx={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 1, 
+                  borderBottom: '1px solid #e0e0e0',
+                }}/>
+                <Box sx={{ p: 1 }}>
+                  <TextField
+                    size="small"
+                    value={profileData.portfolioUrl || ""}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
+                    placeholder="https://yourwebsite.com"
+                    variant="standard"
+                    fullWidth
+                    InputProps={{
+                      disableUnderline: true,
+                      style: { fontSize: '0.875rem', fontWeight: 500 }
+                    }}
+                  />
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -735,10 +896,10 @@ export default function ResumeEditorV2({
     },
     "Professional Summary": (resumeData, setResumeData) => (
       <Box sx={{ py: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
-          <Typography variant="h6" fontWeight={600}>
-            Professional Summary
-          </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Professional Summary
+            </Typography>
                       <IconButton
               size="small"
               sx={{ 
@@ -889,23 +1050,23 @@ export default function ResumeEditorV2({
             style={style}
             {...attributes}
             {...listeners}
-            sx={{
+                        sx={{
               display: 'flex',
               alignItems: 'center',
-              bgcolor: isDragging ? '#e3f2fd' : '#f5f5f5',
+              bgcolor: isDragging ? '#f5f5f5' : '#f5f5f5',
               borderRadius: 2,
               px: 0.5,
               py: 1,
-              border: isDragging ? '2px solid #2196f3' : 'none',
+              border: isDragging ? '2px solid #e0e0e0' : 'none',
               margin: 0.5,
               flexShrink: 0,
               transform: isDragging ? 'rotate(2deg) scale(1.05)' : 'none',
               transition: 'all 0.2s ease',
-              boxShadow: isDragging ? '0 4px 12px rgba(33, 150, 243, 0.3)' : 'none',
+              boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
               zIndex: isDragging ? 1000 : 'auto',
               cursor: 'grab',
               '&:hover': {
-                bgcolor: '#e8f5e8',
+                bgcolor: '#f5f5f5',
                 transform: 'scale(1.02)',
               },
             }}
@@ -937,7 +1098,7 @@ export default function ResumeEditorV2({
 
       return (
         <Box sx={{ py: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
             <Typography variant="h6" fontWeight={600}>
               Technical Skills
             </Typography>
@@ -1238,6 +1399,18 @@ export default function ResumeEditorV2({
         }));
       };
 
+      const deleteBulletPoint = (workId: string, bulletId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          workExperience: (prev.workExperience || workExperience).map(work =>
+            work.id === workId ? {
+              ...work,
+              bulletPoints: work.bulletPoints.filter(bullet => bullet.id !== bulletId)
+            } : work
+          )
+        }));
+      };
+
 
 
       // Custom Sortable Bullet Point Component
@@ -1299,13 +1472,16 @@ export default function ResumeEditorV2({
                 '&:hover': {
                   backgroundColor: isEditing ? '#f5f5f5' : '#f5f5f5',
                   borderRadius: 2,
+                  '& .delete-button': {
+                    opacity: 1,
+                  },
                 },
               }}
             >
               {isEditing ? (
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0 }}>•</Typography>
-                <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
                   <TextField
                   value={bullet.description}
                   placeholder="Enter bullet point description..."
@@ -1325,10 +1501,15 @@ export default function ResumeEditorV2({
                 variant="standard"
                 sx={{
                   flex: 1,
+                  '& .MuiInputBase-root': {
+                    alignItems: 'center',
+                  },
                   '& .MuiInputBase-input': {
                     fontSize: '0.875rem',
                     lineHeight: 1.4,
                     paddingLeft: '0',
+                    paddingTop: '0',
+                    paddingBottom: '0',
                   },
                   '& .MuiInput-underline:before': { borderBottom: 'none' },
                   '& .MuiInput-underline:after': { borderBottom: 'none' },
@@ -1342,8 +1523,8 @@ export default function ResumeEditorV2({
                 </Box>
               </Box>
             ) : (
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0 }}>•</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
                 <Typography 
                   component="span" 
                   onClick={() => setEditingBulletId(bullet.id)}
@@ -1353,14 +1534,33 @@ export default function ResumeEditorV2({
                     color: isPlaceholder ? '#999' : 'black',
                     flex: 1,
                     cursor: 'text',
+                    display: 'flex',
+                    alignItems: 'center',
                     '&:hover': {
                       backgroundColor: '#f5f5f5',
                       borderRadius: 2,
+                      '& .delete-button': {
+                        opacity: 1,
+                      },
                     }
                   }}
                 >
                   {bullet.description}
                 </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => deleteBulletPoint(workId, bullet.id)}
+                  className="delete-button"
+                  sx={{ 
+                    p: 0.5, 
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease',
+                    ml: 0.5,
+                    '&:hover': { opacity: 1 }
+                  }}
+                >
+                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                </IconButton>
               </Box>
             )}
           </Box>
@@ -1380,7 +1580,7 @@ export default function ResumeEditorV2({
 
       return (
         <Box sx={{ py: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
             <Typography variant="h6" fontWeight={600}>
               Professional Experience
             </Typography>
@@ -1726,6 +1926,3655 @@ export default function ResumeEditorV2({
         </Box>
       );
     },
+    "Education": (resumeData, setResumeData) => {
+      // Initialize education if not exists
+      const education = resumeData.education || [
+        {
+          institution: "University of Technology",
+          degree: "Bachelor's Degree",
+          field: "Computer Science",
+          startDate: "Sep 2020",
+          endDate: "May 2024",
+          current: false,
+          gpa: 3.8,
+        }
+      ];
+
+      const addEducation = () => {
+        const newEducation = {
+          institution: "",
+          degree: "Bachelor's Degree",
+          field: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+          gpa: undefined,
+        };
+        setResumeData(prev => ({
+          ...prev,
+          education: [...(prev.education || education), newEducation]
+        }));
+      };
+
+      const updateEducation = (index: number, updates: Partial<{
+        institution: string;
+        degree: string;
+        field: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+        gpa?: number;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          education: (prev.education || education).map((edu, i) =>
+            i === index ? { ...edu, ...updates } : edu
+          )
+        }));
+      };
+
+      const deleteEducation = (index: number) => {
+        setResumeData(prev => ({
+          ...prev,
+          education: (prev.education || education).filter((_, i) => i !== index)
+        }));
+      };
+
+      const handleEducationDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newEducation = Array.from((resumeData.education || education));
+        const [removed] = newEducation.splice(result.source.index, 1);
+        newEducation.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, education: newEducation }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Education
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleEducationDragEnd}>
+            <Droppable droppableId="education" type="education">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.education || education).length === 0 ? 10 : 100 }}>
+                  {(resumeData.education || education).map((edu, eduIndex) => (
+                    <React.Fragment key={eduIndex}>
+                      <Draggable draggableId={`education-${eduIndex}`} index={eduIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Education Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={edu.institution || ''}
+                                onChange={(e) => updateEducation(eduIndex, { institution: e.target.value })}
+                                placeholder="Institution..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (edu.institution && edu.institution.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteEducation(eduIndex)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Degree and Field */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={edu.degree || ''}
+                                onChange={(e) => updateEducation(eduIndex, { degree: e.target.value })}
+                                placeholder="Degree"
+                                sx={{ 
+                                  width: 150,
+                                  height: 28,
+                                  backgroundColor: (edu.degree && edu.degree.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                              <TextField
+                                size="small"
+                                value={edu.field || ''}
+                                onChange={(e) => updateEducation(eduIndex, { field: e.target.value })}
+                                placeholder="Field of Study"
+                                sx={{ 
+                                  width: 180,
+                                  height: 28,
+                                  backgroundColor: (edu.field && edu.field.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Dates */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={edu.startDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      updateEducation(eduIndex, { startDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="Start Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (edu.startDate && edu.startDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                              <TrendingFlatIcon sx={{ 
+                                alignSelf: 'center', 
+                                color: '#666',
+                                fontSize: '1.2rem'
+                              }} />
+                              <TextField
+                                size="small"
+                                value={edu.endDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      updateEducation(eduIndex, { endDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="End Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (edu.endDate && edu.endDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                            </Box>
+
+                            {/* GPA */}
+                            <Box sx={{ pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={edu.gpa || ''}
+                                onChange={(e) => updateEducation(eduIndex, { gpa: parseFloat(e.target.value) || undefined })}
+                                placeholder="GPA (optional)"
+                                sx={{ 
+                                  width: 120,
+                                  height: 28,
+                                  backgroundColor: (edu.gpa !== undefined && edu.gpa !== null) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Education button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addEducation}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Education
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "Courses": (resumeData, setResumeData) => {
+      // Initialize courses if not exists
+      const courses = resumeData.courses || [
+        {
+          title: "Advanced React Development",
+          provider: "Udemy",
+          link: "https://udemy.com/course/advanced-react",
+        }
+      ];
+
+      const addCourse = () => {
+        const newCourse = {
+          title: "",
+          provider: "",
+          link: "",
+        };
+        setResumeData(prev => ({
+          ...prev,
+          courses: [...(prev.courses || courses), newCourse]
+        }));
+      };
+
+      const updateCourse = (index: number, updates: Partial<{
+        title: string;
+        provider: string;
+        link?: string;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          courses: (prev.courses || courses).map((course, i) =>
+            i === index ? { ...course, ...updates } : course
+          )
+        }));
+      };
+
+      const deleteCourse = (index: number) => {
+        setResumeData(prev => ({
+          ...prev,
+          courses: (prev.courses || courses).filter((_, i) => i !== index)
+        }));
+      };
+
+      const handleCourseDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newCourses = Array.from((resumeData.courses || courses));
+        const [removed] = newCourses.splice(result.source.index, 1);
+        newCourses.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, courses: newCourses }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Courses & Certifications
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleCourseDragEnd}>
+            <Droppable droppableId="courses" type="course">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.courses || courses).length === 0 ? 10 : 100 }}>
+                  {(resumeData.courses || courses).map((course, courseIndex) => (
+                    <React.Fragment key={courseIndex}>
+                      <Draggable draggableId={`course-${courseIndex}`} index={courseIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Course Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={course.title || ''}
+                                onChange={(e) => updateCourse(courseIndex, { title: e.target.value })}
+                                placeholder="Course Title..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (course.title && course.title.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteCourse(courseIndex)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Provider and Link */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={course.provider || ''}
+                                onChange={(e) => updateCourse(courseIndex, { provider: e.target.value })}
+                                placeholder="Provider (e.g., Udemy, Coursera)"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (course.provider && course.provider.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            <Box sx={{ pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={course.link || ''}
+                                onChange={(e) => updateCourse(courseIndex, { link: e.target.value })}
+                                placeholder="Course Link (optional)"
+                                sx={{ 
+                                  width: 300,
+                                  height: 28,
+                                  backgroundColor: (course.link && course.link.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Course button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addCourse}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Course
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "Interests": (resumeData, setResumeData) => {
+      // Available icons for interests
+      const AVAILABLE_ICONS = [
+        { value: '🎵', label: 'Music' },
+        { value: '📚', label: 'Reading' },
+        { value: '🏃‍♂️', label: 'Running' },
+        { value: '🏋️‍♂️', label: 'Gym' },
+        { value: '🎨', label: 'Art' },
+        { value: '📷', label: 'Photography' },
+        { value: '🎮', label: 'Gaming' },
+        { value: '🍳', label: 'Cooking' },
+        { value: '✈️', label: 'Travel' },
+        { value: '🎬', label: 'Movies' },
+        { value: '🎭', label: 'Theater' },
+        { value: '🏊‍♂️', label: 'Swimming' },
+        { value: '🚴‍♂️', label: 'Cycling' },
+        { value: '🎯', label: 'Target Shooting' },
+        { value: '🧘‍♀️', label: 'Yoga' },
+        { value: '🎲', label: 'Board Games' },
+        { value: '🎸', label: 'Guitar' },
+        { value: '🎹', label: 'Piano' },
+        { value: '🎤', label: 'Singing' },
+        { value: '💻', label: 'Programming' },
+        { value: '🔬', label: 'Science' },
+        { value: '🌱', label: 'Gardening' },
+        { value: '🐕', label: 'Dogs' },
+        { value: '🐱', label: 'Cats' },
+        { value: '⚽', label: 'Soccer' },
+        { value: '🏀', label: 'Basketball' },
+        { value: '🏈', label: 'Football' },
+        { value: '⚾', label: 'Baseball' },
+        { value: '🎳', label: 'Bowling' },
+        { value: '♟️', label: 'Chess' },
+        { value: '✏️', label: 'Drawing' },
+        { value: '📝', label: 'Writing' },
+        { value: '📊', label: 'Data Analysis' },
+        { value: '🔍', label: 'Research' },
+        { value: '🌍', label: 'Languages' },
+        { value: '📈', label: 'Investing' },
+        { value: '🏛️', label: 'History' },
+        { value: '🌌', label: 'Astronomy' },
+        { value: '🧬', label: 'Biology' },
+        { value: '⚗️', label: 'Chemistry' },
+        { value: '⚡', label: 'Physics' },
+        { value: '🧮', label: 'Mathematics' }
+      ];
+
+      // Initialize interests if not exists
+      const interests = resumeData.interests || [
+        {
+          name: "Programming",
+          icon: "💻",
+        }
+      ];
+
+      const addInterest = () => {
+        const newInterest = {
+          name: "",
+          icon: "🎵",
+        };
+        setResumeData(prev => ({
+          ...prev,
+          interests: [...(prev.interests || interests), newInterest]
+        }));
+      };
+
+      const updateInterest = (index: number, updates: Partial<{
+        name: string;
+        icon: string;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          interests: (prev.interests || interests).map((interest, i) =>
+            i === index ? { ...interest, ...updates } : interest
+          )
+        }));
+      };
+
+      const deleteInterest = (index: number) => {
+        setResumeData(prev => ({
+          ...prev,
+          interests: (prev.interests || interests).filter((_, i) => i !== index)
+        }));
+      };
+
+      const handleInterestDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newInterests = Array.from((resumeData.interests || interests));
+        const [removed] = newInterests.splice(result.source.index, 1);
+        newInterests.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, interests: newInterests }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Interests & Hobbies
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleInterestDragEnd}>
+            <Droppable droppableId="interests" type="interest">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.interests || interests).length === 0 ? 10 : 100 }}>
+                  {(resumeData.interests || interests).map((interest, interestIndex) => (
+                    <React.Fragment key={interestIndex}>
+                      <Draggable draggableId={`interest-${interestIndex}`} index={interestIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Interest Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={interest.name || ''}
+                                onChange={(e) => updateInterest(interestIndex, { name: e.target.value })}
+                                placeholder="Interest Name..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (interest.name && interest.name.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteInterest(interestIndex)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Icon Selection */}
+                            <Box sx={{ pl: 3 }}>
+                              <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
+                                Select Icon:
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, maxWidth: 400 }}>
+                                {AVAILABLE_ICONS.map((iconOption) => (
+                                  <Box
+                                    key={iconOption.value}
+                                    onClick={() => updateInterest(interestIndex, { icon: iconOption.value })}
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      width: 40,
+                                      height: 40,
+                                      borderRadius: 2,
+                                      cursor: 'pointer',
+                                      border: interest.icon === iconOption.value ? `2px solid ${COLORS.primary}` : '1px solid #e0e0e0',
+                                      backgroundColor: interest.icon === iconOption.value ? COLORS.selectedBackground : 'white',
+                                      fontSize: '1.2rem',
+                                      '&:hover': {
+                                        backgroundColor: '#f0fdf4',
+                                        border: `2px solid ${COLORS.primary}`,
+                                      },
+                                    }}
+                                    title={iconOption.label}
+                                  >
+                                    {iconOption.value}
+                                  </Box>
+                                ))}
+                              </Box>
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Interest button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addInterest}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Interest
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "Projects": (resumeData, setResumeData) => {
+      // Initialize projects if not exists
+      const projects = resumeData.projects || [
+        {
+          id: `project-${Date.now()}`,
+          title: "AI Resume Builder",
+          bulletPoints: [
+            {
+              id: `bullet-${Date.now()}-${Math.random()}`,
+              description: "A modern web application for creating professional resumes with AI assistance"
+            }
+          ],
+          technologies: ["React", "TypeScript", "Node.js"],
+          link: "https://github.com/username/ai-resume-builder",
+          startDate: "Jan 2024",
+          endDate: "Mar 2024",
+          current: false,
+        }
+      ];
+
+      const addProject = () => {
+        const newProject = {
+          id: `project-${Date.now()}`,
+          title: "",
+          bulletPoints: [],
+          technologies: [],
+          link: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+        };
+        setResumeData(prev => ({
+          ...prev,
+          projects: [...(prev.projects || projects), newProject]
+        }));
+      };
+
+      const updateProject = (projectId: string, updates: Partial<{
+        title: string;
+        bulletPoints: Array<{ id: string; description: string }>;
+        technologies: string[];
+        link: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          projects: (prev.projects || projects).map(project =>
+            project.id === projectId ? { ...project, ...updates } : project
+          )
+        }));
+      };
+
+      const deleteProject = (projectId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          projects: (prev.projects || projects).filter(project => project.id !== projectId)
+        }));
+      };
+
+      const addTechnology = (projectId: string, technology: string) => {
+        if (!technology.trim()) return;
+        const project = (resumeData.projects || projects).find(p => p.id === projectId);
+        if (!project) return;
+        
+        const newTechnologies = [...project.technologies, technology.trim()];
+        updateProject(projectId, { technologies: newTechnologies });
+      };
+
+      const removeTechnology = (projectId: string, technologyIndex: number) => {
+        const project = (resumeData.projects || projects).find(p => p.id === projectId);
+        if (!project) return;
+        
+        const newTechnologies = project.technologies.filter((_, index) => index !== technologyIndex);
+        updateProject(projectId, { technologies: newTechnologies });
+      };
+
+      const handleTechnologyDragEnd = (event: DragEndEvent, projectId: string) => {
+        const { active, over } = event;
+        
+        if (active.id !== over?.id) {
+          const project = (resumeData.projects || projects).find(p => p.id === projectId);
+          if (!project) return;
+          
+          const oldIndex = project.technologies.findIndex((_, index) => `${projectId}-tech-${index}` === active.id);
+          const newIndex = project.technologies.findIndex((_, index) => `${projectId}-tech-${index}` === over?.id);
+          
+          if (oldIndex !== -1 && newIndex !== -1) {
+            const newTechnologies = arrayMove(project.technologies, oldIndex, newIndex);
+            updateProject(projectId, { technologies: newTechnologies });
+          }
+        }
+      };
+
+      const SortableTechnology = ({ technology, index, projectId, onRemove }: {
+        technology: string;
+        index: number;
+        projectId: string;
+        onRemove: (projectId: string, index: number) => void;
+      }) => {
+        const {
+          attributes,
+          listeners,
+          setNodeRef,
+          transform,
+          transition,
+          isDragging,
+        } = useSortable({ id: `${projectId}-tech-${index}` });
+
+        const style = {
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.5 : 1,
+        };
+
+        return (
+          <Box
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              bgcolor: isDragging ? '#f5f5f5' : '#f5f5f5',
+              borderRadius: 2,
+              px: 0.5,
+              py: 1,
+              border: isDragging ? '2px solid #e0e0e0' : '1px solid #e0e0e0',
+              margin: 0.5,
+              flexShrink: 0,
+              transform: isDragging ? 'rotate(2deg) scale(1.05)' : 'none',
+              transition: 'all 0.2s ease',
+              boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+              zIndex: isDragging ? 1000 : 'auto',
+              cursor: 'grab',
+              '&:hover': {
+                bgcolor: '#f5f5f5',
+                transform: 'scale(1.02)',
+              },
+            }}
+          >
+            <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+            <Typography variant="body2" sx={{ mr: 1, flex: 1, fontSize: '0.8rem' }}>
+              {technology}
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => onRemove(projectId, index)}
+              sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
+            >
+              <CloseIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Box>
+        );
+      };
+
+      const addProjectBulletPoint = (projectId: string, description: string = "") => {
+        const newBulletPoint = {
+          id: `bullet-${Date.now()}-${Math.random()}`,
+          description: description
+        };
+        const project = (resumeData.projects || projects).find(p => p.id === projectId);
+        if (!project) return;
+        
+        const newBulletPoints = [...(project.bulletPoints || []), newBulletPoint];
+        updateProject(projectId, { bulletPoints: newBulletPoints });
+        setEditingBulletId(newBulletPoint.id);
+      };
+
+      const updateProjectBulletPoint = (projectId: string, bulletId: string, description: string) => {
+        const project = (resumeData.projects || projects).find(p => p.id === projectId);
+        if (!project) return;
+        
+        const newBulletPoints = (project.bulletPoints || []).map(bullet =>
+          bullet.id === bulletId ? { ...bullet, description } : bullet
+        );
+        updateProject(projectId, { bulletPoints: newBulletPoints });
+      };
+
+      const deleteProjectBulletPoint = (projectId: string, bulletId: string) => {
+        const project = (resumeData.projects || projects).find(p => p.id === projectId);
+        if (!project) return;
+        
+        const newBulletPoints = (project.bulletPoints || []).filter(bullet => bullet.id !== bulletId);
+        updateProject(projectId, { bulletPoints: newBulletPoints });
+      };
+
+      const SortableProjectBulletPoint = ({ bullet, projectId, onUpdate }: {
+        bullet: { id: string; description: string };
+        projectId: string;
+        onUpdate: (projectId: string, bulletId: string, description: string) => void;
+      }) => {
+        const {
+          attributes,
+          listeners,
+          setNodeRef,
+          transform,
+          transition,
+          isDragging,
+        } = useSortable({ id: bullet.id });
+
+        const style = {
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.5 : 1,
+        };
+
+        const isEditing = editingBulletId === bullet.id;
+        const isPlaceholder = bullet.description === "Bullet point...";
+
+        return (
+          <Box
+            ref={setNodeRef}
+            style={style}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '80%',
+            }}
+          >
+            <Box
+              {...attributes}
+              {...listeners}
+              sx={{ 
+                mr: 0.25, 
+                display: 'flex',
+                alignItems: 'center',
+                height: '100%',
+                cursor: 'grab'
+              }}
+            >
+              <DragIndicatorIcon sx={{ fontSize: 20, color: '#bbb' }} />
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                py: 0.5,
+                flex: 1,
+                cursor: isEditing ? 'text' : 'default',
+                backgroundColor: isEditing ? '#f5f5f5' : 'transparent',
+                borderRadius: isEditing ? 2 : 0,
+                '&:hover': {
+                  backgroundColor: isEditing ? '#f5f5f5' : '#f5f5f5',
+                  borderRadius: 2,
+                  '& .delete-button': {
+                    opacity: 1,
+                  },
+                },
+              }}
+            >
+              {isEditing ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <TextField
+                  value={bullet.description}
+                  placeholder="Enter bullet point description..."
+                  onChange={(e) => onUpdate(projectId, bullet.id, e.target.value)}
+                onBlur={() => {
+                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                    setEditingBulletId(null);
+                  }
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                      setEditingBulletId(null);
+                    }
+                  }
+                }}
+                variant="standard"
+                sx={{
+                  flex: 1,
+                  '& .MuiInputBase-root': {
+                    alignItems: 'center',
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    paddingLeft: '0',
+                    paddingTop: '0',
+                    paddingBottom: '0',
+                  },
+                  '& .MuiInput-underline:before': { borderBottom: 'none' },
+                  '& .MuiInput-underline:after': { borderBottom: 'none' },
+                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
+                }}
+                InputProps={{
+                  disableUnderline: true,
+                }}
+                                  autoFocus
+                />
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                <Typography 
+                  component="span" 
+                  onClick={() => setEditingBulletId(bullet.id)}
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    color: isPlaceholder ? '#999' : 'black',
+                    flex: 1,
+                    cursor: 'text',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': {
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 2,
+                      '& .delete-button': {
+                        opacity: 1,
+                      },
+                    }
+                  }}
+                >
+                  {bullet.description}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => deleteProjectBulletPoint(projectId, bullet.id)}
+                  className="delete-button"
+                  sx={{ 
+                    p: 0.5, 
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease',
+                    ml: 0.5,
+                    '&:hover': { opacity: 1 }
+                  }}
+                >
+                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        </Box>
+        );
+      };
+
+      const handleProjectDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newProjects = Array.from((resumeData.projects || projects));
+        const [removed] = newProjects.splice(result.source.index, 1);
+        newProjects.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, projects: newProjects }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Projects
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleProjectDragEnd}>
+            <Droppable droppableId="projects" type="project">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.projects || projects).length === 0 ? 10 : 100 }}>
+                  {(resumeData.projects || projects).map((project, projectIndex) => (
+                    <React.Fragment key={project.id}>
+                      <Draggable draggableId={project.id} index={projectIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Project Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={project.title || ''}
+                                onChange={(e) => updateProject(project.id, { title: e.target.value })}
+                                placeholder="Project Title..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (project.title && project.title.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteProject(project.id)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Project Bullet Points */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
+                                Key Points:
+                              </Typography>
+                              <DndContext
+                                onDragEnd={(event) => {
+                                  const { active, over } = event;
+                                  if (active && over && active.id !== over.id) {
+                                    const oldIndex = project.bulletPoints.findIndex(bullet => bullet.id === active.id);
+                                    const newIndex = project.bulletPoints.findIndex(bullet => bullet.id === over.id);
+                                    
+                                    const newBulletPoints = arrayMove(project.bulletPoints, oldIndex, newIndex);
+                                    updateProject(project.id, { bulletPoints: newBulletPoints });
+                                  }
+                                }}
+                              >
+                                <SortableContext items={(project.bulletPoints || []).map(bullet => bullet.id)}>
+                                  <Box sx={{ mb: 1 }}>
+                                    {(project.bulletPoints || []).map((bullet) => (
+                                      <SortableProjectBulletPoint
+                                        key={bullet.id}
+                                        bullet={bullet}
+                                        projectId={project.id}
+                                        onUpdate={updateProjectBulletPoint}
+                                      />
+                                    ))}
+                                  </Box>
+                                </SortableContext>
+                              </DndContext>
+                              <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => addProjectBulletPoint(project.id)}
+                                variant="outlined"
+                                size="small"
+                                sx={{ 
+                                  textTransform: 'none', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'flex-start',
+                                  borderRadius: 2,
+                                  border: '1px solid #e0e0e0',
+                                  color: 'black',
+                                  minWidth: 180,
+                                  mt: 1,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5'
+                                  }
+                                }}
+                              >
+                                Bullet Points
+                              </Button>
+                            </Box>
+
+                            {/* Technologies */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
+                                Technologies:
+                              </Typography>
+                              <DndContext
+                                sensors={useSensors(
+                                  useSensor(PointerSensor),
+                                  useSensor(KeyboardSensor, {
+                                    coordinateGetter: sortableKeyboardCoordinates,
+                                  })
+                                )}
+                                collisionDetection={closestCenter}
+                                onDragEnd={(event) => handleTechnologyDragEnd(event, project.id)}
+                              >
+                                <SortableContext
+                                  items={project.technologies.map((_, index) => `${project.id}-tech-${index}`)}
+                                  strategy={horizontalListSortingStrategy}
+                                >
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                                    {project.technologies.map((tech, techIndex) => (
+                                      <SortableTechnology
+                                        key={`${project.id}-tech-${techIndex}`}
+                                        technology={tech}
+                                        index={techIndex}
+                                        projectId={project.id}
+                                        onRemove={removeTechnology}
+                                      />
+                                    ))}
+                                  </Box>
+                                </SortableContext>
+                              </DndContext>
+                              <Box sx={{ display: 'flex', alignItems: 'center', width: 300 }}>
+                                <TextField
+                                  size="small"
+                                  placeholder="Add technology..."
+                                  sx={{ 
+                                    flex: 1, 
+                                    backgroundColor: '#f5f5f5', 
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                      '& fieldset': { border: 'none' },
+                                      '&:hover fieldset': { border: 'none' },
+                                      '&.Mui-focused fieldset': { border: 'none' },
+                                    },
+                                  }}
+                                  onKeyPress={(e) => {
+                                    const target = e.target as HTMLInputElement;
+                                    if (e.key === 'Enter' && target.value.trim()) {
+                                      addTechnology(project.id, target.value);
+                                      target.value = '';
+                                    }
+                                  }}
+                                />
+                                <IconButton 
+                                  size="small"
+                                  onClick={(e) => {
+                                    const input = e.currentTarget.previousElementSibling?.querySelector('input') as HTMLInputElement;
+                                    if (input && input.value.trim()) {
+                                      addTechnology(project.id, input.value);
+                                      input.value = '';
+                                    }
+                                  }}
+                                >
+                                  <AddIcon />
+                                </IconButton>
+                              </Box>
+                            </Box>
+
+                            {/* Project Link */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={project.link || ''}
+                                onChange={(e) => updateProject(project.id, { link: e.target.value })}
+                                placeholder="Project Link (optional)"
+                                sx={{ 
+                                  width: 300,
+                                  height: 28,
+                                  backgroundColor: (project.link && project.link.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Dates */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={project.startDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      updateProject(project.id, { startDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="Start Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (project.startDate && project.startDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                              <TrendingFlatIcon sx={{ 
+                                alignSelf: 'center', 
+                                color: '#666',
+                                fontSize: '1.2rem'
+                              }} />
+                              <TextField
+                                size="small"
+                                value={project.endDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      updateProject(project.id, { endDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="End Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (project.endDate && project.endDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Project button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addProject}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Project
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "Languages": (resumeData, setResumeData) => {
+      // Initialize languages if not exists
+      const languages = resumeData.languages || [
+        {
+          id: `language-${Date.now()}`,
+          name: "English",
+          proficiency: "Native",
+        }
+      ];
+
+      const addLanguage = () => {
+        const newLanguage = {
+          id: `language-${Date.now()}`,
+          name: "",
+          proficiency: "Native",
+        };
+        setResumeData(prev => ({
+          ...prev,
+          languages: [...(prev.languages || languages), newLanguage]
+        }));
+      };
+
+      const updateLanguage = (languageId: string, updates: Partial<{
+        name: string;
+        proficiency: string;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          languages: (prev.languages || languages).map(language =>
+            language.id === languageId ? { ...language, ...updates } : language
+          )
+        }));
+      };
+
+      const deleteLanguage = (languageId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          languages: (prev.languages || languages).filter(language => language.id !== languageId)
+        }));
+      };
+
+      const handleLanguageDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newLanguages = Array.from((resumeData.languages || languages));
+        const [removed] = newLanguages.splice(result.source.index, 1);
+        newLanguages.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, languages: newLanguages }));
+      };
+
+      const proficiencyLevels = ["Native", "Fluent", "Advanced", "Intermediate", "Basic"];
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Languages
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleLanguageDragEnd}>
+            <Droppable droppableId="languages" type="language">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.languages || languages).length === 0 ? 10 : 100 }}>
+                  {(resumeData.languages || languages).map((language, languageIndex) => (
+                    <React.Fragment key={language.id}>
+                      <Draggable draggableId={language.id} index={languageIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Language Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={language.name || ''}
+                                onChange={(e) => updateLanguage(language.id, { name: e.target.value })}
+                                placeholder="Language..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (language.name && language.name.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteLanguage(language.id)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Proficiency Level */}
+                            <Box sx={{ pl: 3 }}>
+                              <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
+                                Proficiency Level:
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                {proficiencyLevels.map((level) => (
+                                  <Box
+                                    key={level}
+                                    onClick={() => updateLanguage(language.id, { proficiency: level })}
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      px: 2,
+                                      py: 0.5,
+                                      borderRadius: 2,
+                                      cursor: 'pointer',
+                                      border: language.proficiency === level ? `2px solid ${COLORS.primary}` : '1px solid #e0e0e0',
+                                      backgroundColor: language.proficiency === level ? COLORS.selectedBackground : 'white',
+                                      fontSize: '0.875rem',
+                                      fontWeight: language.proficiency === level ? 600 : 400,
+                                      '&:hover': {
+                                        backgroundColor: '#f0fdf4',
+                                        border: `2px solid ${COLORS.primary}`,
+                                      },
+                                    }}
+                                  >
+                                    {level}
+                                  </Box>
+                                ))}
+                              </Box>
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Language button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addLanguage}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Language
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "Publications": (resumeData, setResumeData) => {
+      // Initialize publications if not exists
+      const publications = resumeData.publications || [
+        {
+          id: `publication-${Date.now()}`,
+          title: "Machine Learning in Modern Web Applications",
+          authors: "John Doe, Jane Smith",
+          journal: "Journal of Computer Science",
+          year: "2024",
+          doi: "10.1000/example.doi",
+          link: "https://example.com/paper",
+        }
+      ];
+
+      const addPublication = () => {
+        const newPublication = {
+          id: `publication-${Date.now()}`,
+          title: "",
+          authors: "",
+          journal: "",
+          year: "",
+          doi: "",
+          link: "",
+        };
+        setResumeData(prev => ({
+          ...prev,
+          publications: [...(prev.publications || publications), newPublication]
+        }));
+      };
+
+      const updatePublication = (publicationId: string, updates: Partial<{
+        title: string;
+        authors: string;
+        journal: string;
+        year: string;
+        doi: string;
+        link: string;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          publications: (prev.publications || publications).map(publication =>
+            publication.id === publicationId ? { ...publication, ...updates } : publication
+          )
+        }));
+      };
+
+      const deletePublication = (publicationId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          publications: (prev.publications || publications).filter(publication => publication.id !== publicationId)
+        }));
+      };
+
+      const handlePublicationDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newPublications = Array.from((resumeData.publications || publications));
+        const [removed] = newPublications.splice(result.source.index, 1);
+        newPublications.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, publications: newPublications }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Publications
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handlePublicationDragEnd}>
+            <Droppable droppableId="publications" type="publication">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.publications || publications).length === 0 ? 10 : 100 }}>
+                  {(resumeData.publications || publications).map((publication, publicationIndex) => (
+                    <React.Fragment key={publication.id}>
+                      <Draggable draggableId={publication.id} index={publicationIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Publication Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={publication.title || ''}
+                                onChange={(e) => updatePublication(publication.id, { title: e.target.value })}
+                                placeholder="Publication Title..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (publication.title && publication.title.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deletePublication(publication.id)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Authors */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={publication.authors || ''}
+                                onChange={(e) => updatePublication(publication.id, { authors: e.target.value })}
+                                placeholder="Authors..."
+                                sx={{ 
+                                  width: 300,
+                                  height: 28,
+                                  backgroundColor: (publication.authors && publication.authors.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Journal and Year */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={publication.journal || ''}
+                                onChange={(e) => updatePublication(publication.id, { journal: e.target.value })}
+                                placeholder="Journal/Conference"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (publication.journal && publication.journal.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                              <TextField
+                                size="small"
+                                value={publication.year || ''}
+                                onChange={(e) => updatePublication(publication.id, { year: e.target.value })}
+                                placeholder="Year"
+                                sx={{ 
+                                  width: 80,
+                                  height: 28,
+                                  backgroundColor: (publication.year && publication.year.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* DOI and Link */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={publication.doi || ''}
+                                onChange={(e) => updatePublication(publication.id, { doi: e.target.value })}
+                                placeholder="DOI (optional)"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (publication.doi && publication.doi.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                              <TextField
+                                size="small"
+                                value={publication.link || ''}
+                                onChange={(e) => updatePublication(publication.id, { link: e.target.value })}
+                                placeholder="Link (optional)"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (publication.link && publication.link.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Publication button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addPublication}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Publication
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "Awards": (resumeData, setResumeData) => {
+      // Initialize awards if not exists
+      const awards = resumeData.awards || [
+        {
+          id: `award-${Date.now()}`,
+          title: "Best Student Award",
+          organization: "University of Technology",
+          year: "2024",
+          bulletPoints: [
+            {
+              id: `bullet-${Date.now()}-${Math.random()}`,
+              description: "Recognized for outstanding academic performance and leadership"
+            }
+          ],
+        }
+      ];
+
+      const addAward = () => {
+        const newAward = {
+          id: `award-${Date.now()}`,
+          title: "",
+          organization: "",
+          year: "",
+          bulletPoints: [],
+        };
+        setResumeData(prev => ({
+          ...prev,
+          awards: [...(prev.awards || awards), newAward]
+        }));
+      };
+
+      const updateAward = (awardId: string, updates: Partial<{
+        title: string;
+        organization: string;
+        year: string;
+        bulletPoints: Array<{ id: string; description: string }>;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          awards: (prev.awards || awards).map(award =>
+            award.id === awardId ? { ...award, ...updates } : award
+          )
+        }));
+      };
+
+      const deleteAward = (awardId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          awards: (prev.awards || awards).filter(award => award.id !== awardId)
+        }));
+      };
+
+      const addAwardBulletPoint = (awardId: string, description: string = "") => {
+        const newBulletPoint = {
+          id: `bullet-${Date.now()}-${Math.random()}`,
+          description: description
+        };
+        const award = (resumeData.awards || awards).find(a => a.id === awardId);
+        if (!award) return;
+        
+        const newBulletPoints = [...(award.bulletPoints || []), newBulletPoint];
+        updateAward(awardId, { bulletPoints: newBulletPoints });
+        setEditingBulletId(newBulletPoint.id);
+      };
+
+      const updateAwardBulletPoint = (awardId: string, bulletId: string, description: string) => {
+        const award = (resumeData.awards || awards).find(a => a.id === awardId);
+        if (!award) return;
+        
+        const newBulletPoints = (award.bulletPoints || []).map(bullet =>
+          bullet.id === bulletId ? { ...bullet, description } : bullet
+        );
+        updateAward(awardId, { bulletPoints: newBulletPoints });
+      };
+
+      const deleteAwardBulletPoint = (awardId: string, bulletId: string) => {
+        const award = (resumeData.awards || awards).find(a => a.id === awardId);
+        if (!award) return;
+        
+        const newBulletPoints = (award.bulletPoints || []).filter(bullet => bullet.id !== bulletId);
+        updateAward(awardId, { bulletPoints: newBulletPoints });
+      };
+
+      const SortableAwardBulletPoint = ({ bullet, awardId, onUpdate }: {
+        bullet: { id: string; description: string };
+        awardId: string;
+        onUpdate: (awardId: string, bulletId: string, description: string) => void;
+      }) => {
+        const {
+          attributes,
+          listeners,
+          setNodeRef,
+          transform,
+          transition,
+          isDragging,
+        } = useSortable({ id: bullet.id });
+
+        const style = {
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.5 : 1,
+        };
+
+        const isEditing = editingBulletId === bullet.id;
+        const isPlaceholder = bullet.description === "Bullet point...";
+
+        return (
+          <Box
+            ref={setNodeRef}
+            style={style}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '80%',
+            }}
+          >
+            <Box
+              {...attributes}
+              {...listeners}
+              sx={{ 
+                mr: 0.25, 
+                display: 'flex',
+                alignItems: 'center',
+                height: '100%',
+                cursor: 'grab'
+              }}
+            >
+              <DragIndicatorIcon sx={{ fontSize: 20, color: '#bbb' }} />
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                py: 0.5,
+                flex: 1,
+                cursor: isEditing ? 'text' : 'default',
+                backgroundColor: isEditing ? '#f5f5f5' : 'transparent',
+                borderRadius: isEditing ? 2 : 0,
+                '&:hover': {
+                  backgroundColor: isEditing ? '#f5f5f5' : '#f5f5f5',
+                  borderRadius: 2,
+                  '& .delete-button': {
+                    opacity: 1,
+                  },
+                },
+              }}
+            >
+              {isEditing ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <TextField
+                  value={bullet.description}
+                  placeholder="Enter bullet point description..."
+                  onChange={(e) => onUpdate(awardId, bullet.id, e.target.value)}
+                onBlur={() => {
+                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                    setEditingBulletId(null);
+                  }
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                      setEditingBulletId(null);
+                    }
+                  }
+                }}
+                variant="standard"
+                sx={{
+                  flex: 1,
+                  '& .MuiInputBase-root': {
+                    alignItems: 'center',
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    paddingLeft: '0',
+                    paddingTop: '0',
+                    paddingBottom: '0',
+                  },
+                  '& .MuiInput-underline:before': { borderBottom: 'none' },
+                  '& .MuiInput-underline:after': { borderBottom: 'none' },
+                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
+                }}
+                InputProps={{
+                  disableUnderline: true,
+                }}
+                                  autoFocus
+                />
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                <Typography 
+                  component="span" 
+                  onClick={() => setEditingBulletId(bullet.id)}
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    color: isPlaceholder ? '#999' : 'black',
+                    flex: 1,
+                    cursor: 'text',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': {
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 2,
+                      '& .delete-button': {
+                        opacity: 1,
+                      },
+                    }
+                  }}
+                >
+                  {bullet.description}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => deleteAwardBulletPoint(awardId, bullet.id)}
+                  className="delete-button"
+                  sx={{ 
+                    p: 0.5, 
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease',
+                    ml: 0.5,
+                    '&:hover': { opacity: 1 }
+                  }}
+                >
+                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        </Box>
+        );
+      };
+
+      const handleAwardDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newAwards = Array.from((resumeData.awards || awards));
+        const [removed] = newAwards.splice(result.source.index, 1);
+        newAwards.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, awards: newAwards }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Awards & Recognition
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleAwardDragEnd}>
+            <Droppable droppableId="awards" type="award">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.awards || awards).length === 0 ? 10 : 100 }}>
+                  {(resumeData.awards || awards).map((award, awardIndex) => (
+                    <React.Fragment key={award.id}>
+                      <Draggable draggableId={award.id} index={awardIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Award Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={award.title || ''}
+                                onChange={(e) => updateAward(award.id, { title: e.target.value })}
+                                placeholder="Award Title..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (award.title && award.title.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteAward(award.id)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Organization and Year */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={award.organization || ''}
+                                onChange={(e) => updateAward(award.id, { organization: e.target.value })}
+                                placeholder="Organization"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (award.organization && award.organization.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                              <TextField
+                                size="small"
+                                value={award.year || ''}
+                                onChange={(e) => updateAward(award.id, { year: e.target.value })}
+                                placeholder="Year"
+                                sx={{ 
+                                  width: 80,
+                                  height: 28,
+                                  backgroundColor: (award.year && award.year.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Award Bullet Points */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
+                                Key Points:
+                              </Typography>
+                              <DndContext
+                                onDragEnd={(event) => {
+                                  const { active, over } = event;
+                                  if (active && over && active.id !== over.id) {
+                                    const oldIndex = award.bulletPoints.findIndex(bullet => bullet.id === active.id);
+                                    const newIndex = award.bulletPoints.findIndex(bullet => bullet.id === over.id);
+                                    
+                                    const newBulletPoints = arrayMove(award.bulletPoints, oldIndex, newIndex);
+                                    updateAward(award.id, { bulletPoints: newBulletPoints });
+                                  }
+                                }}
+                              >
+                                <SortableContext items={(award.bulletPoints || []).map(bullet => bullet.id)}>
+                                  <Box sx={{ mb: 1 }}>
+                                    {(award.bulletPoints || []).map((bullet) => (
+                                      <SortableAwardBulletPoint
+                                        key={bullet.id}
+                                        bullet={bullet}
+                                        awardId={award.id}
+                                        onUpdate={updateAwardBulletPoint}
+                                      />
+                                    ))}
+                                  </Box>
+                                </SortableContext>
+                              </DndContext>
+                              <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => addAwardBulletPoint(award.id)}
+                                variant="outlined"
+                                size="small"
+                                sx={{ 
+                                  textTransform: 'none', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'flex-start',
+                                  borderRadius: 2,
+                                  border: '1px solid #e0e0e0',
+                                  color: 'black',
+                                  minWidth: 180,
+                                  mt: 1,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5'
+                                  }
+                                }}
+                              >
+                                Bullet Points
+                              </Button>
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Award button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addAward}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Award
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "Volunteer Experience": (resumeData, setResumeData) => {
+      // Initialize volunteer experience if not exists
+      const volunteerExperience = resumeData.volunteerExperience || [
+        {
+          id: `volunteer-${Date.now()}`,
+          organization: "Local Food Bank",
+          position: "Volunteer Coordinator",
+          location: "Community Center",
+          startDate: "Jan 2023",
+          endDate: "Dec 2023",
+          current: false,
+          bulletPoints: [
+            {
+              id: `bullet-${Date.now()}-${Math.random()}`,
+              description: "Organized food drives and coordinated volunteer schedules"
+            }
+          ],
+          hoursPerWeek: "5-10",
+        }
+      ];
+
+      const addVolunteerExperience = () => {
+        const newVolunteer = {
+          id: `volunteer-${Date.now()}`,
+          organization: "",
+          position: "",
+          location: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+          bulletPoints: [],
+          hoursPerWeek: "",
+        };
+        setResumeData(prev => ({
+          ...prev,
+          volunteerExperience: [...(prev.volunteerExperience || volunteerExperience), newVolunteer]
+        }));
+      };
+
+      const updateVolunteerExperience = (volunteerId: string, updates: Partial<{
+        organization: string;
+        position: string;
+        location: string;
+        startDate: string;
+        endDate: string;
+        current: boolean;
+        bulletPoints: Array<{ id: string; description: string }>;
+        hoursPerWeek: string;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          volunteerExperience: (prev.volunteerExperience || volunteerExperience).map(volunteer =>
+            volunteer.id === volunteerId ? { ...volunteer, ...updates } : volunteer
+          )
+        }));
+      };
+
+      const deleteVolunteerExperience = (volunteerId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          volunteerExperience: (prev.volunteerExperience || volunteerExperience).filter(volunteer => volunteer.id !== volunteerId)
+        }));
+      };
+
+      const addVolunteerBulletPoint = (volunteerId: string, description: string = "") => {
+        const newBulletPoint = {
+          id: `bullet-${Date.now()}-${Math.random()}`,
+          description: description
+        };
+        const volunteer = (resumeData.volunteerExperience || volunteerExperience).find(v => v.id === volunteerId);
+        if (!volunteer) return;
+        
+        const newBulletPoints = [...(volunteer.bulletPoints || []), newBulletPoint];
+        updateVolunteerExperience(volunteerId, { bulletPoints: newBulletPoints });
+        setEditingBulletId(newBulletPoint.id);
+      };
+
+      const updateVolunteerBulletPoint = (volunteerId: string, bulletId: string, description: string) => {
+        const volunteer = (resumeData.volunteerExperience || volunteerExperience).find(v => v.id === volunteerId);
+        if (!volunteer) return;
+        
+        const newBulletPoints = (volunteer.bulletPoints || []).map(bullet =>
+          bullet.id === bulletId ? { ...bullet, description } : bullet
+        );
+        updateVolunteerExperience(volunteerId, { bulletPoints: newBulletPoints });
+      };
+
+      const deleteVolunteerBulletPoint = (volunteerId: string, bulletId: string) => {
+        const volunteer = (resumeData.volunteerExperience || volunteerExperience).find(v => v.id === volunteerId);
+        if (!volunteer) return;
+        
+        const newBulletPoints = (volunteer.bulletPoints || []).filter(bullet => bullet.id !== bulletId);
+        updateVolunteerExperience(volunteerId, { bulletPoints: newBulletPoints });
+      };
+
+      const SortableVolunteerBulletPoint = ({ bullet, volunteerId, onUpdate }: {
+        bullet: { id: string; description: string };
+        volunteerId: string;
+        onUpdate: (volunteerId: string, bulletId: string, description: string) => void;
+      }) => {
+        const {
+          attributes,
+          listeners,
+          setNodeRef,
+          transform,
+          transition,
+          isDragging,
+        } = useSortable({ id: bullet.id });
+
+        const style = {
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.5 : 1,
+        };
+
+        const isEditing = editingBulletId === bullet.id;
+        const isPlaceholder = bullet.description === "Bullet point...";
+
+        return (
+          <Box
+            ref={setNodeRef}
+            style={style}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '80%',
+            }}
+          >
+            <Box
+              {...attributes}
+              {...listeners}
+              sx={{ 
+                mr: 0.25, 
+                display: 'flex',
+                alignItems: 'center',
+                height: '100%',
+                cursor: 'grab'
+              }}
+            >
+              <DragIndicatorIcon sx={{ fontSize: 20, color: '#bbb' }} />
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                py: 0.5,
+                flex: 1,
+                cursor: isEditing ? 'text' : 'default',
+                backgroundColor: isEditing ? '#f5f5f5' : 'transparent',
+                borderRadius: isEditing ? 2 : 0,
+                '&:hover': {
+                  backgroundColor: isEditing ? '#f5f5f5' : '#f5f5f5',
+                  borderRadius: 2,
+                  '& .delete-button': {
+                    opacity: 1,
+                  },
+                },
+              }}
+            >
+              {isEditing ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <TextField
+                  value={bullet.description}
+                  placeholder="Enter bullet point description..."
+                  onChange={(e) => onUpdate(volunteerId, bullet.id, e.target.value)}
+                onBlur={() => {
+                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                    setEditingBulletId(null);
+                  }
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                      setEditingBulletId(null);
+                    }
+                  }
+                }}
+                variant="standard"
+                sx={{
+                  flex: 1,
+                  '& .MuiInputBase-root': {
+                    alignItems: 'center',
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    paddingLeft: '0',
+                    paddingTop: '0',
+                    paddingBottom: '0',
+                  },
+                  '& .MuiInput-underline:before': { borderBottom: 'none' },
+                  '& .MuiInput-underline:after': { borderBottom: 'none' },
+                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
+                }}
+                InputProps={{
+                  disableUnderline: true,
+                }}
+                                  autoFocus
+                />
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                <Typography 
+                  component="span" 
+                  onClick={() => setEditingBulletId(bullet.id)}
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4,
+                    color: isPlaceholder ? '#999' : 'black',
+                    flex: 1,
+                    cursor: 'text',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': {
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 2,
+                      '& .delete-button': {
+                        opacity: 1,
+                      },
+                    }
+                  }}
+                >
+                  {bullet.description}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => deleteVolunteerBulletPoint(volunteerId, bullet.id)}
+                  className="delete-button"
+                  sx={{ 
+                    p: 0.5, 
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease',
+                    ml: 0.5,
+                    '&:hover': { opacity: 1 }
+                  }}
+                >
+                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        </Box>
+        );
+      };
+
+      const handleVolunteerDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newVolunteerExperience = Array.from((resumeData.volunteerExperience || volunteerExperience));
+        const [removed] = newVolunteerExperience.splice(result.source.index, 1);
+        newVolunteerExperience.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, volunteerExperience: newVolunteerExperience }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Volunteer Experience
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleVolunteerDragEnd}>
+            <Droppable droppableId="volunteerExperience" type="volunteer">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.volunteerExperience || volunteerExperience).length === 0 ? 10 : 100 }}>
+                  {(resumeData.volunteerExperience || volunteerExperience).map((volunteer, volunteerIndex) => (
+                    <React.Fragment key={volunteer.id}>
+                      <Draggable draggableId={volunteer.id} index={volunteerIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Volunteer Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={volunteer.organization || ''}
+                                onChange={(e) => updateVolunteerExperience(volunteer.id, { organization: e.target.value })}
+                                placeholder="Organization..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (volunteer.organization && volunteer.organization.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteVolunteerExperience(volunteer.id)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Position and Location */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={volunteer.position || ''}
+                                onChange={(e) => updateVolunteerExperience(volunteer.id, { position: e.target.value })}
+                                placeholder="Position"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (volunteer.position && volunteer.position.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                              <TextField
+                                size="small"
+                                value={volunteer.location || ''}
+                                onChange={(e) => updateVolunteerExperience(volunteer.id, { location: e.target.value })}
+                                placeholder="Location"
+                                sx={{ 
+                                  width: 150,
+                                  height: 28,
+                                  backgroundColor: (volunteer.location && volunteer.location.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Volunteer Bullet Points */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
+                                Key Points:
+                              </Typography>
+                              <DndContext
+                                onDragEnd={(event) => {
+                                  const { active, over } = event;
+                                  if (active && over && active.id !== over.id) {
+                                    const oldIndex = volunteer.bulletPoints.findIndex(bullet => bullet.id === active.id);
+                                    const newIndex = volunteer.bulletPoints.findIndex(bullet => bullet.id === over.id);
+                                    
+                                    const newBulletPoints = arrayMove(volunteer.bulletPoints, oldIndex, newIndex);
+                                    updateVolunteerExperience(volunteer.id, { bulletPoints: newBulletPoints });
+                                  }
+                                }}
+                              >
+                                <SortableContext items={(volunteer.bulletPoints || []).map(bullet => bullet.id)}>
+                                  <Box sx={{ mb: 1 }}>
+                                    {(volunteer.bulletPoints || []).map((bullet) => (
+                                      <SortableVolunteerBulletPoint
+                                        key={bullet.id}
+                                        bullet={bullet}
+                                        volunteerId={volunteer.id}
+                                        onUpdate={updateVolunteerBulletPoint}
+                                      />
+                                    ))}
+                                  </Box>
+                                </SortableContext>
+                              </DndContext>
+                              <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => addVolunteerBulletPoint(volunteer.id)}
+                                variant="outlined"
+                                size="small"
+                                sx={{ 
+                                  textTransform: 'none', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'flex-start',
+                                  borderRadius: 2,
+                                  border: '1px solid #e0e0e0',
+                                  color: 'black',
+                                  minWidth: 180,
+                                  mt: 1,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5'
+                                  }
+                                }}
+                              >
+                                Bullet Points
+                              </Button>
+                            </Box>
+
+                            {/* Hours per Week */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={volunteer.hoursPerWeek || ''}
+                                onChange={(e) => updateVolunteerExperience(volunteer.id, { hoursPerWeek: e.target.value })}
+                                placeholder="Hours per week (optional)"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (volunteer.hoursPerWeek && volunteer.hoursPerWeek.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Dates */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={volunteer.startDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      updateVolunteerExperience(volunteer.id, { startDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="Start Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (volunteer.startDate && volunteer.startDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                              <TrendingFlatIcon sx={{ 
+                                alignSelf: 'center', 
+                                color: '#666',
+                                fontSize: '1.2rem'
+                              }} />
+                              <TextField
+                                size="small"
+                                value={volunteer.endDate || ''}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setDatePickerPosition({
+                                    x: rect.left,
+                                    y: rect.bottom + 5
+                                  });
+                                  datePickerCallbackRef.current = (date: string) => {
+                                    if (date) {
+                                      updateVolunteerExperience(volunteer.id, { endDate: date });
+                                    }
+                                  };
+                                  setDatePickerOpen(true);
+                                }}
+                                placeholder="End Date"
+                                sx={{ 
+                                  width: 90,
+                                  height: 28,
+                                  backgroundColor: (volunteer.endDate && volunteer.endDate.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    cursor: 'pointer',
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                                InputProps={{
+                                  readOnly: true,
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Volunteer Experience button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addVolunteerExperience}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Volunteer Experience
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
+    "References": (resumeData, setResumeData) => {
+      // Initialize references if not exists
+      const references = resumeData.references || [
+        {
+          id: `reference-${Date.now()}`,
+          name: "Dr. Jane Smith",
+          title: "Senior Manager",
+          company: "Tech Solutions Inc.",
+          email: "jane.smith@techsolutions.com",
+          phone: "+1 (555) 123-4567",
+          relationship: "Former Supervisor",
+        }
+      ];
+
+      const addReference = () => {
+        const newReference = {
+          id: `reference-${Date.now()}`,
+          name: "",
+          title: "",
+          company: "",
+          email: "",
+          phone: "",
+          relationship: "",
+        };
+        setResumeData(prev => ({
+          ...prev,
+          references: [...(prev.references || references), newReference]
+        }));
+      };
+
+      const updateReference = (referenceId: string, updates: Partial<{
+        name: string;
+        title: string;
+        company: string;
+        email: string;
+        phone: string;
+        relationship: string;
+      }>) => {
+        setResumeData(prev => ({
+          ...prev,
+          references: (prev.references || references).map(reference =>
+            reference.id === referenceId ? { ...reference, ...updates } : reference
+          )
+        }));
+      };
+
+      const deleteReference = (referenceId: string) => {
+        setResumeData(prev => ({
+          ...prev,
+          references: (prev.references || references).filter(reference => reference.id !== referenceId)
+        }));
+      };
+
+      const handleReferenceDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        
+        const newReferences = Array.from((resumeData.references || references));
+        const [removed] = newReferences.splice(result.source.index, 1);
+        newReferences.splice(result.destination.index, 0, removed);
+        
+        setResumeData(prev => ({ ...prev, references: newReferences }));
+      };
+
+      return (
+        <Box sx={{ py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
+              References
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ 
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5',
+                  borderRadius: '50%'
+                }
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DragDropContext onDragEnd={handleReferenceDragEnd}>
+            <Droppable droppableId="references" type="reference">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.references || references).length === 0 ? 10 : 100 }}>
+                  {(resumeData.references || references).map((reference, referenceIndex) => (
+                    <React.Fragment key={reference.id}>
+                      <Draggable draggableId={reference.id} index={referenceIndex}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              mb: 3,
+                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              p: 2,
+                              ml: -5.5,
+                            }}
+                          >
+                            {/* Reference Header with Drag Handle */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  mr: 0.5,
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <TextField
+                                value={reference.name || ''}
+                                onChange={(e) => updateReference(reference.id, { name: e.target.value })}
+                                placeholder="Reference Name..."
+                                variant="standard"
+                                sx={{ 
+                                  fontWeight: 600,
+                                  px: 1,
+                                  mr: 1,
+                                  borderRadius: 2,
+                                  backgroundColor: (reference.name && reference.name.trim()) ? 'transparent' : '#f5f5f5',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  }
+                                }}
+                                InputProps={{
+                                  style: { fontWeight: 600, fontSize: '1rem' },
+                                  disableUnderline: true,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteReference(reference.id)}
+                                sx={{ 
+                                  border: '1px solid #e0e0e0',
+                                  borderRadius: '50%',
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #f5f5f5',
+                                    borderRadius: '50%'
+                                  }
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            {/* Title and Company */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={reference.title || ''}
+                                onChange={(e) => updateReference(reference.id, { title: e.target.value })}
+                                placeholder="Title"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (reference.title && reference.title.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                              <TextField
+                                size="small"
+                                value={reference.company || ''}
+                                onChange={(e) => updateReference(reference.id, { company: e.target.value })}
+                                placeholder="Company"
+                                sx={{ 
+                                  width: 200,
+                                  height: 28,
+                                  backgroundColor: (reference.company && reference.company.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Email and Phone */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={reference.email || ''}
+                                onChange={(e) => updateReference(reference.id, { email: e.target.value })}
+                                placeholder="Email"
+                                sx={{ 
+                                  width: 250,
+                                  height: 28,
+                                  backgroundColor: (reference.email && reference.email.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                              <TextField
+                                size="small"
+                                value={reference.phone || ''}
+                                onChange={(e) => updateReference(reference.id, { phone: e.target.value })}
+                                placeholder="Phone"
+                                sx={{ 
+                                  width: 150,
+                                  height: 28,
+                                  backgroundColor: (reference.phone && reference.phone.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+
+                            {/* Relationship */}
+                            <Box sx={{ mb: 1, pl: 3 }}>
+                              <TextField
+                                size="small"
+                                value={reference.relationship || ''}
+                                onChange={(e) => updateReference(reference.id, { relationship: e.target.value })}
+                                placeholder="Relationship (e.g., Former Supervisor, Colleague)"
+                                sx={{ 
+                                  width: 300,
+                                  height: 28,
+                                  backgroundColor: (reference.relationship && reference.relationship.trim()) ? 'transparent' : '#f5f5f5',
+                                  borderRadius: 2,
+                                  '&:hover': {
+                                    backgroundColor: '#f5f5f5',
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    height: 28,
+                                    fontSize: '0.875rem',
+                                    '& fieldset': { border: 'none' },
+                                    '&:hover fieldset': { border: 'none' },
+                                    '&.Mui-focused fieldset': { border: 'none' },
+                                  },
+                                  '& .MuiInputBase-input': {
+                                    paddingLeft: '8px',
+                                    fontSize: '0.875rem',
+                                    height: 28,
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
+                      </Draggable>
+                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+
+          {/* Add Reference button */}
+          <Box sx={{ ml: -1.5 }}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addReference}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                color: 'black',
+                minWidth: 180,
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #f5f5f5'
+                }
+              }}
+            >
+              Reference
+            </Button>
+          </Box>
+        </Box>
+      );
+    },
     // Add more sections as needed...
   };
 
@@ -1797,7 +5646,7 @@ export default function ResumeEditorV2({
                 width: 24,
                 height: 24,
                 borderRadius: 1.5,
-                background: 'linear-gradient(90deg,rgb(165, 235, 168) 0%,rgb(135, 241, 245) 100%)',
+                background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
                 mr: 1,
               }}
             >
@@ -1915,7 +5764,7 @@ export default function ResumeEditorV2({
           <Box sx={{
             padding: 3,
             borderBottom: '1px solid #e0e0e0',
-            background: 'linear-gradient(90deg, #86efac 0%, #ffffff 100%)',
+            background: `linear-gradient(90deg, ${COLORS.primary} 0%, #ffffff 100%)`,
             position: 'sticky',
             top: 0,
             zIndex: 10,
@@ -1952,52 +5801,78 @@ export default function ResumeEditorV2({
                   <div ref={provided.innerRef} {...provided.droppableProps}>
                     {sectionOrder.map((section, idx) => (
                       <React.Fragment key={section}>
-                        <Draggable draggableId={section} index={idx}>
-                          {(provided, snapshot) => (
-                            <Box
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'stretch',
-                                background: snapshot.isDragging ? '#fff' : 'none',
-                                border: snapshot.isDragging ? '1px solid #e0e0e0' : 'none',
-                                borderRadius: 2,
-                                mb: 0,
-                                zIndex: snapshot.isDragging ? 1200 : 'auto',
-                              }}
-                            >
-                              {/* Drag handle */}
+                        {section === "Personal Info" ? (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'stretch',
+                              background: 'none',
+                              borderRadius: 2,
+                              mb: 0,
+                            }}
+                          >
+
+                            {/* Section content */}
+                            <Box sx={{ flex: 1, pl: 3 }}>
+                              {SECTION_COMPONENTS[section]
+                                ? SECTION_COMPONENTS[section](resumeData, setResumeData)
+                                : (
+                                  <Box sx={{ py: 2, textAlign: "center" }}>
+                                    <Typography color="text.secondary">
+                                      {section} section coming soon...
+                                    </Typography>
+                                  </Box>
+                                )}
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Draggable draggableId={section} index={idx}>
+                            {(provided, snapshot) => (
                               <Box
-                                {...provided.dragHandleProps}
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
                                 sx={{
                                   display: 'flex',
-                                  alignItems: 'center',
-                                  px: 1,
-                                  cursor: 'grab',
-                                  userSelect: 'none',
-                                  color: '#bbb',
-                                  alignSelf: 'flex-start',
-                                  pt: 2.7,
+                                  alignItems: 'stretch',
+                                  background: snapshot.isDragging ? '#fff' : 'none',
+                                  border: snapshot.isDragging ? '1px solid #e0e0e0' : 'none',
+                                  borderRadius: 2,
+                                  mb: 0,
+                                  zIndex: snapshot.isDragging ? 1200 : 'auto',
                                 }}
                               >
-                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                                {/* Drag handle */}
+                                <Box
+                                  {...provided.dragHandleProps}
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    px: 1,
+                                    cursor: 'grab',
+                                    userSelect: 'none',
+                                    color: '#bbb',
+                                    alignSelf: 'flex-start',
+                                    pt: 2.7,
+                                  }}
+                                >
+                                  <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                                </Box>
+                                {/* Section content */}
+                                <Box sx={{ flex: 1 }}>
+                                  {SECTION_COMPONENTS[section]
+                                    ? SECTION_COMPONENTS[section](resumeData, setResumeData)
+                                    : (
+                                      <Box sx={{ py: 2, textAlign: "center" }}>
+                                        <Typography color="text.secondary">
+                                          {section} section coming soon...
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                </Box>
                               </Box>
-                              {/* Section content */}
-                              <Box sx={{ flex: 1 }}>
-                                {SECTION_COMPONENTS[section]
-                                  ? SECTION_COMPONENTS[section](resumeData, setResumeData)
-                                  : (
-                                    <Box sx={{ py: 2, textAlign: "center" }}>
-                                      <Typography color="text.secondary">
-                                        {section} section coming soon...
-                                      </Typography>
-                                    </Box>
-                                  )}
-                              </Box>
-                            </Box>
-                          )}
-                        </Draggable>
+                            )}
+                          </Draggable>
+                        )}
                         {idx < sectionOrder.length - 1 && (
                           <Divider sx={{ borderColor: '#e0e0e0', my: 0 }} />
                         )}
@@ -2016,21 +5891,25 @@ export default function ResumeEditorV2({
         sx={{
           position: "absolute",
           bottom: 100,
-          right: 30,
+          right: 50,
           zIndex: 1300,
         }}
       >
         <Button
           variant="contained"
-          size="large"
           sx={{ 
             borderRadius: "50%", 
             width: 60, 
             height: 60, 
-            background: 'rgb(100, 248, 179)',
+            minWidth: 60,
+            minHeight: 60,
+            maxWidth: 60,
+            maxHeight: 60,
+            padding: 0,
+            background: COLORS.primary,
             boxShadow: 'none',
             '&:hover': {
-              background: 'rgb(80, 228, 159)',
+              background: COLORS.hover,
             }
           }}
           onClick={() => setLayoutModalOpen(true)}
@@ -2084,38 +5963,65 @@ export default function ResumeEditorV2({
                   <CloseIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Box>
-              <List sx={{ px: 0, pt: 0, pb: 0 }}>
-                {sectionOrder.map((section) => (
-                  <ListItem
-                    key={section}
-                    sx={{
-                      background: '#f5f5f5',
-                      border: 'none',
-                      borderRadius: 2,
-                      mb: 0.5,
-                      px: 1,
-                      py: 1.2,
-                      height: 38,
-                      boxShadow: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                    secondaryAction={
-                      <IconButton size="small" edge="end" sx={{ ml: 1 }}>
-                        <DeleteOutlineIcon />
-                      </IconButton>
-                    }
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.2, cursor: 'grab' }}>
-                      <DragIndicatorIcon sx={{ color: '#bdbdbd', fontSize: 22 }} />
-                    </Box>
-                    <ListItemText
-                      primary={section}
-                      primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9rem', color: '#222' }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="section-order" type="section">
+                  {(provided) => (
+                    <List 
+                      ref={provided.innerRef} 
+                      {...provided.droppableProps}
+                      sx={{ px: 0, pt: 0, pb: 0 }}
+                    >
+                      {sectionOrder.map((section, index) => (
+                        <Draggable key={section} draggableId={section} index={index}>
+                          {(provided, snapshot) => (
+                            <ListItem
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              sx={{
+                                background: snapshot.isDragging ? COLORS.background : '#f5f5f5',
+                                border: snapshot.isDragging ? `1px solid ${COLORS.primary}` : 'none',
+                                borderRadius: 2,
+                                mb: 0.5,
+                                px: 1,
+                                py: 1.2,
+                                height: 38,
+                                                                  boxShadow: snapshot.isDragging ? `0 4px 8px ${COLORS.shadow}` : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transform: snapshot.isDragging ? 'rotate(2deg)' : 'none',
+                                transition: 'all 0.2s ease',
+                              }}
+                              secondaryAction={
+                                <IconButton size="small" edge="end" sx={{ ml: 1 }}>
+                                  <DeleteOutlineIcon />
+                                </IconButton>
+                              }
+                            >
+                              <Box 
+                                {...provided.dragHandleProps}
+                                sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  mr: 0.2, 
+                                  cursor: 'grab',
+                                  '&:active': { cursor: 'grabbing' }
+                                }}
+                              >
+                                <DragIndicatorIcon sx={{ color: '#bdbdbd', fontSize: 22 }} />
+                              </Box>
+                              <ListItemText
+                                primary={section}
+                                primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9rem', color: '#222' }}
+                              />
+                            </ListItem>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </List>
+                  )}
+                </Droppable>
+              </DragDropContext>
               <Box sx={{ mb: 1.5 }}>
                 <Button
                   startIcon={<AddIcon />}
@@ -2184,8 +6090,6 @@ export default function ResumeEditorV2({
                   <List sx={{ px: 0, pt: 0, pb: 0 }}>
                     {[
                       'Work Experience',
-                      'Education',
-                      'Certifications',
                       'Projects',
                       'Languages',
                       'Publications',
@@ -2385,12 +6289,12 @@ export default function ResumeEditorV2({
                 sx={{
                   flex: 1,
                   borderRadius: 2,
-                  background: 'rgb(100, 248, 179)',
+                  background: COLORS.primary,
                   color: '#222',
                   textTransform: 'none',
                   px: 3,
                   '&:hover': {
-                    background: 'rgb(80, 228, 159)',
+                    background: COLORS.hover,
                   },
                 }}
               >
