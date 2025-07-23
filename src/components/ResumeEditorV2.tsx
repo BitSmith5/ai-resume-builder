@@ -1103,7 +1103,7 @@ export default function ResumeEditorV2({
                 <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.skillCategories || skillCategories).length === 0 ? 10 : 100 }}>
                   {(resumeData.skillCategories || skillCategories).map((category, categoryIndex) => (
                     <Draggable key={category.id} draggableId={category.id} index={categoryIndex}>
-                      {(provided, snapshot) => (
+                      {(provided) => (
                         <Box
                           ref={provided.innerRef}
                           {...provided.draggableProps}
@@ -1586,7 +1586,7 @@ export default function ResumeEditorV2({
                   {(resumeData.workExperience || workExperience).map((work, workIndex) => (
                     <React.Fragment key={work.id}>
                       <Draggable draggableId={work.id} index={workIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -1998,7 +1998,7 @@ export default function ResumeEditorV2({
                   {(resumeData.education || education).map((edu, eduIndex) => (
                     <React.Fragment key={eduIndex}>
                       <Draggable draggableId={`education-${eduIndex}`} index={eduIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -2369,7 +2369,7 @@ export default function ResumeEditorV2({
                   {(resumeData.courses || courses).map((course, courseIndex) => (
                     <React.Fragment key={courseIndex}>
                       <Draggable draggableId={`course-${courseIndex}`} index={courseIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -2656,7 +2656,7 @@ export default function ResumeEditorV2({
                   {(resumeData.interests || interests).map((interest, interestIndex) => (
                     <React.Fragment key={interestIndex}>
                       <Draggable draggableId={`interest-${interestIndex}`} index={interestIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -3174,7 +3174,7 @@ export default function ResumeEditorV2({
                   {(resumeData.projects || projects).map((project, projectIndex) => (
                     <React.Fragment key={project.id}>
                       <Draggable draggableId={project.id} index={projectIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -3607,7 +3607,7 @@ export default function ResumeEditorV2({
                   {(resumeData.languages || languages).map((language, languageIndex) => (
                     <React.Fragment key={language.id}>
                       <Draggable draggableId={language.id} index={languageIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -3835,7 +3835,7 @@ export default function ResumeEditorV2({
                   {(resumeData.publications || publications).map((publication, publicationIndex) => (
                     <React.Fragment key={publication.id}>
                       <Draggable draggableId={publication.id} index={publicationIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -4360,7 +4360,7 @@ export default function ResumeEditorV2({
                   {(resumeData.awards || awards).map((award, awardIndex) => (
                     <React.Fragment key={award.id}>
                       <Draggable draggableId={award.id} index={awardIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -4863,7 +4863,7 @@ export default function ResumeEditorV2({
                   {(resumeData.volunteerExperience || volunteerExperience).map((volunteer, volunteerIndex) => (
                     <React.Fragment key={volunteer.id}>
                       <Draggable draggableId={volunteer.id} index={volunteerIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -5300,7 +5300,7 @@ export default function ResumeEditorV2({
                   {(resumeData.references || references).map((reference, referenceIndex) => (
                     <React.Fragment key={reference.id}>
                       <Draggable draggableId={reference.id} index={referenceIndex}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <Box
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -5801,18 +5801,18 @@ export default function ResumeEditorV2({
                           </Box>
                         ) : (
                           <Draggable draggableId={section} index={idx}>
-                            {(provided, snapshot) => (
+                            {(provided) => (
                               <Box
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 sx={{
                                   display: 'flex',
                                   alignItems: 'stretch',
-                                  background: snapshot.isDragging ? '#fff' : 'none',
-                                  border: snapshot.isDragging ? '1px solid #e0e0e0' : 'none',
+                                  background: 'none',
+                                  border: 'none',
                                   borderRadius: 2,
                                   mb: 0,
-                                  zIndex: snapshot.isDragging ? 1200 : 'auto',
+                                  zIndex: 'auto',
                                 }}
                               >
                                 {/* Drag handle */}
@@ -5947,22 +5947,22 @@ export default function ResumeEditorV2({
                     >
                       {sectionOrder.map((section, index) => (
                         <Draggable key={section} draggableId={section} index={index}>
-                          {(provided, snapshot) => (
+                          {(provided) => (
                             <ListItem
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               sx={{
-                                background: snapshot.isDragging ? COLORS.background : '#f5f5f5',
-                                border: snapshot.isDragging ? `1px solid ${COLORS.primary}` : 'none',
+                                background: '#f5f5f5',
+                                border: 'none',
                                 borderRadius: 2,
                                 mb: 0.5,
                                 px: 1,
                                 py: 1.2,
                                 height: 38,
-                                                                  boxShadow: snapshot.isDragging ? `0 4px 8px ${COLORS.shadow}` : 'none',
+                                boxShadow: 'none',
                                 display: 'flex',
                                 alignItems: 'center',
-                                transform: snapshot.isDragging ? 'rotate(2deg)' : 'none',
+                                transform: 'none',
                                 transition: 'all 0.2s ease',
                               }}
                               secondaryAction={
