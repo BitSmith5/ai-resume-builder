@@ -632,16 +632,7 @@ export default function ResumeEditorV2({
           { skillName: "Problem Solving", rating: 9 },
           { skillName: "Communication", rating: 8 },
         ],
-        education: [
-          {
-            institution: "",
-            degree: "Bachelor's Degree",
-            field: "",
-            startDate: "",
-            endDate: "",
-            current: false,
-          },
-        ],
+        education: [],
       }));
     }
   }, [resumeId, loading]);
@@ -959,13 +950,7 @@ export default function ResumeEditorV2({
     ),
     "Technical Skills": (resumeData, setResumeData) => {
       // Initialize skill categories if not exists
-      const skillCategories = resumeData.skillCategories || [
-        {
-          id: 'web-development',
-          title: 'Web Development',
-          skills: resumeData.strengths.map(skill => ({ id: Math.random().toString(), name: skill.skillName }))
-        }
-      ];
+      const skillCategories = resumeData.skillCategories || [];
 
 
 
@@ -1117,18 +1102,18 @@ export default function ResumeEditorV2({
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
             <Droppable droppableId="skill-categories" type="skill-category">
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: 100 }}>
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.skillCategories || skillCategories).length === 0 ? 10 : 100 }}>
                   {(resumeData.skillCategories || skillCategories).map((category, categoryIndex) => (
                     <Draggable key={category.id} draggableId={category.id} index={categoryIndex}>
                       {(provided, snapshot) => (
                         <Box
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          sx={{
-                            mb: 2,
-                            background: snapshot.isDragging ? '#f5f5f5' : 'white',
-                            ml: -3.5,
-                          }}
+                                                      sx={{
+                              mb: 2,
+                              background: 'transparent',
+                              ml: -3.5,
+                            }}
                         >
                           {/* Category Header with Drag Handle */}
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -1265,7 +1250,7 @@ export default function ResumeEditorV2({
           </DragDropContext>
 
           {/* + Skills button */}
-          <Box>
+          <Box sx={{ ml: -1.5 }}>
             <Button
               startIcon={<AddIcon />}
               onClick={addSkillCategory}
@@ -1609,7 +1594,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -1939,7 +1924,7 @@ export default function ResumeEditorV2({
       const addEducation = () => {
         const newEducation = {
           institution: "",
-          degree: "Bachelor's Degree",
+          degree: "",
           field: "",
           startDate: "",
           endDate: "",
@@ -2021,7 +2006,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -2392,7 +2377,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -2679,7 +2664,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -3197,7 +3182,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -3630,7 +3615,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -3858,7 +3843,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -4383,7 +4368,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -4886,7 +4871,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
@@ -5323,7 +5308,7 @@ export default function ResumeEditorV2({
                             {...provided.draggableProps}
                             sx={{
                               mb: 3,
-                              background: snapshot.isDragging ? '#f5f5f5' : 'white',
+                              background: 'transparent',
                               p: 2,
                               ml: -5.5,
                             }}
