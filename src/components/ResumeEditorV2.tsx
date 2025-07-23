@@ -33,10 +33,6 @@ import {
   Star as StarIcon,
   List as ListIcon,
   TrendingFlat as TrendingFlatIcon,
-  School as SchoolIcon,
-  Book as BookIcon,
-  Favorite as FavoriteIcon,
-  Check as CheckIcon,
 } from "@mui/icons-material";
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -3319,12 +3315,7 @@ export default function ResumeEditorV2({
                                 Technologies:
                               </Typography>
                               <DndContext
-                                sensors={useSensors(
-                                  useSensor(PointerSensor),
-                                  useSensor(KeyboardSensor, {
-                                    coordinateGetter: sortableKeyboardCoordinates,
-                                  })
-                                )}
+                                sensors={sensors}
                                 collisionDetection={closestCenter}
                                 onDragEnd={(event) => handleTechnologyDragEnd(event, project.id)}
                               >
