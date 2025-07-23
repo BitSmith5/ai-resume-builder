@@ -1221,14 +1221,7 @@ export default function ResumeEditorV2({
         setEditingBulletId(newBulletId);
       };
 
-      const deleteBulletPoint = (workId: string, bulletId: string) => {
-        setResumeData(prev => ({
-          ...prev,
-          workExperience: (prev.workExperience || workExperience).map(work =>
-            work.id === workId ? { ...work, bulletPoints: work.bulletPoints.filter(bullet => bullet.id !== bulletId) } : work
-          )
-        }));
-      };
+
 
       const updateBulletPoint = (workId: string, bulletId: string, description: string) => {
         setResumeData(prev => ({
