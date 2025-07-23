@@ -338,8 +338,6 @@ export default function ResumeEditorV2({
     "Technical Skills",
     "Work Experience",
     "Education",
-    "Courses",
-    "Interests",
   ]);
 
   const [resumeData, setResumeData] = useState<ResumeData>({
@@ -6059,8 +6057,8 @@ export default function ResumeEditorV2({
                     boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
                     m: 1,
                     zIndex: 2,
-                    maxHeight: '300px',
-                    overflowY: 'hidden',
+                    maxHeight: '400px',
+                    overflowY: 'auto',
                   }}
                 >
                   <List sx={{ px: 0, pt: 0, pb: 0 }}>
@@ -6072,6 +6070,7 @@ export default function ResumeEditorV2({
                       'Awards',
                       'Volunteer Experience',
                       'Interests',
+                      'Courses',
                       'References'
                     ].filter(section => !sectionOrder.includes(section)).map((section) => (
                       <ListItem
