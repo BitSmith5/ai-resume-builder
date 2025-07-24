@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography } from '@mui/material';
+
 import DashboardLayout from '@/components/DashboardLayout';
 import ResumeEditorV2 from '@/components/ResumeEditorV2';
 import { useRouter, useSearchParams } from 'next/navigation';

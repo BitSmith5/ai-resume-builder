@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Button,
   Typography,
-  Paper,
   Stack,
   Chip,
   Avatar,
@@ -15,7 +13,6 @@ import {
   CircularProgress
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import HelpIcon from "@mui/icons-material/Help";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import StarIcon from "@mui/icons-material/Star";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -29,7 +26,7 @@ interface Resume {
   createdAt: string;
   updatedAt: string;
   template?: string;
-  content: any;
+  content: Record<string, unknown>;
   strengths: Array<{
     id: number;
     skillName: string;
