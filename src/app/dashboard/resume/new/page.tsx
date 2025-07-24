@@ -1,11 +1,11 @@
 "use client";
 
-
+import { Suspense } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import ResumeEditorV2 from '@/components/ResumeEditorV2';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function NewResumeV2Page() {
+function NewResumeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const resumeId = searchParams?.get('id');
@@ -16,12 +16,20 @@ export default function NewResumeV2Page() {
   };
 
   return (
+    <ResumeEditorV2 
+      resumeId={resumeId || undefined}
+      onSave={handleSave} 
+      template="modern"
+    />
+  );
+}
+
+export default function NewResumeV2Page() {
+  return (
     <DashboardLayout>
-      <ResumeEditorV2 
-        resumeId={resumeId || undefined}
-        onSave={handleSave} 
-        template="modern"
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <NewResumeContent />
+      </Suspense>
     </DashboardLayout>
   );
 } 
