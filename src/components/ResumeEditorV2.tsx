@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   TextField,
@@ -299,6 +300,7 @@ interface ResumeEditorV2Props {
 export default function ResumeEditorV2({
   resumeId,
 }: ResumeEditorV2Props) {
+  const router = useRouter();
   const { data: session } = useSession();
   const [loading] = useState(false);
   const [error] = useState("");
@@ -5554,7 +5556,7 @@ export default function ResumeEditorV2({
 
   return (
     <Box sx={{ 
-      width: "100%", 
+      mr: {xs: 0, md: 20},
       display: "flex",
       flexDirection: "column",
       backgroundColor: "#f5f5f5",
@@ -5597,7 +5599,11 @@ export default function ResumeEditorV2({
       >
         {/* Left: Close, PRIMARY badge, Title */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <IconButton size="small" sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <IconButton 
+            size="small" 
+            sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+            onClick={() => router.push('/dashboard/resume')}
+          >
             <CloseIcon fontSize="small" />
           </IconButton>
             <Box

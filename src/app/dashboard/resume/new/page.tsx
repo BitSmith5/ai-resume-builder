@@ -1,12 +1,14 @@
 "use client";
 
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import DashboardLayout from '@/components/DashboardLayout';
 import ResumeEditorV2 from '@/components/ResumeEditorV2';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function NewResumeV2Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resumeId = searchParams?.get('id');
 
   const handleSave = () => {
     // Redirect to resume list after successful save
@@ -15,15 +17,11 @@ export default function NewResumeV2Page() {
 
   return (
     <DashboardLayout>
-      <Box sx={{ 
-        pr: {xs: 2, md: 20}, 
-        maxWidth: "100%",
-      }}> 
-        <ResumeEditorV2 
-          onSave={handleSave} 
-          template="modern"
-        />
-      </Box>
+      <ResumeEditorV2 
+        resumeId={resumeId || undefined}
+        onSave={handleSave} 
+        template="modern"
+      />
     </DashboardLayout>
   );
 } 
