@@ -49,8 +49,8 @@ export async function GET() {
         startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
-      deletedSections: (resume as any).deletedSections || [],
-      sectionOrder: (resume as any).sectionOrder || [],
+      deletedSections: (resume as { deletedSections?: string[] }).deletedSections || [],
+      sectionOrder: (resume as { sectionOrder?: string[] }).sectionOrder || [],
     }));
 
     return NextResponse.json(processedResumes);
@@ -65,8 +65,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await getServerSession(authOptions as any) as Session;
+    const session = await getServerSession(authOptions) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
     
     if (!user?.id) {
@@ -103,8 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert string dates to Date objects for workExperience and remove id/resumeId fields
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedWorkExperience = (workExperience || []).map((exp: any) => {
+    const processedWorkExperience = (workExperience || []).map((exp: { id?: string; resumeId?: string; startDate: string; endDate?: string; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = exp;
       return {
@@ -115,8 +113,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Convert string dates to Date objects for education and remove id/resumeId fields
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedEducation = (education || []).map((edu: any) => {
+    const processedEducation = (education || []).map((edu: { id?: string; resumeId?: string; startDate: string; endDate?: string; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = edu;
       return {
@@ -127,24 +124,21 @@ export async function POST(request: NextRequest) {
     });
 
     // Filter out id and resumeId fields from strengths
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedStrengths = (strengths || []).map((strength: any) => {
+    const processedStrengths = (strengths || []).map((strength: { id?: string; resumeId?: string; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = strength;
       return rest;
     });
 
     // Filter out id and resumeId fields from courses
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedCourses = (courses || []).map((course: any) => {
+    const processedCourses = (courses || []).map((course: { id?: string; resumeId?: string; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = course;
       return rest;
     });
 
     // Filter out id and resumeId fields from interests
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processedInterests = (interests || []).map((interest: any) => {
+    const processedInterests = (interests || []).map((interest: { id?: string; resumeId?: string; [key: string]: unknown }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = interest;
       return rest;
@@ -199,23 +193,23 @@ export async function POST(request: NextRequest) {
     // Convert dates to YYYY-MM-DD format for HTML date inputs and extract additional data from content
     const processedResume = {
       ...resume,
-      workExperience: resume.workExperience.map((exp) => ({
+      workExperience: (resume as { workExperience?: Array<{ startDate: Date; endDate?: Date | null; [key: string]: unknown }> }).workExperience?.map((exp: { startDate: Date; endDate?: Date | null; [key: string]: unknown }) => ({
         ...exp,
         startDate: exp.startDate ? exp.startDate.toISOString().split('T')[0] : '',
         endDate: exp.endDate ? exp.endDate.toISOString().split('T')[0] : '',
-      })),
-      education: resume.education.map((edu) => ({
+      })) || [],
+      education: (resume as { education?: Array<{ startDate: Date; endDate?: Date | null; [key: string]: unknown }> }).education?.map((edu: { startDate: Date; endDate?: Date | null; [key: string]: unknown }) => ({
         ...edu,
         startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
-      })),
+      })) || [],
       // Extract additional data from content JSON
-      projects: (resume.content as any)?.projects || [],
-      languages: (resume.content as any)?.languages || [],
-      publications: (resume.content as any)?.publications || [],
-      awards: (resume.content as any)?.awards || [],
-      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
-      references: (resume.content as any)?.references || [],
+      projects: (resume.content as { projects?: unknown[] })?.projects || [],
+      languages: (resume.content as { languages?: unknown[] })?.languages || [],
+      publications: (resume.content as { publications?: unknown[] })?.publications || [],
+      awards: (resume.content as { awards?: unknown[] })?.awards || [],
+      volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
+      references: (resume.content as { references?: unknown[] })?.references || [],
     };
 
     return NextResponse.json(processedResume, { status: 201 });

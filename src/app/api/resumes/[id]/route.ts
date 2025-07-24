@@ -57,17 +57,17 @@ export async function GET(
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
       // Extract additional data from content JSON
-      projects: (resume.content as any)?.projects || [],
-      languages: (resume.content as any)?.languages || [],
-      publications: (resume.content as any)?.publications || [],
-      awards: (resume.content as any)?.awards || [],
-      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
-      references: (resume.content as any)?.references || [],
+      projects: (resume.content as { projects?: unknown[] })?.projects || [],
+      languages: (resume.content as { languages?: unknown[] })?.languages || [],
+      publications: (resume.content as { publications?: unknown[] })?.publications || [],
+      awards: (resume.content as { awards?: unknown[] })?.awards || [],
+      volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
+      references: (resume.content as { references?: unknown[] })?.references || [],
     };
 
     // Add deletedSections and sectionOrder to the response
-    (processedResume as any).deletedSections = (resume as any).deletedSections || [];
-    (processedResume as any).sectionOrder = (resume as any).sectionOrder || [];
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown }).sectionOrder = (resume as { sectionOrder?: unknown }).sectionOrder || [];
 
     return NextResponse.json(processedResume);
   } catch (error) {
@@ -85,8 +85,7 @@ export async function PUT(
 ) {
   try {
     const resolvedParams = await params;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await getServerSession(authOptions as any) as Session;
+    const session = await getServerSession(authOptions) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
     
     if (!user?.id) {
@@ -186,7 +185,7 @@ export async function PUT(
     // Delete old profile picture if it's being replaced or removed
     // For data URLs, we don't need to delete anything from storage
     // The old data URL will be replaced with the new one
-    if (currentResume && (currentResume as { profilePicture?: string }).profilePicture && (currentResume as { profilePicture?: string }).profilePicture !== profilePicture) {
+    if (currentResume && currentResume.profilePicture && currentResume.profilePicture !== profilePicture) {
       console.log("Profile picture being replaced - old data URL will be overwritten");
     }
 
@@ -269,16 +268,16 @@ export async function PUT(
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
       // Extract additional data from content JSON
-      projects: (resume.content as any)?.projects || [],
-      languages: (resume.content as any)?.languages || [],
-      publications: (resume.content as any)?.publications || [],
-      awards: (resume.content as any)?.awards || [],
-      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
-      references: (resume.content as any)?.references || [],
+      projects: (resume.content as { projects?: unknown[] })?.projects || [],
+      languages: (resume.content as { languages?: unknown[] })?.languages || [],
+      publications: (resume.content as { publications?: unknown[] })?.publications || [],
+      awards: (resume.content as { awards?: unknown[] })?.awards || [],
+      volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
+      references: (resume.content as { references?: unknown[] })?.references || [],
     };
 
     // Add deletedSections to the response
-    (processedResume as any).deletedSections = (resume as any).deletedSections || [];
+    (processedResume as { deletedSections?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
 
     return NextResponse.json(processedResume);
   } catch (error) {
@@ -317,7 +316,7 @@ export async function DELETE(
 
     // Delete the profile picture file if it exists
     // For data URLs, we don't need to delete anything from storage
-    if ((resume as { profilePicture?: string }).profilePicture) {
+    if (resume.profilePicture) {
       console.log("Resume being deleted - profile picture data URL will be removed from database");
     }
 

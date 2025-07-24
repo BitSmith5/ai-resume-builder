@@ -11,7 +11,7 @@ export default function PDFViewPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const resumeId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : '';
-  const template = searchParams.get('template') || 'modern';
+  const template = searchParams?.get('template') || 'modern';
   
   const [html, setHtml] = useState<string>('');
   const [loading, setLoading] = useState(true);

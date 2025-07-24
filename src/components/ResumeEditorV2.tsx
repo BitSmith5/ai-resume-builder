@@ -326,8 +326,7 @@ export default function ResumeEditorV2({
   const datePickerCallbackRef = React.useRef<((date: string) => void) | null>(null);
 
   // Autosave state
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
 
   const [profileData, setProfileData] = useState({
     name: "",
@@ -729,13 +728,21 @@ export default function ResumeEditorV2({
   }, [resumeData.deletedSections]);
 
   // Debounced autosave function
-  const debouncedSave = useDebouncedCallback(async (data: ResumeData, profileData: any) => {
+  const debouncedSave = useDebouncedCallback(async (data: ResumeData, profileData: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+    linkedinUrl?: string;
+    githubUrl?: string;
+    portfolioUrl?: string;
+  }) => {
     if (!session?.user) return;
     
     console.log('Autosave triggered with data:', data);
     console.log('deletedSections in autosave:', data.deletedSections);
     
-    setSaveStatus('saving');
+
     try {
       // Save profile data first
       if (profileData.name || profileData.email || profileData.phone || profileData.location || 
@@ -806,8 +813,6 @@ export default function ResumeEditorV2({
 
       if (response.ok) {
         const savedResume = await response.json();
-        setSaveStatus('saved');
-        setLastSaved(new Date());
         
         // If this was a new resume, update the URL with the new ID
         if (!resumeId && savedResume.id) {
@@ -815,11 +820,9 @@ export default function ResumeEditorV2({
         }
       } else {
         console.error('Save failed:', response.status, response.statusText);
-        setSaveStatus('error');
       }
     } catch (error) {
       console.error('Save error:', error);
-      setSaveStatus('error');
     }
   }, 2000); // 2 second debounce
 
