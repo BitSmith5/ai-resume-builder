@@ -24,6 +24,12 @@ export async function GET() {
         education: true,
         courses: true,
         interests: true,
+        // projects: true,
+        // languages: true,
+        // publications: true,
+        // awards: true,
+        // volunteerExperience: true,
+        // references: true,
       },
       orderBy: {
         id: "desc",
@@ -43,6 +49,8 @@ export async function GET() {
         startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
+      deletedSections: (resume as any).deletedSections || [],
+      sectionOrder: (resume as any).sectionOrder || [],
     }));
 
     return NextResponse.json(processedResumes);
@@ -66,7 +74,26 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, jobTitle, template, content, profilePicture, strengths, workExperience, education, courses, interests } = body;
+    const { 
+      title, 
+      jobTitle, 
+      template, 
+      content, 
+      profilePicture, 
+      deletedSections,
+      sectionOrder,
+      strengths, 
+      workExperience, 
+      education, 
+      courses, 
+      interests,
+      projects,
+      languages,
+      publications,
+      awards,
+      volunteerExperience,
+      references
+    } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -123,13 +150,25 @@ export async function POST(request: NextRequest) {
       return rest;
     });
 
+    // Process additional fields (will be stored in content JSON for now)
+    const additionalData = {
+      projects: projects || [],
+      languages: languages || [],
+      publications: publications || [],
+      awards: awards || [],
+      volunteerExperience: volunteerExperience || [],
+      references: references || [],
+    };
+
     const resume = await prisma.resume.create({
       data: {
         title,
         jobTitle,
         template: template || "modern",
-        content: content,
+        content: { ...content, ...additionalData },
         profilePicture: profilePicture || null,
+        deletedSections: deletedSections || [],
+        sectionOrder: sectionOrder || [],
         userId: user.id,
         strengths: {
           create: processedStrengths,
@@ -148,13 +187,7 @@ export async function POST(request: NextRequest) {
         },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        userId: true,
+      include: {
         strengths: true,
         workExperience: true,
         education: true,
@@ -163,7 +196,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Convert dates to YYYY-MM-DD format for HTML date inputs
+    // Convert dates to YYYY-MM-DD format for HTML date inputs and extract additional data from content
     const processedResume = {
       ...resume,
       workExperience: resume.workExperience.map((exp) => ({
@@ -176,6 +209,13 @@ export async function POST(request: NextRequest) {
         startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
+      // Extract additional data from content JSON
+      projects: (resume.content as any)?.projects || [],
+      languages: (resume.content as any)?.languages || [],
+      publications: (resume.content as any)?.publications || [],
+      awards: (resume.content as any)?.awards || [],
+      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
+      references: (resume.content as any)?.references || [],
     };
 
     return NextResponse.json(processedResume, { status: 201 });

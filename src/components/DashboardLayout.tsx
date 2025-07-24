@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const getCurrentPageTitle = () => {
     if (pathname === "/dashboard") return "Dashboard";
     if (pathname === "/dashboard/resume") return "Resume";
-    if (pathname === "/dashboard/resume/new") return "Create Resume";
+    if (pathname === "/dashboard/resume/new") return "Edit Resume";
     if (pathname === "/dashboard/resumes") return "My Resumes";
     if (pathname === "/dashboard/profile") return "Profile";
     return "Dashboard";

@@ -62,21 +62,29 @@ model VerificationToken {
 }
 
 model Resume {
-  id             Int              @id @default(autoincrement())
-  userId         String
-  title          String
-  jobTitle       String?          // Job title to display on the resume
-  template       String?          @default("modern") // Template ID for the resume
-  content        Json
-  profilePicture String?          // Stores file path like "uploads/profile-pictures/filename.jpg"
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  education      Education[]
-  user           User             @relation(fields: [userId], references: [id])
-  strengths      Strength[]
-  workExperience WorkExperience[]
-  courses        Course[]
-  interests      Interest[]
+  id                  Int                   @id @default(autoincrement())
+  userId              String
+  title               String
+  jobTitle            String?               // Job title to display on the resume
+  template            String?               @default("modern") // Template ID for the resume
+  content             Json
+  profilePicture      String?               // Stores file path like "uploads/profile-pictures/filename.jpg"
+  deletedSections     Json?                 @default("[]") // Array of section names that have been deleted
+  sectionOrder        Json?                 @default("[]") // Array of section names in display order
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  education           Education[]
+  user                User                  @relation(fields: [userId], references: [id])
+  strengths           Strength[]
+  workExperience      WorkExperience[]
+  courses             Course[]
+  interests           Interest[]
+  projects            Project[]
+  languages           Language[]
+  publications        Publication[]
+  awards              Award[]
+  volunteerExperience VolunteerExperience[]
+  references          Reference[]
 }
 
 model Strength {
@@ -127,4 +135,73 @@ model Interest {
   name     String
   icon     String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id           Int       @id @default(autoincrement())
+  resumeId     Int
+  title        String
+  startDate    DateTime
+  endDate      DateTime?
+  current      Boolean   @default(false)
+  technologies Json      @default("[]")
+  link         String?
+  bulletPoints Json      @default("[]")
+  resume       Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Language {
+  id          Int    @id @default(autoincrement())
+  resumeId    Int
+  name        String
+  proficiency String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Publication {
+  id       Int    @id @default(autoincrement())
+  resumeId Int
+  title    String
+  authors  String
+  journal  String
+  year     String
+  doi      String?
+  link     String?
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Award {
+  id           Int       @id @default(autoincrement())
+  resumeId     Int
+  title        String
+  organization String
+  year         String
+  bulletPoints Json      @default("[]")
+  resume       Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model VolunteerExperience {
+  id           Int       @id @default(autoincrement())
+  resumeId     Int
+  organization String
+  position     String
+  location     String?
+  startDate    DateTime
+  endDate      DateTime?
+  current      Boolean   @default(false)
+  hoursPerWeek String?
+  bulletPoints Json      @default("[]")
+  resume       Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Reference {
+  id          Int    @id @default(autoincrement())
+  resumeId    Int
+  name        String
+  title       String
+  company     String
+  email       String
+  phone       String?
+  relationship String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }

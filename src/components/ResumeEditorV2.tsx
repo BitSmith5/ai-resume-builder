@@ -1,5 +1,12 @@
 "use client";
 
+// ResumeEditorV2 - Enhanced with section deletion persistence
+// Features:
+// - Sections can be deleted and this state is persisted to the database
+// - Deleted sections are remembered and won't show up when the page is reloaded
+// - Users can re-add deleted sections through the "Add Section" button
+// - Section order and deletion state are saved automatically
+
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -56,7 +63,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-// import { useDebouncedCallback } from 'use-debounce';
+import { useDebouncedCallback } from 'use-debounce';
 
 // ============================================================================
 // GLOBAL COLOR SYSTEM - Change colors from one location
@@ -170,6 +177,7 @@ interface ResumeData {
   jobTitle?: string;
   template?: string;
   profilePicture?: string;
+  deletedSections?: string[]; // Array of section names that have been deleted
   content: {
     personalInfo: {
       name: string;
@@ -302,7 +310,7 @@ export default function ResumeEditorV2({
 }: ResumeEditorV2Props) {
   const router = useRouter();
   const { data: session } = useSession();
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error] = useState("");
   const [success] = useState("");
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
@@ -312,10 +320,14 @@ export default function ResumeEditorV2({
     title: "",
     jobTitle: "",
   });
-          const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
   const [editingBulletId, setEditingBulletId] = useState<string | null>(null);
   const datePickerCallbackRef = React.useRef<((date: string) => void) | null>(null);
+
+  // Autosave state
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const [profileData, setProfileData] = useState({
     name: "",
@@ -347,6 +359,7 @@ export default function ResumeEditorV2({
     jobTitle: "",
     template: "modern",
     profilePicture: "",
+    deletedSections: [],
     content: {
       personalInfo: {
         name: "",
@@ -606,6 +619,8 @@ export default function ResumeEditorV2({
           githubUrl: "",
           portfolioUrl: "",
         });
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -614,9 +629,72 @@ export default function ResumeEditorV2({
     }
   }, [session]);
 
+  // Load existing resume data when editing
+  useEffect(() => {
+    const loadResumeData = async () => {
+      if (!resumeId || !session?.user) return;
+      
+      try {
+        const response = await fetch(`/api/resumes/${resumeId}`);
+        if (response.ok) {
+          const resume = await response.json();
+          console.log('Loaded resume data:', resume);
+          console.log('deletedSections from API:', resume.deletedSections);
+          
+          setResumeData({
+            title: resume.title || "",
+            jobTitle: resume.jobTitle || "",
+            template: resume.template || "modern",
+            profilePicture: resume.profilePicture || "",
+            deletedSections: resume.deletedSections || [],
+            content: resume.content || {
+              personalInfo: {
+                name: "",
+                email: "",
+                phone: "",
+                city: "",
+                state: "",
+                summary: "",
+                website: "",
+                linkedin: "",
+                github: "",
+              },
+            },
+            strengths: resume.strengths || [],
+            skillCategories: resume.skillCategories || [],
+            workExperience: resume.workExperience || [],
+            education: resume.education || [],
+            courses: resume.courses || [],
+            interests: resume.interests || [],
+            projects: resume.projects || [],
+            languages: resume.languages || [],
+            publications: resume.publications || [],
+            awards: resume.awards || [],
+            volunteerExperience: resume.volunteerExperience || [],
+            references: resume.references || [],
+          });
+          
+          // Load sectionOrder from database
+          if (resume.sectionOrder && Array.isArray(resume.sectionOrder)) {
+            console.log('Loading sectionOrder from database:', resume.sectionOrder);
+            setSectionOrder(resume.sectionOrder);
+          }
+        } else {
+          console.error('Failed to load resume:', response.status);
+        }
+      } catch (error) {
+        console.error('Error loading resume:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadResumeData();
+  }, [resumeId, session?.user]);
+
   // Auto-populate common sections when creating a new resume
   useEffect(() => {
-    if (!resumeId && !loading) {
+    if (!resumeId && !loading && session?.user) {
       // Auto-add some common sections
       setResumeData(prev => ({
         ...prev,
@@ -635,34 +713,125 @@ export default function ResumeEditorV2({
         education: [],
       }));
     }
-  }, [resumeId, loading]);
+  }, [resumeId, loading, session?.user]);
 
-  // Debounced autosave
-  // const debouncedSave = useDebouncedCallback(async (data: ResumeData, template: string) => {
-  //   setSaveStatus('saving');
-  //   try {
-  //     const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
-  //     const method = resumeId ? "PUT" : "POST";
-  //     const response = await fetch(url, {
-  //       method,
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ ...data, template }),
-  //     });
-  //     if (response.ok) {
-  //       setSaveStatus('saved');
-  //     } else {
-  //       setSaveStatus('error');
-  //     }
-  //   } catch {
-  //     setSaveStatus('error');
-  //   }
-  // }, 1000);
+  // Update section order when resume data is loaded to respect deleted sections
+  useEffect(() => {
+    console.log('useEffect triggered for deletedSections:', resumeData.deletedSections);
+    const deletedSections = resumeData.deletedSections || [];
+    console.log('Filtering out deleted sections from sectionOrder:', deletedSections);
+    setSectionOrder(prev => {
+      const filtered = prev.filter(section => !deletedSections.includes(section));
+      console.log('Original sectionOrder:', prev);
+      console.log('Filtered sectionOrder:', filtered);
+      return filtered;
+    });
+  }, [resumeData.deletedSections]);
 
-  // useEffect(() => {
-  //   if (loading) return;
-  //   setSaveStatus('idle');
-  //   debouncedSave(resumeData, selectedTemplate);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Debounced autosave function
+  const debouncedSave = useDebouncedCallback(async (data: ResumeData, profileData: any) => {
+    if (!session?.user) return;
+    
+    console.log('Autosave triggered with data:', data);
+    console.log('deletedSections in autosave:', data.deletedSections);
+    
+    setSaveStatus('saving');
+    try {
+      // Save profile data first
+      if (profileData.name || profileData.email || profileData.phone || profileData.location || 
+          profileData.linkedinUrl || profileData.githubUrl || profileData.portfolioUrl) {
+        await fetch('/api/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: profileData.name || session.user.name || '',
+            email: profileData.email || session.user.email || '',
+            phone: profileData.phone || '',
+            location: profileData.location || '',
+            linkedinUrl: profileData.linkedinUrl || '',
+            githubUrl: profileData.githubUrl || '',
+            portfolioUrl: profileData.portfolioUrl || '',
+          }),
+        });
+      }
+
+      // Filter out data for deleted sections
+      const deletedSections = data.deletedSections || [];
+      console.log('Filtering data for deleted sections:', deletedSections);
+      
+      const filteredData = {
+        ...data,
+        // Only include data for sections that are not deleted
+        strengths: deletedSections.includes('Technical Skills') ? [] : (data.strengths || []),
+        workExperience: deletedSections.includes('Work Experience') ? [] : (data.workExperience || []),
+        education: deletedSections.includes('Education') ? [] : (data.education || []),
+        courses: deletedSections.includes('Courses') ? [] : (data.courses || []),
+        interests: deletedSections.includes('Interests') ? [] : (data.interests || []),
+        projects: deletedSections.includes('Projects') ? [] : (data.projects || []),
+        languages: deletedSections.includes('Languages') ? [] : (data.languages || []),
+        publications: deletedSections.includes('Publications') ? [] : (data.publications || []),
+        awards: deletedSections.includes('Awards') ? [] : (data.awards || []),
+        volunteerExperience: deletedSections.includes('Volunteer Experience') ? [] : (data.volunteerExperience || []),
+        references: deletedSections.includes('References') ? [] : (data.references || []),
+      };
+
+      // Save resume data
+      const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
+      const method = resumeId ? "PUT" : "POST";
+      
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: filteredData.title || "Untitled Resume",
+          jobTitle: filteredData.jobTitle || "",
+          template: filteredData.template || "modern",
+          content: filteredData.content,
+          profilePicture: filteredData.profilePicture || "",
+          deletedSections: filteredData.deletedSections || [],
+          sectionOrder: sectionOrder, // Add sectionOrder to save payload
+          strengths: filteredData.strengths || [],
+          workExperience: filteredData.workExperience || [],
+          education: filteredData.education || [],
+          courses: filteredData.courses || [],
+          interests: filteredData.interests || [],
+          projects: filteredData.projects || [],
+          languages: filteredData.languages || [],
+          publications: filteredData.publications || [],
+          awards: filteredData.awards || [],
+          volunteerExperience: filteredData.volunteerExperience || [],
+          references: filteredData.references || [],
+        }),
+      });
+
+      if (response.ok) {
+        const savedResume = await response.json();
+        setSaveStatus('saved');
+        setLastSaved(new Date());
+        
+        // If this was a new resume, update the URL with the new ID
+        if (!resumeId && savedResume.id) {
+          router.replace(`/dashboard/resumes/${savedResume.id}/edit`);
+        }
+      } else {
+        console.error('Save failed:', response.status, response.statusText);
+        setSaveStatus('error');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      setSaveStatus('error');
+    }
+  }, 2000); // 2 second debounce
+
+  // Autosave effect
+  useEffect(() => {
+    if (loading || !session?.user) return;
+    
+    // Don't save if we're still loading initial data
+    if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
+    
+    debouncedSave(resumeData, profileData);
+  }, [resumeData, profileData, loading, session?.user, resumeId, debouncedSave]);
 
 
   // Handle drag end for section reordering
@@ -677,19 +846,70 @@ export default function ResumeEditorV2({
   const handleAddSection = (sectionName: string) => {
     if (!sectionOrder.includes(sectionName)) {
       setSectionOrder(prev => [...prev, sectionName]);
+      // Remove from deleted sections if it was previously deleted
+      setResumeData(prev => ({
+        ...prev,
+        deletedSections: prev.deletedSections?.filter(section => section !== sectionName) || []
+        // Note: When re-adding a section, the data will be empty arrays which is correct
+        // since the data was cleared when the section was deleted
+      }));
     }
     setAddSectionPopupOpen(false);
   };
 
-  if (loading) {
+  const handleDeleteSection = (sectionName: string) => {
+    console.log('Deleting section:', sectionName);
+    console.log('Current sectionOrder before deletion:', sectionOrder);
+    console.log('Current deletedSections before deletion:', resumeData.deletedSections);
+    
+    // Remove from section order
+    setSectionOrder(prev => {
+      const newOrder = prev.filter(section => section !== sectionName);
+      console.log('New sectionOrder after deletion:', newOrder);
+      return newOrder;
+    });
+    
+    // Add to deleted sections and clear the data for that section
+    setResumeData(prev => {
+      const newDeletedSections = [...(prev.deletedSections || []), sectionName];
+      console.log('New deletedSections after deletion:', newDeletedSections);
+      
+      const updatedData = {
+        ...prev,
+        deletedSections: newDeletedSections,
+        // Clear data for the deleted section
+        strengths: sectionName === 'Technical Skills' ? [] : prev.strengths,
+        workExperience: sectionName === 'Work Experience' ? [] : prev.workExperience,
+        education: sectionName === 'Education' ? [] : prev.education,
+        courses: sectionName === 'Courses' ? [] : prev.courses,
+        interests: sectionName === 'Interests' ? [] : prev.interests,
+        projects: sectionName === 'Projects' ? [] : prev.projects,
+        languages: sectionName === 'Languages' ? [] : prev.languages,
+        publications: sectionName === 'Publications' ? [] : prev.publications,
+        awards: sectionName === 'Awards' ? [] : prev.awards,
+        volunteerExperience: sectionName === 'Volunteer Experience' ? [] : prev.volunteerExperience,
+        references: sectionName === 'References' ? [] : prev.references,
+      };
+      
+      console.log('Updated resumeData after deletion:', updatedData);
+      return updatedData;
+    });
+  };
+
+  if (loading || !session?.user) {
     return (
       <Box
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="400px"
+        minHeight="100vh"
+        flexDirection="column"
+        gap={2}
       >
-        <CircularProgress />
+        <CircularProgress size={60} />
+        <Typography variant="h6" color="text.secondary">
+          Loading resume editor...
+        </Typography>
       </Box>
     );
   }
@@ -739,12 +959,10 @@ export default function ResumeEditorV2({
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, mb: 3, maxWidth: '900px' }}>
             {/* Email Column */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {profileData.email && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-                  <EmailIcon fontSize="small" color="action" />
-                  <Typography variant="body2">{profileData.email}</Typography>
-                </Box>
-              )}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
+                <EmailIcon fontSize="small" color="action" />
+                <Typography variant="body2">{profileData.email || "Email"}</Typography>
+              </Box>
               <Box sx={{
                 bgcolor: '#f5f5f5', 
                 borderRadius: 2,
@@ -786,12 +1004,10 @@ export default function ResumeEditorV2({
 
             {/* Phone Column */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {profileData.phone && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-                  <PhoneIcon fontSize="small" color="action" />
-                  <Typography variant="body2">{formatPhoneNumber(profileData.phone)}</Typography>
-                </Box>
-              )}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
+                <PhoneIcon fontSize="small" color="action" />
+                <Typography variant="body2">{profileData.phone ? formatPhoneNumber(profileData.phone) : "Phone number"}</Typography>
+              </Box>
               <Box sx={{ 
                 bgcolor: '#f5f5f5', 
                 borderRadius: 2,
@@ -833,12 +1049,10 @@ export default function ResumeEditorV2({
 
             {/* Location Column */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {profileData.location && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-                  <LocationIcon fontSize="small" color="action" />
-                  <Typography variant="body2">{profileData.location}</Typography>
-                </Box>
-              )}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
+                <LocationIcon fontSize="small" color="action" />
+                <Typography variant="body2">{profileData.location || "Location"}</Typography>
+              </Box>
               <Box sx={{ 
                 bgcolor: '#f5f5f5', 
                 borderRadius: 2,
@@ -889,6 +1103,12 @@ export default function ResumeEditorV2({
             </Typography>
                       <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Professional Summary');
+                handleDeleteSection('Professional Summary');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -1085,6 +1305,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Technical Skills');
+                handleDeleteSection('Technical Skills');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -1567,6 +1793,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Work Experience');
+                handleDeleteSection('Work Experience');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -1979,6 +2211,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Education');
+                handleDeleteSection('Education');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -2350,6 +2588,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Courses');
+                handleDeleteSection('Courses');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -2637,6 +2881,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Interests');
+                handleDeleteSection('Interests');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -3155,6 +3405,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Projects');
+                handleDeleteSection('Projects');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -3588,6 +3844,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Languages');
+                handleDeleteSection('Languages');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -3816,6 +4078,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Publications');
+                handleDeleteSection('Publications');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -4341,6 +4609,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Awards');
+                handleDeleteSection('Awards');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -4844,6 +5118,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: Volunteer Experience');
+                handleDeleteSection('Volunteer Experience');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -5281,6 +5561,12 @@ export default function ResumeEditorV2({
             </Typography>
             <IconButton
               size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for section: References');
+                handleDeleteSection('References');
+              }}
               sx={{ 
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
@@ -5565,18 +5851,7 @@ export default function ResumeEditorV2({
       position: "relative",
       height: "calc(100vh - 64px)",
     }}>
-      {/* Save status indicator */}
-      {/* <Box sx={{
-        display: "flex",
-        justifyContent: "flex-end",
-        alignItems: "center",
-        p: 2,
-        minHeight: 40,
-      }}>
-        {saveStatus === 'saving' && <Typography color="text.secondary" fontSize={14}>Saving...</Typography>}
-        {saveStatus === 'saved' && <Typography color="success.main" fontSize={14}>Saved</Typography>}
-        {saveStatus === 'error' && <Typography color="error.main" fontSize={14}>Error saving</Typography>}
-      </Box> */}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -5791,7 +6066,6 @@ export default function ResumeEditorV2({
                               mb: 0,
                             }}
                           >
-
                             {/* Section content */}
                             <Box sx={{ flex: 1, pl: 3 }}>
                               {SECTION_COMPONENTS[section]
@@ -5804,6 +6078,7 @@ export default function ResumeEditorV2({
                                   </Box>
                                 )}
                             </Box>
+
                           </Box>
                         ) : (
                           <Draggable draggableId={section} index={idx}>
@@ -5849,6 +6124,7 @@ export default function ResumeEditorV2({
                                       </Box>
                                     )}
                                 </Box>
+
                               </Box>
                             )}
                           </Draggable>
@@ -6030,91 +6306,85 @@ export default function ResumeEditorV2({
                 </Button>
               </Box>
             </Box>
-            
-            {/* Add New Section Popup - Overlay within Edit Resume Layout */}
-            {isClient && addSectionPopupOpen && (
-              <>
-                {/* Backdrop overlay */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    borderTopLeftRadius: 0,
-                    borderTopRightRadius: 18,
-                    borderBottomLeftRadius: 18,
-                    borderBottomRightRadius: 18,  
-                    background: 'rgba(0,0,0,0.3)',
-                    zIndex: 1,
-                  }}
-                  onClick={() => setAddSectionPopupOpen(false)}
-                />
-                {/* Popup content */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: '#fff',
-                    borderRadius: '18px',
-                    boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
-                    m: 1,
-                    zIndex: 2,
-                    maxHeight: '400px',
-                    overflowY: 'auto',
-                  }}
-                >
-                  <List sx={{ px: 0, pt: 0, pb: 0 }}>
-                    {[
-                      'Work Experience',
-                      'Projects',
-                      'Languages',
-                      'Publications',
-                      'Awards',
-                      'Volunteer Experience',
-                      'Interests',
-                      'Courses',
-                      'References'
-                    ].filter(section => !sectionOrder.includes(section)).map((section) => (
-                      <ListItem
-                        key={section}
-                        component="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddSection(section);
-                        }}
-                        sx={{
-                          px: 2,
-                          py: 1.2,
-                          minHeight: 44,
-                          width: '100%',
-                          textAlign: 'left',
-                          border: 'none',
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          '&:hover': {
-                            backgroundColor: '#f5f5f5',
-                          },
-                        }}
-                      >
-                        <ListItemIcon sx={{ minWidth: 24 }}>
-                          <AddIcon sx={{ fontSize: 20, color: '#666' }} />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={section}
-                          primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Box>
-              </>
-            )}
           </Box>
         </>
+      )}
+
+      {/* Add New Section Popup - Independent Modal */}
+      {isClient && addSectionPopupOpen && layoutModalOpen && (
+                  <Box
+            sx={{
+              position: 'absolute',
+              bottom: 180,
+              right: 45,
+              background: '#fff',
+              borderRadius: '18px',
+              boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+              width: 320,
+              zIndex: 1003,
+              maxHeight: '600px',
+              overflowY: 'auto',
+            }}
+          >
+            <List sx={{ px: 0, pt: 0, pb: 0 }}>
+              {(() => {
+                const availableSections = [
+                  // Original default sections (except Personal Info)
+                  'Professional Summary',
+                  'Technical Skills',
+                  'Work Experience',
+                  'Education',
+                  // Additional sections
+                  'Projects',
+                  'Languages',
+                  'Publications',
+                  'Awards',
+                  'Volunteer Experience',
+                  'Interests',
+                  'Courses',
+                  'References'
+                ];
+                const filteredSections = availableSections.filter(section => 
+                  !sectionOrder.includes(section)
+                );
+                console.log('Available sections:', availableSections);
+                console.log('Current sectionOrder:', sectionOrder);
+                console.log('Deleted sections:', resumeData.deletedSections);
+                console.log('Filtered sections:', filteredSections);
+                return filteredSections;
+              })().map((section) => (
+                <ListItem
+                  key={section}
+                  component="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddSection(section);
+                  }}
+                  sx={{
+                    px: 2,
+                    py: 1.2,
+                    minHeight: 44,
+                    width: '100%',
+                    textAlign: 'left',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: '#f5f5f5',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 24 }}>
+                    <AddIcon sx={{ fontSize: 20, color: '#666' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={section}
+                    primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
       )}
 
       {/* Date Picker */}
@@ -6259,13 +6529,21 @@ export default function ResumeEditorV2({
               </Button>
               <Button
                 variant="contained"
-                onClick={() => {
-                  setResumeData(prev => ({
-                    ...prev,
+                onClick={async () => {
+                  const updatedResumeData = {
+                    ...resumeData,
                     title: editFormData.title,
                     jobTitle: editFormData.jobTitle,
-                  }));
+                  };
+                  setResumeData(updatedResumeData);
                   setEditResumeInfoOpen(false);
+                  
+                  // Force immediate save
+                  try {
+                    await debouncedSave(updatedResumeData, profileData);
+                  } catch (error) {
+                    console.error('Error saving resume info:', error);
+                  }
                 }}
                 sx={{
                   flex: 1,
