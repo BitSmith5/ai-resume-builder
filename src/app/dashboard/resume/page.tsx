@@ -165,7 +165,7 @@ export default function ResumePage() {
              sx={{
                display: 'flex',
                alignItems: 'center',
-               gap: 2,
+               gap: 1,
                pr: 1,
                pl: 0.5,
                py: 0.5,
