@@ -23,24 +23,46 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
+  Drawer,
+  Paper,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Slider,
+  Switch,
+  FormControlLabel,
+  Tabs,
+  Tab,
+  Chip,
+  Card,
+  CardContent,
+  Avatar,
+  Stack,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   DeleteOutline as DeleteOutlineIcon,
-  Download as DownloadIcon,
-  DragIndicator as DragIndicatorIcon,
   Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Download as DownloadIcon,
+  Close as CloseIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
   LocationOn as LocationIcon,
   LinkedIn as LinkedInIcon,
   GitHub as GitHubIcon,
   Language as WebsiteIcon,
-  Close as CloseIcon,
+  School as SchoolIcon,
+  Work as WorkIcon,
   Star as StarIcon,
   List as ListIcon,
   TrendingFlat as TrendingFlatIcon,
+  Info as InfoIcon,
+  Check as CheckIcon,
+  DragIndicator as DragIndicatorIcon,
 } from "@mui/icons-material";
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -324,6 +346,24 @@ export default function ResumeEditorV2({
   const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
   const [editingBulletId, setEditingBulletId] = useState<string | null>(null);
   const datePickerCallbackRef = React.useRef<((date: string) => void) | null>(null);
+
+  // Export panel state
+  const [exportPanelOpen, setExportPanelOpen] = useState(false);
+  const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
+  const [exportSettings, setExportSettings] = useState({
+    template: 'standard',
+    fontFamily: 'Times New Roman',
+    nameSize: 25,
+    sectionHeadersSize: 11,
+    subHeadersSize: 10.5,
+    bodyTextSize: 10,
+    sectionSpacing: 50,
+    entrySpacing: 30,
+    lineSpacing: 1.2,
+    topBottomMargin: 0.5,
+    sideMargins: 0.5,
+    alignTextLeftRight: false,
+  });
 
   // Autosave state
 
@@ -835,6 +875,12 @@ export default function ResumeEditorV2({
     
     debouncedSave(resumeData, profileData);
   }, [resumeData, profileData, loading, session?.user, resumeId, debouncedSave]);
+
+  // Real-time preview update effect
+  useEffect(() => {
+    // This effect ensures the preview updates when export settings change
+    // The preview is already reactive to exportSettings changes
+  }, [exportSettings]);
 
 
   // Handle drag end for section reordering
@@ -5843,6 +5889,48 @@ export default function ResumeEditorV2({
     // Add more sections as needed...
   };
 
+  // Export panel handlers
+  const handleExportClick = () => {
+    setExportPanelOpen(true);
+    setExportPanelFullyClosed(false);
+  };
+
+  const handleExportClose = () => {
+    setExportPanelOpen(false);
+    // Don't set exportPanelFullyClosed here; wait for transition end
+  };
+
+  const handleDownloadPDF = async () => {
+    // TODO: Implement PDF download with export settings
+    console.log('Downloading PDF with settings:', exportSettings);
+    // For now, just close the panel
+    setExportPanelOpen(false);
+  };
+
+  const handleDownloadWord = async () => {
+    // TODO: Implement Word download with export settings
+    console.log('Downloading Word with settings:', exportSettings);
+    // For now, just close the panel
+    setExportPanelOpen(false);
+  };
+
+  const handleResetFormatting = () => {
+    setExportSettings({
+      template: 'standard',
+      fontFamily: 'Times New Roman',
+      nameSize: 25,
+      sectionHeadersSize: 11,
+      subHeadersSize: 10.5,
+      bodyTextSize: 10,
+      sectionSpacing: 50,
+      entrySpacing: 30,
+      lineSpacing: 1.2,
+      topBottomMargin: 0.5,
+      sideMargins: 0.5,
+      alignTextLeftRight: false,
+    });
+  };
+
   return (
     <Box sx={{ 
       mr: {xs: 0, md: 20},
@@ -5959,6 +6047,7 @@ export default function ResumeEditorV2({
               variant="text"
               size="small"
               startIcon={<DownloadIcon />}
+              onClick={handleExportClick}
               sx={{ 
                 textTransform: 'none', 
                 fontWeight: 500,
@@ -5976,8 +6065,8 @@ export default function ResumeEditorV2({
                 }
               }}
             >
-            Export
-          </Button>
+              Export
+            </Button>
             <Button
               variant="text"
               size="small"
@@ -6146,36 +6235,38 @@ export default function ResumeEditorV2({
         </Box>
 
       {/* Floating Edit Resume Layout Button */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: 100,
-          right: 50,
-          zIndex: 1300,
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{ 
-            borderRadius: "50%", 
-            width: 60, 
-            height: 60, 
-            minWidth: 60,
-            minHeight: 60,
-            maxWidth: 60,
-            maxHeight: 60,
-            padding: 0,
-            background: COLORS.primary,
-            boxShadow: 'none',
-            '&:hover': {
-              background: COLORS.hover,
-            }
+      {exportPanelFullyClosed && !exportPanelOpen && (
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 100,
+            right: 50,
+            zIndex: 1300,
           }}
-          onClick={() => setLayoutModalOpen(true)}
         >
-          <ListIcon sx={{ fontSize: 28, color: 'black', fontWeight: 500 }} />
-        </Button>
-      </Box>
+          <Button
+            variant="contained"
+            sx={{ 
+              borderRadius: "50%", 
+              width: 60, 
+              height: 60, 
+              minWidth: 60,
+              minHeight: 60,
+              maxWidth: 60,
+              maxHeight: 60,
+              padding: 0,
+              background: COLORS.primary,
+              boxShadow: 'none',
+              '&:hover': {
+                background: COLORS.hover,
+              }
+            }}
+            onClick={() => setLayoutModalOpen(true)}
+          >
+            <ListIcon sx={{ fontSize: 28, color: 'black', fontWeight: 500 }} />
+          </Button>
+        </Box>
+      )}
 
       {/* Edit Resume Layout Modal */}
       {layoutModalOpen && (
@@ -6566,6 +6657,800 @@ export default function ResumeEditorV2({
           </Box>
         </>
       )}
+
+      {/* Export Resume Panel - Slides out from right */}
+      <Drawer
+        anchor="right"
+        open={exportPanelOpen}
+        onClose={handleExportClose}
+        onTransitionEnd={() => {
+          if (!exportPanelOpen) setExportPanelFullyClosed(true);
+        }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 1150,
+            backgroundColor: 'white',
+            borderLeft: '1px solid #e0e0e0',
+            boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
+            borderTopLeftRadius: 20,
+            borderBottomLeftRadius: 20,
+          },
+        }}
+      >
+        <Box sx={{ py: 2, px: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            mb: 3,
+            pb: 2,
+            borderBottom: '1px solid #e0e0e0'
+          }}>
+            <Typography variant="h6" fontWeight={600}>
+              Export Resume
+            </Typography>
+            <IconButton onClick={handleExportClose} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* Content - Two Column Layout */}
+          <Box sx={{ flex: 1, display: 'flex', gap: 3, overflow: 'hidden' }}>
+            {/* Left Column - Resume Preview */}
+            <Box sx={{ 
+              flex: 1, 
+              overflowY: 'auto', 
+              pr: 1,
+              '&::-webkit-scrollbar': {
+                width: '10px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+                marginLeft: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#b0b0b0',
+                borderRadius: '5px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#909090',
+              },
+              '&::-webkit-scrollbar-button': {
+                display: 'block',
+                height: '8px',
+                border: 'none',
+              },
+              '&::-webkit-scrollbar-button:hover': {
+                // No background
+              },
+            }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Resume Preview
+              </Typography>
+              
+              {/* Resume Preview Card */}
+              <Card sx={{ 
+                backgroundColor: 'white', 
+                borderRadius: 2,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                border: `1px solid ${COLORS.primary}20`,
+                mb: 2,
+                maxHeight: 400,
+                overflow: 'hidden'
+              }}>
+                <CardContent sx={{ 
+                  p: 2, 
+                  maxHeight: 380, 
+                  overflow: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '10px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'transparent',
+                    marginLeft: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#b0b0b0',
+                    borderRadius: '5px',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    background: '#909090',
+                  },
+                  '&::-webkit-scrollbar-button': {
+                    display: 'block',
+                    height: '8px',
+                    border: 'none',
+                  },
+                  '&::-webkit-scrollbar-button:hover': {
+                    // No background
+                  },
+                }}>
+                  {/* Header with Profile Picture */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    {resumeData.profilePicture ? (
+                      <Avatar 
+                        src={resumeData.profilePicture} 
+                        sx={{ width: 50, height: 50, mr: 2 }}
+                      />
+                    ) : (
+                      <Avatar sx={{ width: 50, height: 50, mr: 2, bgcolor: COLORS.primary }}>
+                        {resumeData.content.personalInfo.name ? resumeData.content.personalInfo.name.charAt(0).toUpperCase() : 'U'}
+                      </Avatar>
+                    )}
+                    <Box>
+                      <Typography 
+                        variant="h6" 
+                        fontWeight={600}
+                        sx={{ 
+                          fontSize: exportSettings.nameSize * 0.4,
+                          fontFamily: exportSettings.fontFamily
+                        }}
+                      >
+                        {resumeData.content.personalInfo.name || 'Your Name'}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontSize: exportSettings.bodyTextSize * 0.8,
+                          fontFamily: exportSettings.fontFamily
+                        }}
+                      >
+                        {resumeData.jobTitle || 'Job Title'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Contact Info */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontSize: exportSettings.bodyTextSize * 0.8,
+                        mb: 0.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}
+                    >
+                      <EmailIcon sx={{ fontSize: 14 }} />
+                      {resumeData.content.personalInfo.email || 'email@example.com'}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontSize: exportSettings.bodyTextSize * 0.8,
+                        mb: 0.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}
+                    >
+                      <PhoneIcon sx={{ fontSize: 14 }} />
+                      {resumeData.content.personalInfo.phone || '(555) 123-4567'}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontSize: exportSettings.bodyTextSize * 0.8,
+                        mb: 0.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}
+                    >
+                      <LocationIcon sx={{ fontSize: 14 }} />
+                      {resumeData.content.personalInfo.city && resumeData.content.personalInfo.state 
+                        ? `${resumeData.content.personalInfo.city}, ${resumeData.content.personalInfo.state}`
+                        : 'City, State'
+                      }
+                    </Typography>
+                  </Box>
+
+                  {/* Professional Summary */}
+                  {resumeData.content.personalInfo.summary && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography 
+                        variant="subtitle2" 
+                        fontWeight={600}
+                        sx={{ 
+                          fontSize: exportSettings.sectionHeadersSize * 0.8,
+                          mb: 1,
+                          color: COLORS.primary,
+                          fontFamily: exportSettings.fontFamily
+                        }}
+                      >
+                        Professional Summary
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontSize: exportSettings.bodyTextSize * 0.8,
+                          lineHeight: exportSettings.lineSpacing
+                        }}
+                      >
+                        {resumeData.content.personalInfo.summary}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Skills Preview */}
+                  {resumeData.strengths.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography 
+                        variant="subtitle2" 
+                        fontWeight={600}
+                        sx={{ 
+                          fontSize: exportSettings.sectionHeadersSize * 0.8,
+                          mb: 1,
+                          color: COLORS.primary
+                        }}
+                      >
+                        Technical Skills
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {resumeData.strengths.slice(0, 6).map((skill, index) => (
+                          <Chip
+                            key={index}
+                            label={skill.skillName}
+                            size="small"
+                            sx={{ 
+                              fontSize: exportSettings.bodyTextSize * 0.7,
+                              backgroundColor: COLORS.overlay,
+                              color: COLORS.primary
+                            }}
+                          />
+                        ))}
+                        {resumeData.strengths.length > 6 && (
+                          <Typography variant="caption" color="text.secondary">
+                            +{resumeData.strengths.length - 6} more
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Work Experience Preview */}
+                  {resumeData.workExperience.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography 
+                        variant="subtitle2" 
+                        fontWeight={600}
+                        sx={{ 
+                          fontSize: exportSettings.sectionHeadersSize * 0.8,
+                          mb: 1,
+                          color: COLORS.primary
+                        }}
+                      >
+                        Work Experience
+                      </Typography>
+                      {resumeData.workExperience.slice(0, 2).map((work, index) => (
+                        <Box key={index} sx={{ mb: 1 }}>
+                          <Typography 
+                            variant="body2" 
+                            fontWeight={500}
+                            sx={{ 
+                              fontSize: exportSettings.subHeadersSize * 0.8
+                            }}
+                          >
+                            {work.position} at {work.company}
+                          </Typography>
+                          <Typography 
+                            variant="caption" 
+                            color="text.secondary"
+                            sx={{ 
+                              fontSize: exportSettings.bodyTextSize * 0.7
+                            }}
+                          >
+                            {work.startDate} - {work.current ? 'Present' : work.endDate}
+                          </Typography>
+                        </Box>
+                      ))}
+                      {resumeData.workExperience.length > 2 && (
+                        <Typography variant="caption" color="text.secondary">
+                          +{resumeData.workExperience.length - 2} more positions
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* Education Preview */}
+                  {resumeData.education.length > 0 && (
+                    <Box>
+                      <Typography 
+                        variant="subtitle2" 
+                        fontWeight={600}
+                        sx={{ 
+                          fontSize: exportSettings.sectionHeadersSize * 0.8,
+                          mb: 1,
+                          color: COLORS.primary
+                        }}
+                      >
+                        Education
+                      </Typography>
+                      {resumeData.education.slice(0, 1).map((edu, index) => (
+                        <Box key={index}>
+                          <Typography 
+                            variant="body2" 
+                            fontWeight={500}
+                            sx={{ 
+                              fontSize: exportSettings.subHeadersSize * 0.8
+                            }}
+                          >
+                            {edu.degree} in {edu.field}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              fontSize: exportSettings.bodyTextSize * 0.8
+                            }}
+                          >
+                            {edu.institution}
+                          </Typography>
+                          <Typography 
+                            variant="caption" 
+                            color="text.secondary"
+                            sx={{ 
+                              fontSize: exportSettings.bodyTextSize * 0.7
+                            }}
+                          >
+                            {edu.startDate} - {edu.current ? 'Present' : edu.endDate}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Preview Info */}
+              <Box sx={{ 
+                backgroundColor: '#f0f8ff', 
+                borderRadius: 2, 
+                p: 2,
+                border: `1px solid ${COLORS.primary}20`
+              }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  💡 Preview shows how your resume will look with current settings
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Font: {exportSettings.fontFamily} • Template: {exportSettings.template}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Right Column - Resume Template Settings */}
+            <Box sx={{ 
+              width: '35%',
+              overflowY: 'auto', 
+              px: 0.5,
+              '&::-webkit-scrollbar': {
+                width: '10px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+                marginLeft: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#b0b0b0',
+                borderRadius: '5px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#909090',
+              },
+              '&::-webkit-scrollbar-button': {
+                display: 'block',
+                height: '8px',
+                border: 'none',
+              },
+              '&::-webkit-scrollbar-button:hover': {
+                // No background
+              },
+            }}>
+              {/* Resume Template Section */}
+              <Box sx={{ 
+                mb: 4, 
+                border: '1px solid #e0e0e0', 
+                borderRadius: 2, 
+                p: 2,
+                backgroundColor: 'white'
+              }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                  Resume Template
+                </Typography>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <Select
+                    value={exportSettings.template}
+                    onChange={(e) => setExportSettings(prev => ({ ...prev, template: e.target.value }))}
+                    sx={{
+                      height: 33,
+                      fontSize: 14,
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'white',
+                      },
+                      '& .MuiMenuItem-root.Mui-selected': {
+                        backgroundColor: COLORS.primary,
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: COLORS.hover,
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem value="standard" sx={{ fontSize: 14 }}>Letter (8.5" x 11")</MenuItem>
+                    <MenuItem value="compact" sx={{ fontSize: 14 }}>Compact</MenuItem>
+                  </Select>
+                </FormControl>
+                
+                {/* Template Previews */}
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ 
+                    flex: 1, 
+                    height: 80, 
+                    border: '2px solid #e0e0e0', 
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'white',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    ...(exportSettings.template === 'standard' && {
+                      borderColor: COLORS.primary,
+                      backgroundColor: COLORS.selected,
+                      color: 'black',
+                    })
+                  }}
+                  onClick={() => setExportSettings(prev => ({ ...prev, template: 'standard' }))}
+                  >
+                    <Typography variant="body2" fontWeight={500}>Standard</Typography>
+                    {exportSettings.template === 'standard' && (
+                      <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
+                        <CheckIcon sx={{ color: COLORS.primary, fontSize: 16 }} />
+                      </Box>
+                    )}
+                    <Box sx={{ position: 'absolute', bottom: 4, right: 4 }}>
+                      <StarIcon sx={{ color: '#ffd700', fontSize: 14 }} />
+                    </Box>
+                  </Box>
+                  
+                  <Box sx={{ 
+                    flex: 1, 
+                    height: 80, 
+                    border: '2px solid #e0e0e0', 
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'white',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    ...(exportSettings.template === 'compact' && {
+                      borderColor: COLORS.primary,
+                      backgroundColor: COLORS.selected,
+                      color: 'black',
+                    })
+                  }}
+                  onClick={() => setExportSettings(prev => ({ ...prev, template: 'compact' }))}
+                  >
+                    <Typography variant="body2" fontWeight={500}>Compact</Typography>
+                    {exportSettings.template === 'compact' && (
+                      <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
+                        <CheckIcon sx={{ color: COLORS.primary, fontSize: 16 }} />
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <StarIcon sx={{ color: '#ffd700', fontSize: 14 }} />
+                  <Typography variant="caption" color="text.secondary">Recommended</Typography>
+                  <InfoIcon sx={{ color: '#666', fontSize: 14 }} />
+                </Box>
+              </Box>
+
+              {/* Font Section */}
+              <Box sx={{ 
+                mb: 4, 
+                border: '1px solid #e0e0e0', 
+                borderRadius: 2, 
+                p: 2,
+                backgroundColor: 'white'
+              }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                  Font
+                </Typography>
+                
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Font Family</InputLabel>
+                  <Select
+                    value={exportSettings.fontFamily}
+                    onChange={(e) => setExportSettings(prev => ({ ...prev, fontFamily: e.target.value }))}
+                    label="Font Family"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'white',
+                        borderRadius: 2,
+                      },
+                    }}
+                  >
+                    <MenuItem value="Times New Roman">Times New Roman</MenuItem>
+                    <MenuItem value="Arial">Arial</MenuItem>
+                    <MenuItem value="Calibri">Calibri</MenuItem>
+                    <MenuItem value="Georgia">Georgia</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2" sx={{ minWidth: 100 }}>Name</Typography>
+                    <TextField
+                      type="number"
+                      value={exportSettings.nameSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, nameSize: Number(e.target.value) }))}
+                      sx={{
+                        width: 80,
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: 'white',
+                          borderRadius: 2,
+                          height: 40,
+                        },
+                      }}
+                    />
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2" sx={{ minWidth: 100 }}>Section Headers</Typography>
+                    <TextField
+                      type="number"
+                      value={exportSettings.sectionHeadersSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, sectionHeadersSize: Number(e.target.value) }))}
+                      sx={{
+                        width: 80,
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: 'white',
+                          borderRadius: 2,
+                          height: 40,
+                        },
+                      }}
+                    />
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2" sx={{ minWidth: 100 }}>Sub-Headers</Typography>
+                    <TextField
+                      type="number"
+                      value={exportSettings.subHeadersSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, subHeadersSize: Number(e.target.value) }))}
+                      sx={{
+                        width: 80,
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: 'white',
+                          borderRadius: 2,
+                          height: 40,
+                        },
+                      }}
+                    />
+                    <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2" sx={{ minWidth: 100 }}>Body Text</Typography>
+                    <TextField
+                      type="number"
+                      value={exportSettings.bodyTextSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, bodyTextSize: Number(e.target.value) }))}
+                      sx={{
+                        width: 80,
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: 'white',
+                          borderRadius: 2,
+                          height: 40,
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Spacing & Margin Section */}
+              <Box sx={{ 
+                mb: 4, 
+                border: '1px solid #e0e0e0', 
+                borderRadius: 2, 
+                p: 2,
+                backgroundColor: 'white'
+              }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                  Spacing & Margin
+                </Typography>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2">Section Spacing</Typography>
+                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                    </Box>
+                    <Slider
+                      value={exportSettings.sectionSpacing}
+                      onChange={(_, value) => setExportSettings(prev => ({ ...prev, sectionSpacing: value as number }))}
+                      min={20}
+                      max={100}
+                      step={5}
+                      sx={{
+                        '& .MuiSlider-thumb': {
+                          backgroundColor: COLORS.primary,
+                        },
+                        '& .MuiSlider-track': {
+                          backgroundColor: COLORS.primary,
+                        },
+                      }}
+                    />
+                  </Box>
+                  
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2">Entry Spacing</Typography>
+                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                    </Box>
+                    <Slider
+                      value={exportSettings.entrySpacing}
+                      onChange={(_, value) => setExportSettings(prev => ({ ...prev, entrySpacing: value as number }))}
+                      min={10}
+                      max={60}
+                      step={5}
+                      sx={{
+                        '& .MuiSlider-thumb': {
+                          backgroundColor: COLORS.primary,
+                        },
+                        '& .MuiSlider-track': {
+                          backgroundColor: COLORS.primary,
+                        },
+                      }}
+                    />
+                  </Box>
+                  
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2">Line Spacing</Typography>
+                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                    </Box>
+                    <Slider
+                      value={exportSettings.lineSpacing}
+                      onChange={(_, value) => setExportSettings(prev => ({ ...prev, lineSpacing: value as number }))}
+                      min={1}
+                      max={2}
+                      step={0.1}
+                      sx={{
+                        '& .MuiSlider-thumb': {
+                          backgroundColor: COLORS.primary,
+                        },
+                        '& .MuiSlider-track': {
+                          backgroundColor: COLORS.primary,
+                        },
+                      }}
+                    />
+                  </Box>
+                  
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2">Top & Bottom Margin</Typography>
+                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                    </Box>
+                    <Slider
+                      value={exportSettings.topBottomMargin}
+                      onChange={(_, value) => setExportSettings(prev => ({ ...prev, topBottomMargin: value as number }))}
+                      min={0.25}
+                      max={1}
+                      step={0.25}
+                      sx={{
+                        '& .MuiSlider-thumb': {
+                          backgroundColor: COLORS.primary,
+                        },
+                        '& .MuiSlider-track': {
+                          backgroundColor: COLORS.primary,
+                        },
+                      }}
+                    />
+                  </Box>
+                  
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2">Side Margins</Typography>
+                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                    </Box>
+                    <Slider
+                      value={exportSettings.sideMargins}
+                      onChange={(_, value) => setExportSettings(prev => ({ ...prev, sideMargins: value as number }))}
+                      min={0.25}
+                      max={1}
+                      step={0.25}
+                      sx={{
+                        '& .MuiSlider-thumb': {
+                          backgroundColor: COLORS.primary,
+                        },
+                        '& .MuiSlider-track': {
+                          backgroundColor: COLORS.primary,
+                        },
+                      }}
+                    />
+                  </Box>
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={exportSettings.alignTextLeftRight}
+                        onChange={(e) => setExportSettings(prev => ({ ...prev, alignTextLeftRight: e.target.checked }))}
+                        sx={{
+                          '& .MuiSwitch-switchBase.Mui-checked': {
+                            color: COLORS.primary,
+                          },
+                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                            backgroundColor: COLORS.primary,
+                          },
+                        }}
+                      />
+                    }
+                    label="Align Text Left & Right"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              </Box>
+
+              {/* Reset Formatting Button */}
+              <Box sx={{ mb: 4 }}>
+                <Button
+                  variant="outlined"
+                  onClick={handleResetFormatting}
+                  fullWidth
+                  sx={{
+                    borderRadius: 2,
+                    border: '1px solid #e0e0e0',
+                    color: '#666',
+                    textTransform: 'none',
+                    py: 1,
+                  }}
+                >
+                  Reset formatting
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Footer - Download Buttons */}
+          <Stack direction="row" spacing={2} justifyContent="center" sx={{ pt: 2, borderTop: '1px solid #e0e0e0' }}>
+            <Button
+              variant="contained"
+              onClick={handleDownloadPDF}
+              sx={{
+                borderRadius: 6,
+                backgroundColor: '#000',
+                color: 'white',
+                textTransform: 'none',
+                fontSize: 16,
+                boxShadow: 'none',
+              }}
+            >
+              Download by PDF
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleDownloadWord}
+              sx={{
+                borderRadius: 6,
+                backgroundColor: '#000',
+                color: 'white',
+                textTransform: 'none',
+                fontSize: 16,
+                boxShadow: 'none',
+              }}
+            >
+              Download by Word(.docx)
+            </Button>
+          </Stack>
+        </Box>
+      </Drawer>
     </Box>
 );
 } 
