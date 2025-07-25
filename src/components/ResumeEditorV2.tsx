@@ -7059,8 +7059,31 @@ export default function ResumeEditorV2({
                     sx={{
                       height: 33,
                       fontSize: 14,
+                      backgroundColor: '#f5f5f5',
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: 'white',
+                        backgroundColor: '#f5f5f5',
+                        '& fieldset': {
+                          border: 'none',
+                        },
+                        '&:hover fieldset': {
+                          border: 'none',
+                        },
+                        '&.Mui-focused fieldset': {
+                          border: 'none',
+                        },
+                        '&.Mui-focused': {
+                          border: `2px solid ${COLORS.primary}`,
+                          outline: 'none',
+                        },
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        border: `2px solid ${COLORS.primary} !important`,
                       },
                       '& .MuiMenuItem-root.Mui-selected': {
                         backgroundColor: COLORS.primary,
@@ -7156,15 +7179,38 @@ export default function ResumeEditorV2({
                 </Typography>
                 
                 <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Font Family</InputLabel>
+                  <InputLabel sx={{ position: 'static', transform: 'none', marginBottom: 1, fontSize: 14, fontWeight: 600, color: "black" }}>Font Family</InputLabel>
                   <Select
                     value={exportSettings.fontFamily}
                     onChange={(e) => setExportSettings(prev => ({ ...prev, fontFamily: e.target.value }))}
-                    label="Font Family"
                     sx={{
+                      height: 33,
+                      fontSize: 14,
+                      backgroundColor: '#f5f5f5',
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: 'white',
-                        borderRadius: 2,
+                        backgroundColor: '#f5f5f5',
+                        '& fieldset': {
+                          border: 'none',
+                        },
+                        '&:hover fieldset': {
+                          border: 'none',
+                        },
+                        '&.Mui-focused fieldset': {
+                          border: `2px solid ${COLORS.primary} !important`,
+                        },
+                        '&.Mui-focused': {
+                          border: `2px solid ${COLORS.primary} !important`,
+                          outline: 'none',
+                        },
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        border: `2px solid ${COLORS.primary} !important`,
                       },
                     }}
                   >
@@ -7175,74 +7221,240 @@ export default function ResumeEditorV2({
                   </Select>
                 </FormControl>
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2" sx={{ minWidth: 100 }}>Name</Typography>
-                    <TextField
-                      type="number"
-                      value={exportSettings.nameSize}
-                      onChange={(e) => setExportSettings(prev => ({ ...prev, nameSize: Number(e.target.value) }))}
-                      sx={{
-                        width: 80,
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'white',
-                          borderRadius: 2,
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Name</Typography>
+                      <Select
+                        value={exportSettings.nameSize}
+                        onChange={(e) => setExportSettings(prev => ({ ...prev, nameSize: Number(e.target.value) }))}
+                        sx={{
                           height: 40,
+                          backgroundColor: '#f5f5f5',
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: '#f5f5f5',
+                            '& fieldset': {
+                              border: 'none',
+                            },
+                            '&:hover fieldset': {
+                              border: 'none',
+                            },
+                            '&.Mui-focused fieldset': {
+                              border: `2px solid ${COLORS.primary} !important`,
+                            },
+                            '&.Mui-focused': {
+                              border: `2px solid ${COLORS.primary} !important`,
+                              outline: 'none',
+                            },
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: 'none',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            border: 'none',
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                          },
+                        }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            '& .MuiMenuItem-root': {
+                              '&:hover': {
+                                backgroundColor: COLORS.selected,
+                              },
+                            },
+                            '& .MuiMenuItem-root.Mui-selected': {
+                              backgroundColor: COLORS.selected,
+                              '&:hover': {
+                                backgroundColor: COLORS.selected,
+                              },
+                            },
+                          },
                         },
                       }}
-                    />
+                    >
+                      {[18, 19, 20, 21, 22, 23, 24, 25, 26].map((size) => (
+                        <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
+                      ))}
+                    </Select>
+                    </Box>
+                  
+                                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Section Headers</Typography>
+                      <Select
+                        value={exportSettings.sectionHeadersSize}
+                        onChange={(e) => setExportSettings(prev => ({ ...prev, sectionHeadersSize: Number(e.target.value) }))}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              '& .MuiMenuItem-root': {
+                                '&:hover': {
+                                  backgroundColor: COLORS.selected,
+                                },
+                              },
+                              '& .MuiMenuItem-root.Mui-selected': {
+                                backgroundColor: COLORS.selected,
+                                '&:hover': {
+                                  backgroundColor: COLORS.selected,
+                                },
+                              },
+                            },
+                          },
+                        }}
+                        sx={{
+                          height: 40,
+                          backgroundColor: '#f5f5f5',
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: '#f5f5f5',
+                            '& fieldset': {
+                              border: 'none',
+                            },
+                            '&:hover fieldset': {
+                              border: 'none',
+                            },
+                            '&.Mui-focused fieldset': {
+                              border: `2px solid ${COLORS.primary} !important`,
+                            },
+                            '&.Mui-focused': {
+                              border: `2px solid ${COLORS.primary} !important`,
+                              outline: 'none',
+                            },
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: 'none',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            border: 'none',
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                          },
+                        }}
+                      >
+                        {[10, 11, 12, 13, 14, 15].map((size) => (
+                          <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
+                        ))}
+                      </Select>
+                    </Box>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Sub-Headers</Typography>
+                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                    </Box>
+                                          <Select
+                        value={exportSettings.subHeadersSize}
+                        onChange={(e) => setExportSettings(prev => ({ ...prev, subHeadersSize: Number(e.target.value) }))}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              '& .MuiMenuItem-root': {
+                                '&:hover': {
+                                  backgroundColor: COLORS.selected,
+                                },
+                              },
+                              '& .MuiMenuItem-root.Mui-selected': {
+                                backgroundColor: COLORS.selected,
+                                '&:hover': {
+                                  backgroundColor: COLORS.selected,
+                                },
+                              },
+                            },
+                          },
+                        }}
+                        sx={{
+                        height: 40,
+                        backgroundColor: '#f5f5f5',
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#f5f5f5',
+                          '& fieldset': {
+                            border: 'none',
+                          },
+                          '&:hover fieldset': {
+                            border: 'none',
+                          },
+                          '&.Mui-focused fieldset': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                          },
+                          '&.Mui-focused': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                            outline: 'none',
+                          },
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          border: `2px solid ${COLORS.primary} !important`,
+                        },
+                      }}
+                    >
+                      {[8, 9, 10, 10.5, 11, 12, 13, 14].map((size) => (
+                        <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
+                      ))}
+                    </Select>
                   </Box>
                   
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2" sx={{ minWidth: 100 }}>Section Headers</Typography>
-                    <TextField
-                      type="number"
-                      value={exportSettings.sectionHeadersSize}
-                      onChange={(e) => setExportSettings(prev => ({ ...prev, sectionHeadersSize: Number(e.target.value) }))}
-                      sx={{
-                        width: 80,
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Body Text</Typography>
+                                          <Select
+                        value={exportSettings.bodyTextSize}
+                        onChange={(e) => setExportSettings(prev => ({ ...prev, bodyTextSize: Number(e.target.value) }))}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              '& .MuiMenuItem-root': {
+                                '&:hover': {
+                                  backgroundColor: COLORS.selected,
+                                },
+                              },
+                              '& .MuiMenuItem-root.Mui-selected': {
+                                backgroundColor: COLORS.selected,
+                                '&:hover': {
+                                  backgroundColor: COLORS.selected,
+                                },
+                              },
+                            },
+                          },
+                        }}
+                        sx={{
+                        height: 40,
+                        backgroundColor: '#f5f5f5',
                         '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'white',
-                          borderRadius: 2,
-                          height: 40,
+                          backgroundColor: '#f5f5f5',
+                          '& fieldset': {
+                            border: 'none',
+                          },
+                          '&:hover fieldset': {
+                            border: 'none',
+                          },
+                          '&.Mui-focused fieldset': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                          },
+                          '&.Mui-focused': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                            outline: 'none',
+                          },
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          border: `2px solid ${COLORS.primary} !important`,
                         },
                       }}
-                    />
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2" sx={{ minWidth: 100 }}>Sub-Headers</Typography>
-                    <TextField
-                      type="number"
-                      value={exportSettings.subHeadersSize}
-                      onChange={(e) => setExportSettings(prev => ({ ...prev, subHeadersSize: Number(e.target.value) }))}
-                      sx={{
-                        width: 80,
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'white',
-                          borderRadius: 2,
-                          height: 40,
-                        },
-                      }}
-                    />
-                    <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2" sx={{ minWidth: 100 }}>Body Text</Typography>
-                    <TextField
-                      type="number"
-                      value={exportSettings.bodyTextSize}
-                      onChange={(e) => setExportSettings(prev => ({ ...prev, bodyTextSize: Number(e.target.value) }))}
-                      sx={{
-                        width: 80,
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'white',
-                          borderRadius: 2,
-                          height: 40,
-                        },
-                      }}
-                    />
+                    >
+                      {[8, 9, 10, 11, 12].map((size) => (
+                        <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
+                      ))}
+                    </Select>
                   </Box>
                 </Box>
               </Box>
