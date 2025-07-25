@@ -56,7 +56,9 @@ import {
   Info as InfoIcon,
   Check as CheckIcon,
   DragIndicator as DragIndicatorIcon,
+  RestartAlt as RestartAltIcon,
 } from "@mui/icons-material";
+import { ToggleButton } from "@mui/material";
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import {
@@ -350,11 +352,11 @@ export default function ResumeEditorV2({
     sectionHeadersSize: 11,
     subHeadersSize: 10.5,
     bodyTextSize: 10,
-    sectionSpacing: 50,
-    entrySpacing: 30,
-    lineSpacing: 1.2,
-    topBottomMargin: 0.5,
-    sideMargins: 0.5,
+    sectionSpacing: 2,
+    entrySpacing: 0,
+    lineSpacing: 12,
+    topBottomMargin: 26,
+    sideMargins: 36,
     alignTextLeftRight: false,
   });
 
@@ -5915,11 +5917,11 @@ export default function ResumeEditorV2({
       sectionHeadersSize: 11,
       subHeadersSize: 10.5,
       bodyTextSize: 10,
-      sectionSpacing: 50,
-      entrySpacing: 30,
-      lineSpacing: 1.2,
-      topBottomMargin: 0.5,
-      sideMargins: 0.5,
+      sectionSpacing: 2,
+      entrySpacing: 0,
+      lineSpacing: 12,
+      topBottomMargin: 26,
+      sideMargins: 36,
       alignTextLeftRight: false,
     });
   };
@@ -6996,21 +6998,6 @@ export default function ResumeEditorV2({
                   )}
                 </CardContent>
               </Card>
-
-              {/* Preview Info */}
-              <Box sx={{ 
-                backgroundColor: '#f0f8ff', 
-                borderRadius: 2, 
-                p: 2,
-                border: `1px solid ${COLORS.primary}20`
-              }}>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                  💡 Preview shows how your resume will look with current settings
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Font: {exportSettings.fontFamily} • Template: {exportSettings.template}
-                </Typography>
-              </Box>
             </Box>
 
             {/* Right Column - Resume Template Settings */}
@@ -7471,7 +7458,7 @@ export default function ResumeEditorV2({
                   Spacing & Margin
                 </Typography>
                 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Section Spacing</Typography>
@@ -7480,15 +7467,51 @@ export default function ResumeEditorV2({
                     <Slider
                       value={exportSettings.sectionSpacing}
                       onChange={(_, value) => setExportSettings(prev => ({ ...prev, sectionSpacing: value as number }))}
-                      min={20}
-                      max={100}
-                      step={5}
+                      min={0}
+                      max={10}
+                      step={1}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(value) => `${value} pt`}
                       sx={{
                         '& .MuiSlider-thumb': {
-                          backgroundColor: COLORS.primary,
+                          backgroundColor: 'white',
+                          border: '1px solid black',
+                          transition: 'none',
+                          '&:hover': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:focus': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:active': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: 'black',
+                            borderRadius: '50%',
+                          },
                         },
                         '& .MuiSlider-track': {
                           backgroundColor: COLORS.primary,
+                          border: 'none',
+                        },
+                        '& .MuiSlider-rail': {
+                          backgroundColor: '#e0e0e0',
+                        },
+                        '& .MuiSlider-valueLabel': {
+                          borderRadius: '8px',
+                          padding: '4px 6px',
+                          backgroundColor: 'black',
                         },
                       }}
                     />
@@ -7502,15 +7525,51 @@ export default function ResumeEditorV2({
                     <Slider
                       value={exportSettings.entrySpacing}
                       onChange={(_, value) => setExportSettings(prev => ({ ...prev, entrySpacing: value as number }))}
-                      min={10}
-                      max={60}
-                      step={5}
+                      min={0}
+                      max={10}
+                      step={1}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(value) => `${value} pt`}
                       sx={{
                         '& .MuiSlider-thumb': {
-                          backgroundColor: COLORS.primary,
+                          backgroundColor: 'white',
+                          border: '1px solid black',
+                          transition: 'none',
+                          '&:hover': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:focus': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:active': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: 'black',
+                            borderRadius: '50%',
+                          },
                         },
                         '& .MuiSlider-track': {
                           backgroundColor: COLORS.primary,
+                          border: 'none',
+                        },
+                        '& .MuiSlider-rail': {
+                          backgroundColor: '#e0e0e0',
+                        },
+                        '& .MuiSlider-valueLabel': {
+                          borderRadius: '8px',
+                          padding: '4px 6px',
+                          backgroundColor: 'black',
                         },
                       }}
                     />
@@ -7524,15 +7583,51 @@ export default function ResumeEditorV2({
                     <Slider
                       value={exportSettings.lineSpacing}
                       onChange={(_, value) => setExportSettings(prev => ({ ...prev, lineSpacing: value as number }))}
-                      min={1}
-                      max={2}
-                      step={0.1}
+                      min={10}
+                      max={15}
+                      step={1}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(value) => `${value} pt`}
                       sx={{
                         '& .MuiSlider-thumb': {
-                          backgroundColor: COLORS.primary,
+                          backgroundColor: 'white',
+                          border: '1px solid black',
+                          transition: 'none',
+                          '&:hover': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:focus': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:active': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: 'black',
+                            borderRadius: '50%',
+                          },
                         },
                         '& .MuiSlider-track': {
                           backgroundColor: COLORS.primary,
+                          border: 'none',
+                        },
+                        '& .MuiSlider-rail': {
+                          backgroundColor: '#e0e0e0',
+                        },
+                        '& .MuiSlider-valueLabel': {
+                          borderRadius: '8px',
+                          padding: '4px 6px',
+                          backgroundColor: 'black',
                         },
                       }}
                     />
@@ -7546,15 +7641,51 @@ export default function ResumeEditorV2({
                     <Slider
                       value={exportSettings.topBottomMargin}
                       onChange={(_, value) => setExportSettings(prev => ({ ...prev, topBottomMargin: value as number }))}
-                      min={0.25}
-                      max={1}
-                      step={0.25}
+                      min={10}
+                      max={50}
+                      step={1}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(value) => `${value} pt`}
                       sx={{
                         '& .MuiSlider-thumb': {
-                          backgroundColor: COLORS.primary,
+                          backgroundColor: 'white',
+                          border: '1px solid black',
+                          transition: 'none',
+                          '&:hover': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:focus': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:active': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: 'black',
+                            borderRadius: '50%',
+                          },
                         },
                         '& .MuiSlider-track': {
                           backgroundColor: COLORS.primary,
+                          border: 'none',
+                        },
+                        '& .MuiSlider-rail': {
+                          backgroundColor: '#e0e0e0',
+                        },
+                        '& .MuiSlider-valueLabel': {
+                          borderRadius: '8px',
+                          padding: '4px 6px',
+                          backgroundColor: 'black',
                         },
                       }}
                     />
@@ -7568,15 +7699,51 @@ export default function ResumeEditorV2({
                     <Slider
                       value={exportSettings.sideMargins}
                       onChange={(_, value) => setExportSettings(prev => ({ ...prev, sideMargins: value as number }))}
-                      min={0.25}
-                      max={1}
-                      step={0.25}
+                      min={30}
+                      max={50}
+                      step={1}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(value) => `${value} pt`}
                       sx={{
                         '& .MuiSlider-thumb': {
-                          backgroundColor: COLORS.primary,
+                          backgroundColor: 'white',
+                          border: '1px solid black',
+                          transition: 'none',
+                          '&:hover': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:focus': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&:active': {
+                            backgroundColor: 'white',
+                            boxShadow: 'none',
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: 'black',
+                            borderRadius: '50%',
+                          },
                         },
                         '& .MuiSlider-track': {
                           backgroundColor: COLORS.primary,
+                          border: 'none',
+                        },
+                        '& .MuiSlider-rail': {
+                          backgroundColor: '#e0e0e0',
+                        },
+                        '& .MuiSlider-valueLabel': {
+                          borderRadius: '8px',
+                          padding: '4px 6px',
+                          backgroundColor: 'black',
                         },
                       }}
                     />
@@ -7584,21 +7751,51 @@ export default function ResumeEditorV2({
                   
                   <FormControlLabel
                     control={
-                      <Switch
-                        checked={exportSettings.alignTextLeftRight}
-                        onChange={(e) => setExportSettings(prev => ({ ...prev, alignTextLeftRight: e.target.checked }))}
+                      <ToggleButton
+                        value="align"
+                        selected={exportSettings.alignTextLeftRight}
+                        onChange={() => setExportSettings(prev => ({ ...prev, alignTextLeftRight: !prev.alignTextLeftRight }))}
                         sx={{
-                          '& .MuiSwitch-switchBase.Mui-checked': {
-                            color: COLORS.primary,
-                          },
-                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                          mr: -1,
+                          width: 50,
+                          height: 24,
+                          borderRadius: '20px',
+                          border: 'none',
+                          backgroundColor: exportSettings.alignTextLeftRight ? COLORS.primary : '#e0e0e0',
+                          '&.Mui-selected': {
                             backgroundColor: COLORS.primary,
+                          },
+                          '&:hover': {
+                            backgroundColor: '#e0e0e0',
+                          },
+                          '&.Mui-selected:hover': {
+                            backgroundColor: COLORS.primaryLight,
+                          },
+                          position: 'relative',
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '3px',
+                            left: exportSettings.alignTextLeftRight ? 'calc(100% - 21px)' : '3px',
+                            width: 18,
+                            height: 18,
+                            backgroundColor: 'white',
+                            borderRadius: '50%',
+                            transition: 'left 0.2s ease',
                           },
                         }}
                       />
                     }
                     label="Align Text Left & Right"
-                    sx={{ mt: 1 }}
+                    labelPlacement="start"
+                    sx={{ 
+                      justifyContent: 'space-between', 
+                      width: '100%', 
+                      ml: 0,
+                      '& .MuiFormControlLabel-label': {
+                        fontSize: '0.875rem'
+                      }
+                    }}
                   />
                 </Box>
               </Box>
@@ -7609,6 +7806,7 @@ export default function ResumeEditorV2({
                   variant="outlined"
                   onClick={handleResetFormatting}
                   fullWidth
+                  startIcon={<RestartAltIcon />}
                   sx={{
                     borderRadius: 2,
                     border: '1px solid #e0e0e0',
@@ -7659,3 +7857,4 @@ export default function ResumeEditorV2({
     </Box>
 );
 } 
+
