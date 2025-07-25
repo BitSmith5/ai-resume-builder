@@ -24,7 +24,6 @@ import {
   ListItemIcon,
   Divider,
   Drawer,
-  Paper,
   Select,
   MenuItem,
   FormControl,
@@ -32,8 +31,6 @@ import {
   Slider,
   Switch,
   FormControlLabel,
-  Tabs,
-  Tab,
   Chip,
   Card,
   CardContent,
@@ -45,8 +42,6 @@ import {
   Delete as DeleteIcon,
   DeleteOutline as DeleteOutlineIcon,
   Edit as EditIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
   Download as DownloadIcon,
   Close as CloseIcon,
   Email as EmailIcon,
@@ -55,8 +50,6 @@ import {
   LinkedIn as LinkedInIcon,
   GitHub as GitHubIcon,
   Language as WebsiteIcon,
-  School as SchoolIcon,
-  Work as WorkIcon,
   Star as StarIcon,
   List as ListIcon,
   TrendingFlat as TrendingFlatIcon,
@@ -7078,7 +7071,7 @@ export default function ResumeEditorV2({
                       },
                     }}
                   >
-                    <MenuItem value="standard" sx={{ fontSize: 14 }}>Letter (8.5" x 11")</MenuItem>
+                    <MenuItem value="standard" sx={{ fontSize: 14 }}>Letter (8.5&quot; x 11&quot;)</MenuItem>
                     <MenuItem value="compact" sx={{ fontSize: 14 }}>Compact</MenuItem>
                   </Select>
                 </FormControl>
