@@ -222,6 +222,22 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <PersonIcon sx={{ mr: 1, color: "text.secondary" }} />,
                     }}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -232,6 +248,22 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <EmailIcon sx={{ mr: 1, color: "text.secondary" }} />,
                     }}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -239,6 +271,22 @@ export default function ProfilePage() {
                     value={profileData.phone}
                     onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
                     disabled={!isEditing}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -246,6 +294,20 @@ export default function ProfilePage() {
                     value={profileData.location}
                     onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
                     disabled={!isEditing}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'inherit !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -256,6 +318,22 @@ export default function ProfilePage() {
                     placeholder="https://linkedin.com/in/yourprofile"
                     InputProps={{
                       startAdornment: <LinkedInIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                    }}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                      },
                     }}
                   />
                   <TextField
@@ -268,6 +346,22 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <GitHubIcon sx={{ mr: 1, color: "text.secondary" }} />,
                     }}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -279,6 +373,20 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <LanguageIcon sx={{ mr: 1, color: "text.secondary" }} />,
                     }}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'inherit !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -289,7 +397,23 @@ export default function ProfilePage() {
                     onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
                     disabled={!isEditing}
                     placeholder="Tell us about yourself..."
-                    sx={{ gridColumn: { sm: "span 2" } }}
+                    sx={{ 
+                      gridColumn: { sm: "span 2" },
+                      '& .MuiInputBase-input': {
+                        '&:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                        '&:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px white inset !important',
+                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
+                        },
+                      },
+                    }}
                   />
                 </Box>
 
