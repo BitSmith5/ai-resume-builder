@@ -3057,33 +3057,67 @@ export default function ResumeEditorV2({
                               <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
                                 Select Icon:
                               </Typography>
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, maxWidth: 400 }}>
-                                {AVAILABLE_ICONS.map((iconOption) => (
-                                  <Box
-                                    key={iconOption.value}
-                                    onClick={() => updateInterest(interestIndex, { icon: iconOption.value })}
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      width: 40,
-                                      height: 40,
-                                      borderRadius: 2,
-                                      cursor: 'pointer',
-                                      border: interest.icon === iconOption.value ? `2px solid ${COLORS.primary}` : '1px solid #e0e0e0',
-                                      backgroundColor: interest.icon === iconOption.value ? COLORS.selectedBackground : 'white',
-                                      fontSize: '1.2rem',
-                                      '&:hover': {
-                                        backgroundColor: '#f0fdf4',
-                                        border: `2px solid ${COLORS.primary}`,
+                              <FormControl size="small" sx={{ minWidth: 200 }}>
+                                <Select
+                                  value={interest.icon}
+                                  onChange={(e) => updateInterest(interestIndex, { icon: e.target.value })}
+                                  displayEmpty
+                                  sx={{
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#e0e0e0',
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: COLORS.primary,
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: COLORS.primary,
+                                    },
+                                  }}
+                                  MenuProps={{
+                                    PaperProps: {
+                                      sx: {
+                                        '& .MuiMenuItem-root.Mui-selected': {
+                                          backgroundColor: COLORS.selectedBackground,
+                                          color: COLORS.primary,
+                                          '&:hover': {
+                                            backgroundColor: COLORS.selectedBackground,
+                                          },
+                                        },
+                                        '& .MuiMenuItem-root.Mui-selected.Mui-focusVisible': {
+                                          backgroundColor: COLORS.selectedBackground,
+                                        },
+                                        // Custom scrollbar styling - transparent track, visible handle
+                                        '&::-webkit-scrollbar': {
+                                          width: '8px',
+                                        },
+                                        '&::-webkit-scrollbar-track': {
+                                          background: 'transparent',
+                                        },
+                                        '&::-webkit-scrollbar-thumb': {
+                                          background: '#c1c1c1',
+                                          borderRadius: '4px',
+                                        },
+                                        '&::-webkit-scrollbar-thumb:hover': {
+                                          background: '#a8a8a8',
+                                        },
+                                        // Firefox scrollbar styling
+                                        scrollbarWidth: 'thin',
+                                        scrollbarColor: '#c1c1c1 transparent',
                                       },
-                                    }}
-                                    title={iconOption.label}
-                                  >
-                                    {iconOption.value}
-                                  </Box>
-                                ))}
-                              </Box>
+                                    },
+                                  }}
+                                >
+                                  {AVAILABLE_ICONS.map((iconOption) => (
+                                    <MenuItem key={iconOption.value} value={iconOption.value}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <span style={{ fontSize: '1.2rem' }}>{iconOption.value}</span>
+                                        <span>{iconOption.label}</span>
+                                      </Box>
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
                             </Box>
                           </Box>
                         )}
