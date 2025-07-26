@@ -29,12 +29,7 @@ import {
   FormControl,
   InputLabel,
   Slider,
-  Switch,
   FormControlLabel,
-  Chip,
-  Card,
-  CardContent,
-  Avatar,
   Stack,
 } from "@mui/material";
 import {
