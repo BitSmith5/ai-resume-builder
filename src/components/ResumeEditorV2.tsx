@@ -708,7 +708,11 @@ export default function ResumeEditorV2({
           // Load sectionOrder from database
           if (resume.sectionOrder && Array.isArray(resume.sectionOrder)) {
             console.log('Loading sectionOrder from database:', resume.sectionOrder);
-            setSectionOrder(resume.sectionOrder);
+            // Filter out deleted sections from the loaded section order
+            const deletedSections = resume.deletedSections || [];
+            const filteredSectionOrder = resume.sectionOrder.filter((section: string) => !deletedSections.includes(section));
+            console.log('Filtered sectionOrder after loading:', filteredSectionOrder);
+            setSectionOrder(filteredSectionOrder);
           }
         } else {
           console.error('Failed to load resume:', response.status);
@@ -746,18 +750,7 @@ export default function ResumeEditorV2({
     }
   }, [resumeId, loading, session?.user]);
 
-  // Update section order when resume data is loaded to respect deleted sections
-  useEffect(() => {
-    console.log('useEffect triggered for deletedSections:', resumeData.deletedSections);
-    const deletedSections = resumeData.deletedSections || [];
-    console.log('Filtering out deleted sections from sectionOrder:', deletedSections);
-    setSectionOrder(prev => {
-      const filtered = prev.filter(section => !deletedSections.includes(section));
-      console.log('Original sectionOrder:', prev);
-      console.log('Filtered sectionOrder:', filtered);
-      return filtered;
-    });
-  }, [resumeData.deletedSections]);
+  // Note: Section order filtering is now handled during initial load to preserve saved order
 
   // Debounced autosave function
   const debouncedSave = useDebouncedCallback(async (data: ResumeData, profileData: {
@@ -768,11 +761,12 @@ export default function ResumeEditorV2({
     linkedinUrl?: string;
     githubUrl?: string;
     portfolioUrl?: string;
-  }) => {
+  }, currentSectionOrder: string[]) => {
     if (!session?.user) return;
     
     console.log('Autosave triggered with data:', data);
     console.log('deletedSections in autosave:', data.deletedSections);
+    console.log('sectionOrder in autosave:', currentSectionOrder);
     
 
     try {
@@ -818,33 +812,41 @@ export default function ResumeEditorV2({
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
       const method = resumeId ? "PUT" : "POST";
       
+      const savePayload = {
+        title: filteredData.title || "Untitled Resume",
+        jobTitle: filteredData.jobTitle || "",
+        template: filteredData.template || "modern",
+        content: filteredData.content,
+        profilePicture: filteredData.profilePicture || "",
+        deletedSections: filteredData.deletedSections || [],
+        sectionOrder: currentSectionOrder, // Add sectionOrder to save payload
+        strengths: filteredData.strengths || [],
+        workExperience: filteredData.workExperience || [],
+        education: filteredData.education || [],
+        courses: filteredData.courses || [],
+        interests: filteredData.interests || [],
+        projects: filteredData.projects || [],
+        languages: filteredData.languages || [],
+        publications: filteredData.publications || [],
+        awards: filteredData.awards || [],
+        volunteerExperience: filteredData.volunteerExperience || [],
+        references: filteredData.references || [],
+      };
+      
+      console.log('Saving resume with payload:', savePayload);
+      console.log('Save URL:', url, 'Method:', method);
+      
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: filteredData.title || "Untitled Resume",
-          jobTitle: filteredData.jobTitle || "",
-          template: filteredData.template || "modern",
-          content: filteredData.content,
-          profilePicture: filteredData.profilePicture || "",
-          deletedSections: filteredData.deletedSections || [],
-          sectionOrder: sectionOrder, // Add sectionOrder to save payload
-          strengths: filteredData.strengths || [],
-          workExperience: filteredData.workExperience || [],
-          education: filteredData.education || [],
-          courses: filteredData.courses || [],
-          interests: filteredData.interests || [],
-          projects: filteredData.projects || [],
-          languages: filteredData.languages || [],
-          publications: filteredData.publications || [],
-          awards: filteredData.awards || [],
-          volunteerExperience: filteredData.volunteerExperience || [],
-          references: filteredData.references || [],
-        }),
+        body: JSON.stringify(savePayload),
       });
 
+      console.log('Save response status:', response.status, response.statusText);
+      
       if (response.ok) {
         const savedResume = await response.json();
+        console.log('Save successful, saved resume:', savedResume);
         
         // If this was a new resume, update the URL with the new ID
         if (!resumeId && savedResume.id) {
@@ -852,6 +854,8 @@ export default function ResumeEditorV2({
         }
       } else {
         console.error('Save failed:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Save error details:', errorText);
       }
     } catch (error) {
       console.error('Save error:', error);
@@ -865,8 +869,9 @@ export default function ResumeEditorV2({
     // Don't save if we're still loading initial data
     if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
     
-    debouncedSave(resumeData, profileData);
-  }, [resumeData, profileData, loading, session?.user, resumeId, debouncedSave]);
+    console.log('Autosave triggered - sectionOrder:', sectionOrder);
+    debouncedSave(resumeData, profileData, sectionOrder);
+  }, [resumeData, profileData, sectionOrder, loading, session?.user, resumeId, debouncedSave]);
 
   // Real-time preview update effect
   useEffect(() => {
@@ -878,9 +883,14 @@ export default function ResumeEditorV2({
   // Handle drag end for section reordering
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
+    console.log('Section drag end - source:', result.source.index, 'destination:', result.destination.index);
+    console.log('Current sectionOrder:', sectionOrder);
+    
     const newOrder = Array.from(sectionOrder);
     const [removed] = newOrder.splice(result.source.index, 1);
     newOrder.splice(result.destination.index, 0, removed);
+    
+    console.log('New sectionOrder:', newOrder);
     setSectionOrder(newOrder);
   };
 
@@ -1179,6 +1189,33 @@ export default function ResumeEditorV2({
               },
             }))
           }
+          onPaste={(e) => {
+            e.preventDefault();
+            const pastedText = e.clipboardData.getData('text');
+            
+            // Process pasted text to remove line breaks and normalize spacing
+            let processedText = pastedText;
+            
+            // Replace multiple spaces with single space
+            processedText = processedText.replace(/\s+/g, ' ');
+            
+            // Remove line breaks and replace with spaces
+            processedText = processedText.replace(/\n/g, ' ');
+            
+            // Trim extra spaces
+            processedText = processedText.trim();
+            
+            setResumeData((prev) => ({
+              ...prev,
+              content: {
+                ...prev.content,
+                personalInfo: {
+                  ...prev.content.personalInfo,
+                  summary: processedText,
+                },
+              },
+            }));
+          }}
           placeholder="Write a compelling professional summary..."
           variant="standard"
           sx={{
@@ -1199,6 +1236,9 @@ export default function ResumeEditorV2({
               },
               '& .MuiInputBase-input': {
                 padding: '5px 12px 5px 12px',
+                wordWrap: 'break-word',
+                whiteSpace: 'normal',
+                overflowWrap: 'break-word',
               },
             },
           }}
@@ -6626,7 +6666,7 @@ export default function ResumeEditorV2({
                   
                   // Force immediate save
                   try {
-                    await debouncedSave(updatedResumeData, profileData);
+                    await debouncedSave(updatedResumeData, profileData, sectionOrder);
                   } catch (error) {
                     console.error('Error saving resume info:', error);
                   }
