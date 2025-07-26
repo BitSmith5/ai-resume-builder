@@ -59,6 +59,7 @@ import {
   RestartAlt as RestartAltIcon,
 } from "@mui/icons-material";
 import { ToggleButton } from "@mui/material";
+import ClassicResumeTemplate from './ClassicResumeTemplate';
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import {
@@ -163,6 +164,7 @@ const COLORS = {
   // Selection and interactive states - Generated from master color
   selected: rgbToHex(MASTER_RGB.r + 100, MASTER_RGB.g + 100, MASTER_RGB.b + 100), // Very light version for selections
   selectedBackground: rgbToRgba(MASTER_RGB.r, MASTER_RGB.g, MASTER_RGB.b, 0.05), // Very light background for selections
+  selectedLightGray: '#f5f5f5', // Light gray for template selection buttons
   
   // UI element colors - Generated from master color
   uiBackground: rgbToHex(MASTER_RGB.r + 60, MASTER_RGB.g + 60, MASTER_RGB.b + 60), // For UI elements like buttons
@@ -6720,284 +6722,47 @@ export default function ResumeEditorV2({
                 // No background
               },
             }}>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Resume Preview
-              </Typography>
+
               
-              {/* Resume Preview Card */}
-              <Card sx={{ 
-                backgroundColor: 'white', 
-                borderRadius: 2,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                border: `1px solid ${COLORS.primary}20`,
-                mb: 2,
-                maxHeight: 400,
-                overflow: 'hidden'
+              {/* Resume Preview */}
+              <Box sx={{ 
+                overflow: 'hidden',
+                height: 'calc(100vh - 200px)', // Extend to bottom of export panel
               }}>
-                <CardContent sx={{ 
-                  p: 2, 
-                  maxHeight: 380, 
-                  overflow: 'auto',
-                  '&::-webkit-scrollbar': {
-                    width: '10px',
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    background: 'transparent',
-                    marginLeft: '4px',
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    background: '#b0b0b0',
-                    borderRadius: '5px',
-                  },
-                  '&::-webkit-scrollbar-thumb:hover': {
-                    background: '#909090',
-                  },
-                  '&::-webkit-scrollbar-button': {
-                    display: 'block',
-                    height: '8px',
-                    border: 'none',
-                  },
-                  '&::-webkit-scrollbar-button:hover': {
-                    // No background
-                  },
-                }}>
-                  {/* Header with Profile Picture */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    {resumeData.profilePicture ? (
-                      <Avatar 
-                        src={resumeData.profilePicture} 
-                        sx={{ width: 50, height: 50, mr: 2 }}
-                      />
-                    ) : (
-                      <Avatar sx={{ width: 50, height: 50, mr: 2, bgcolor: COLORS.primary }}>
-                        {resumeData.content.personalInfo.name ? resumeData.content.personalInfo.name.charAt(0).toUpperCase() : 'U'}
-                      </Avatar>
-                    )}
-                    <Box>
-                      <Typography 
-                        variant="h6" 
-                        fontWeight={600}
-                        sx={{ 
-                          fontSize: exportSettings.nameSize * 0.4,
-                          fontFamily: exportSettings.fontFamily
-                        }}
-                      >
-                        {resumeData.content.personalInfo.name || 'Your Name'}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          fontSize: exportSettings.bodyTextSize * 0.8,
-                          fontFamily: exportSettings.fontFamily
-                        }}
-                      >
-                        {resumeData.jobTitle || 'Job Title'}
-                      </Typography>
+                {/* Transform data for ClassicResumeTemplate */}
+                {(() => {
+                  const transformedData = {
+                    title: resumeData.title,
+                    jobTitle: resumeData.jobTitle,
+                    profilePicture: resumeData.profilePicture,
+                    content: resumeData.content,
+                    strengths: resumeData.strengths,
+                    workExperience: resumeData.workExperience.map(exp => ({
+                      company: exp.company,
+                      position: exp.position,
+                      startDate: exp.startDate,
+                      endDate: exp.endDate,
+                      current: exp.current,
+                      city: exp.location,
+                      bulletPoints: exp.bulletPoints
+                    })),
+                    education: resumeData.education,
+                    courses: resumeData.courses,
+                    interests: resumeData.interests
+                  };
+                  
+                  return (
+                    <Box sx={{ 
+                      transform: 'scale(0.65)', 
+                      transformOrigin: 'top left',
+                      width: '154%', // 100% / 0.65 = 154%
+                      height: '154%'
+                    }}>
+                      <ClassicResumeTemplate data={transformedData} />
                     </Box>
-                  </Box>
-
-                  {/* Contact Info */}
-                  <Box sx={{ mb: 2 }}>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontSize: exportSettings.bodyTextSize * 0.8,
-                        mb: 0.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}
-                    >
-                      <EmailIcon sx={{ fontSize: 14 }} />
-                      {resumeData.content.personalInfo.email || 'email@example.com'}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontSize: exportSettings.bodyTextSize * 0.8,
-                        mb: 0.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}
-                    >
-                      <PhoneIcon sx={{ fontSize: 14 }} />
-                      {resumeData.content.personalInfo.phone || '(555) 123-4567'}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontSize: exportSettings.bodyTextSize * 0.8,
-                        mb: 0.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}
-                    >
-                      <LocationIcon sx={{ fontSize: 14 }} />
-                      {resumeData.content.personalInfo.city && resumeData.content.personalInfo.state 
-                        ? `${resumeData.content.personalInfo.city}, ${resumeData.content.personalInfo.state}`
-                        : 'City, State'
-                      }
-                    </Typography>
-                  </Box>
-
-                  {/* Professional Summary */}
-                  {resumeData.content.personalInfo.summary && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography 
-                        variant="subtitle2" 
-                        fontWeight={600}
-                        sx={{ 
-                          fontSize: exportSettings.sectionHeadersSize * 0.8,
-                          mb: 1,
-                          color: COLORS.primary,
-                          fontFamily: exportSettings.fontFamily
-                        }}
-                      >
-                        Professional Summary
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          fontSize: exportSettings.bodyTextSize * 0.8,
-                          lineHeight: exportSettings.lineSpacing
-                        }}
-                      >
-                        {resumeData.content.personalInfo.summary}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* Skills Preview */}
-                  {resumeData.strengths.length > 0 && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography 
-                        variant="subtitle2" 
-                        fontWeight={600}
-                        sx={{ 
-                          fontSize: exportSettings.sectionHeadersSize * 0.8,
-                          mb: 1,
-                          color: COLORS.primary
-                        }}
-                      >
-                        Technical Skills
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {resumeData.strengths.slice(0, 6).map((skill, index) => (
-                          <Chip
-                            key={index}
-                            label={skill.skillName}
-                            size="small"
-                            sx={{ 
-                              fontSize: exportSettings.bodyTextSize * 0.7,
-                              backgroundColor: COLORS.overlay,
-                              color: COLORS.primary
-                            }}
-                          />
-                        ))}
-                        {resumeData.strengths.length > 6 && (
-                          <Typography variant="caption" color="text.secondary">
-                            +{resumeData.strengths.length - 6} more
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  )}
-
-                  {/* Work Experience Preview */}
-                  {resumeData.workExperience.length > 0 && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography 
-                        variant="subtitle2" 
-                        fontWeight={600}
-                        sx={{ 
-                          fontSize: exportSettings.sectionHeadersSize * 0.8,
-                          mb: 1,
-                          color: COLORS.primary
-                        }}
-                      >
-                        Work Experience
-                      </Typography>
-                      {resumeData.workExperience.slice(0, 2).map((work, index) => (
-                        <Box key={index} sx={{ mb: 1 }}>
-                          <Typography 
-                            variant="body2" 
-                            fontWeight={500}
-                            sx={{ 
-                              fontSize: exportSettings.subHeadersSize * 0.8
-                            }}
-                          >
-                            {work.position} at {work.company}
-                          </Typography>
-                          <Typography 
-                            variant="caption" 
-                            color="text.secondary"
-                            sx={{ 
-                              fontSize: exportSettings.bodyTextSize * 0.7
-                            }}
-                          >
-                            {work.startDate} - {work.current ? 'Present' : work.endDate}
-                          </Typography>
-                        </Box>
-                      ))}
-                      {resumeData.workExperience.length > 2 && (
-                        <Typography variant="caption" color="text.secondary">
-                          +{resumeData.workExperience.length - 2} more positions
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-
-                  {/* Education Preview */}
-                  {resumeData.education.length > 0 && (
-                    <Box>
-                      <Typography 
-                        variant="subtitle2" 
-                        fontWeight={600}
-                        sx={{ 
-                          fontSize: exportSettings.sectionHeadersSize * 0.8,
-                          mb: 1,
-                          color: COLORS.primary
-                        }}
-                      >
-                        Education
-                      </Typography>
-                      {resumeData.education.slice(0, 1).map((edu, index) => (
-                        <Box key={index}>
-                          <Typography 
-                            variant="body2" 
-                            fontWeight={500}
-                            sx={{ 
-                              fontSize: exportSettings.subHeadersSize * 0.8
-                            }}
-                          >
-                            {edu.degree} in {edu.field}
-                          </Typography>
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              fontSize: exportSettings.bodyTextSize * 0.8
-                            }}
-                          >
-                            {edu.institution}
-                          </Typography>
-                          <Typography 
-                            variant="caption" 
-                            color="text.secondary"
-                            sx={{ 
-                              fontSize: exportSettings.bodyTextSize * 0.7
-                            }}
-                          >
-                            {edu.startDate} - {edu.current ? 'Present' : edu.endDate}
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
+                  );
+                })()}
+              </Box>
             </Box>
 
             {/* Right Column - Resume Template Settings */}
@@ -7101,7 +6866,7 @@ export default function ResumeEditorV2({
                     cursor: 'pointer',
                     ...(exportSettings.template === 'standard' && {
                       borderColor: COLORS.primary,
-                      backgroundColor: COLORS.selected,
+                      backgroundColor: COLORS.selectedLightGray,
                       color: 'black',
                     })
                   }}
@@ -7131,7 +6896,7 @@ export default function ResumeEditorV2({
                     cursor: 'pointer',
                     ...(exportSettings.template === 'compact' && {
                       borderColor: COLORS.primary,
-                      backgroundColor: COLORS.selected,
+                      backgroundColor: COLORS.selectedLightGray,
                       color: 'black',
                     })
                   }}
@@ -7215,7 +6980,8 @@ export default function ResumeEditorV2({
                         value={exportSettings.nameSize}
                         onChange={(e) => setExportSettings(prev => ({ ...prev, nameSize: Number(e.target.value) }))}
                         sx={{
-                          height: 40,
+                          height: 33,
+                          fontSize: 14,
                           backgroundColor: '#f5f5f5',
                           '& .MuiOutlinedInput-root': {
                             backgroundColor: '#f5f5f5',
@@ -7290,7 +7056,8 @@ export default function ResumeEditorV2({
                           },
                         }}
                         sx={{
-                          height: 40,
+                          height: 33,
+                          fontSize: 14,
                           backgroundColor: '#f5f5f5',
                           '& .MuiOutlinedInput-root': {
                             backgroundColor: '#f5f5f5',
@@ -7330,7 +7097,7 @@ export default function ResumeEditorV2({
                       <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Sub-Headers</Typography>
                       <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
                     </Box>
-                                          <Select
+                                                                                    <Select
                         value={exportSettings.subHeadersSize}
                         onChange={(e) => setExportSettings(prev => ({ ...prev, subHeadersSize: Number(e.target.value) }))}
                         MenuProps={{
@@ -7351,8 +7118,9 @@ export default function ResumeEditorV2({
                           },
                         }}
                         sx={{
-                        height: 40,
-                        backgroundColor: '#f5f5f5',
+                          height: 33,
+                          fontSize: 14,
+                          backgroundColor: '#f5f5f5',
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: '#f5f5f5',
                           '& fieldset': {
@@ -7388,7 +7156,7 @@ export default function ResumeEditorV2({
                   
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Body Text</Typography>
-                                          <Select
+                                                                                    <Select
                         value={exportSettings.bodyTextSize}
                         onChange={(e) => setExportSettings(prev => ({ ...prev, bodyTextSize: Number(e.target.value) }))}
                         MenuProps={{
@@ -7409,8 +7177,9 @@ export default function ResumeEditorV2({
                           },
                         }}
                         sx={{
-                        height: 40,
-                        backgroundColor: '#f5f5f5',
+                          height: 33,
+                          fontSize: 14,
+                          backgroundColor: '#f5f5f5',
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: '#f5f5f5',
                           '& fieldset': {
