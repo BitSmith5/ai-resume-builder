@@ -306,6 +306,31 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       return 40; // Reduced from 45 - Section title + border + spacing
     };
     
+    // Helper function to create a new PageContent object with all required properties
+    const createPageContent = (overrides: Partial<PageContent> = {}): PageContent => ({
+      workExperience: [],
+      education: [],
+      courses: [],
+      projects: [],
+      skills: [],
+      skillCategories: [],
+      interests: [],
+      languages: [],
+      publications: [],
+      awards: [],
+      volunteerExperience: [],
+      workExperienceStarted: false,
+      coursesStarted: false,
+      educationStarted: false,
+      skillCategoriesStarted: false,
+      projectsStarted: false,
+      languagesStarted: false,
+      publicationsStarted: false,
+      awardsStarted: false,
+      volunteerExperienceStarted: false,
+      ...overrides
+    });
+    
     // NEW APPROACH: Calculate all section heights first
     const sections: Array<{
       type: 'work' | 'courses' | 'education' | 'projects' | 'languages';
@@ -355,6 +380,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       languages: [],
       publications: [],
       awards: [],
+      volunteerExperience: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
@@ -362,7 +388,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       projectsStarted: false,
       languagesStarted: false,
       publicationsStarted: false,
-      awardsStarted: false
+      awardsStarted: false,
+      volunteerExperienceStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -401,13 +428,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             interests: [],
             languages: [],
             publications: [],
+            awards: [],
+            volunteerExperience: [],
             workExperienceStarted: false,
             coursesStarted: false,
             educationStarted: false,
             skillCategoriesStarted: false,
             projectsStarted: false,
             languagesStarted: false,
-            publicationsStarted: false
+            publicationsStarted: false,
+            awardsStarted: false,
+            volunteerExperienceStarted: false
           };
           currentPageHeight = 0;
           
@@ -441,13 +472,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             interests: [],
             languages: [],
             publications: [],
+            awards: [],
+            volunteerExperience: [],
             workExperienceStarted: false,
             coursesStarted: false,
             educationStarted: false,
             skillCategoriesStarted: false,
             projectsStarted: false,
             languagesStarted: false,
-            publicationsStarted: false
+            publicationsStarted: false,
+            awardsStarted: false,
+            volunteerExperienceStarted: false
           };
         currentPageHeight = 0;
       }
