@@ -1065,7 +1065,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               </h2>
             )}
             <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
-              {pageContent.languages.map((language, index) => 
+              {pageContent.languages.map((language) => 
                 `${language.name} (${language.proficiency})`
               ).join(', ')}
             </div>
