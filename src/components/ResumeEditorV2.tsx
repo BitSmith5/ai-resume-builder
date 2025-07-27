@@ -2686,8 +2686,24 @@ export default function ResumeEditorV2({
                             <Box sx={{ pl: 3 }}>
                               <TextField
                                 size="small"
-                                value={edu.gpa || ''}
-                                onChange={(e) => updateEducation(eduIndex, { gpa: parseFloat(e.target.value) || undefined })}
+                                value={typeof edu.gpa === 'string' ? edu.gpa : (edu.gpa || '')}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  // Allow typing decimal numbers more freely
+                                  if (value === '') {
+                                    updateEducation(eduIndex, { gpa: undefined });
+                                  } else if (/^\d*\.?\d*$/.test(value)) {
+                                    // Allow partial decimal input during typing
+                                    if (value.endsWith('.') || value === '.') {
+                                      updateEducation(eduIndex, { gpa: value as any });
+                                    } else {
+                                      const numValue = parseFloat(value);
+                                      if (!isNaN(numValue) && numValue >= 0 && numValue <= 4.0) {
+                                        updateEducation(eduIndex, { gpa: numValue });
+                                      }
+                                    }
+                                  }
+                                }}
                                 placeholder="GPA (optional)"
                                 sx={{ 
                                   width: 120,
