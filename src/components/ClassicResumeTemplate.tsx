@@ -86,6 +86,16 @@ interface ResumeData {
     doi: string;
     link: string;
   }>;
+  awards?: Array<{
+    id: string;
+    title: string;
+    organization: string;
+    year: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+  }>;
 }
 
 interface ClassicResumeTemplateProps {
@@ -162,6 +172,16 @@ interface PageContent {
     doi: string;
     link: string;
   }>;
+  awards: Array<{
+    id: string;
+    title: string;
+    organization: string;
+    year: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+  }>;
   // Flags to track which sections have already started on previous pages
   workExperienceStarted: boolean;
   coursesStarted: boolean;
@@ -170,6 +190,7 @@ interface PageContent {
   projectsStarted: boolean;
   languagesStarted: boolean;
   publicationsStarted: boolean;
+  awardsStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -304,13 +325,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       interests: [],
       languages: [],
       publications: [],
+      awards: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
       skillCategoriesStarted: false,
       projectsStarted: false,
       languagesStarted: false,
-      publicationsStarted: false
+      publicationsStarted: false,
+      awardsStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -1165,6 +1188,62 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                       {formatUrl(publication.link)}
                     </a>
                   </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Awards and Recognition */}
+        {data.awards && data.awards.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 'bold', 
+              margin: '0 0 12px 0',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid #000',
+              paddingBottom: '4px'
+            }}>
+              Awards and Recognition
+            </h2>
+            {data.awards.map((award, index) => (
+              <div key={index} style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <h3 style={{ 
+                    fontSize: '16px', 
+                    fontWeight: 'bold', 
+                    margin: '0',
+                    textTransform: 'uppercase'
+                  }}>
+                    {award.title}
+                  </h3>
+                  <span style={{ fontSize: '12px', color: '#666' }}>
+                    {award.year}
+                  </span>
+                </div>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  marginBottom: '8px',
+                  fontStyle: 'italic'
+                }}>
+                  {award.organization}
+                </div>
+                {award.bulletPoints.length > 0 && (
+                  <ul style={{ 
+                    fontSize: '13px', 
+                    margin: '0', 
+                    paddingLeft: '20px',
+                    textAlign: 'justify'
+                  }}>
+                    {award.bulletPoints.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} style={{ marginBottom: '2px' }}>
+                        {bullet.description}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             ))}

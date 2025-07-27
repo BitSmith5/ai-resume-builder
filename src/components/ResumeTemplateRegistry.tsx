@@ -87,6 +87,16 @@ export interface ResumeData {
     doi: string;
     link: string;
   }>;
+  awards?: Array<{
+    id: string;
+    title: string;
+    organization: string;
+    year: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+  }>;
   createdAt: string;
 }
 
@@ -182,6 +192,13 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
       year: publication.year,
       doi: publication.doi,
       link: publication.link
+    })),
+    awards: data.awards?.map(award => ({
+      id: award.id,
+      title: award.title,
+      organization: award.organization,
+      year: award.year,
+      bulletPoints: award.bulletPoints
     }))
   };
   

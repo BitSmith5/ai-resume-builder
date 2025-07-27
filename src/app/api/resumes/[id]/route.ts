@@ -33,7 +33,7 @@ export async function GET(
         projects: true,
         languages: true,
         publications: true,
-        // awards: true,
+        awards: true,
         // volunteerExperience: true,
         // references: true,
       },
@@ -339,6 +339,18 @@ export async function PUT(
         return rest;
       });
 
+    // Process awards data
+    const processedAwards = (awards || [])
+      .filter((award: { title: string; organization: string; year: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return award.title && award.organization && award.year;
+      })
+      .map((award: { id?: string; resumeId?: number; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = award;
+        return rest;
+      });
+
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
@@ -395,6 +407,9 @@ export async function PUT(
       await tx.publication.deleteMany({
         where: { resumeId: parseInt(resolvedParams.id) },
       });
+      await tx.award.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
 
       // Update the resume and recreate related data within the same transaction
       console.log("Updating resume with basic data:", {
@@ -442,6 +457,9 @@ export async function PUT(
           publications: {
             create: processedPublications,
           },
+          awards: {
+            create: processedAwards,
+          },
         } as Prisma.ResumeUpdateInput,
         include: {
           strengths: true,
@@ -452,6 +470,7 @@ export async function PUT(
           projects: true,
           languages: true,
           publications: true,
+          awards: true,
         },
       });
     });
@@ -476,7 +495,7 @@ export async function PUT(
       })) || [],
       languages: resume.languages || [],
       publications: resume.publications || [],
-      awards: (resume.content as { awards?: unknown[] })?.awards || [],
+      awards: resume.awards || [],
       volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
       references: (resume.content as { references?: unknown[] })?.references || [],
     };
