@@ -432,7 +432,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   
   // Render header (same for all pages)
   const renderHeader = () => (
-    <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '2px solid #000', paddingBottom: '16px' }}>
+    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
       {data.profilePicture && (
         <div style={{ 
           width: '120px',
@@ -446,39 +446,83 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }} />
       )}
       <h1 style={{ 
-        fontSize: '32px', 
-        fontWeight: 'bold', 
-        margin: '0 0 10px 0',
-        textTransform: 'uppercase',
-        letterSpacing: '2px'
+        fontSize: '40px', 
+        fontWeight: 'normal', 
+        margin: '0 0 -8px 0',
+        fontFamily: 'Times New Roman, serif'
       }}>
         {personalInfo.name}
       </h1>
       {data.jobTitle && (
         <div style={{ 
-          fontSize: '18px', 
-          fontWeight: 'bold', 
-          margin: '0 0 10px 0',
-          fontStyle: 'italic',
+          fontSize: '16px', 
+          fontWeight: 'normal', 
+          margin: '0 0 2px 0',
+          fontFamily: 'Times New Roman, serif',
           color: '#333'
         }}>
           {data.jobTitle}
         </div>
       )}
-      <div style={{ fontSize: '14px', color: '#333' }}>
-        {personalInfo.email && <span style={{ marginRight: '20px' }}>{personalInfo.email}</span>}
-        {personalInfo.phone && <span style={{ marginRight: '20px' }}>{personalInfo.phone}</span>}
-        {(personalInfo.city || personalInfo.state) && (
-          <span>{[personalInfo.city, personalInfo.state].filter(Boolean).join(', ')}</span>
-        )}
+      <div style={{ 
+        fontSize: '12px', 
+        color: '#333',
+        fontFamily: 'Times New Roman, serif',
+        lineHeight: '1.4'
+      }}>
+        {[
+          (personalInfo.city || personalInfo.state) && [personalInfo.city, personalInfo.state].filter(Boolean).join(', '),
+          personalInfo.phone,
+          personalInfo.email,
+          personalInfo.linkedin && (
+            <a 
+              href={personalInfo.linkedin.startsWith('http') ? personalInfo.linkedin : `https://${personalInfo.linkedin}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#333', 
+                textDecoration: 'underline',
+                cursor: 'pointer'
+              }}
+            >
+              LinkedIn
+            </a>
+          ),
+          personalInfo.github && (
+            <a 
+              href={personalInfo.github.startsWith('http') ? personalInfo.github : `https://${personalInfo.github}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#333', 
+                textDecoration: 'underline',
+                cursor: 'pointer'
+              }}
+            >
+              GitHub
+            </a>
+          ),
+          personalInfo.website && (
+            <a 
+              href={personalInfo.website.startsWith('http') ? personalInfo.website : `https://${personalInfo.website}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#333', 
+                textDecoration: 'underline',
+                cursor: 'pointer'
+              }}
+            >
+              Portfolio
+            </a>
+          )
+        ].filter(Boolean).map((item, index, array) => (
+          <span key={index}>
+            {item}
+            {index < array.length - 1 && <span style={{ margin: '0 8px', color: '#666' }}>|</span>}
+          </span>
+        ))}
       </div>
-      {(personalInfo.website || personalInfo.linkedin || personalInfo.github) && (
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-          {personalInfo.website && <span style={{ marginRight: '15px' }}>{formatUrl(personalInfo.website)}</span>}
-          {personalInfo.linkedin && <span style={{ marginRight: '15px' }}>{formatUrl(personalInfo.linkedin)}</span>}
-          {personalInfo.github && <span>{formatUrl(personalInfo.github)}</span>}
-        </div>
-      )}
     </div>
   );
 
