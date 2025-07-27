@@ -6975,7 +6975,7 @@ export default function ResumeEditorV2({
               
               {/* Resume Preview */}
               <Box sx={{ 
-                overflow: 'hidden',
+                overflow: 'visible',
                 height: 'calc(100vh - 200px)', // Extend to bottom of export panel
               }}>
                 {/* Transform data for ClassicResumeTemplate */}
@@ -7002,10 +7002,10 @@ export default function ResumeEditorV2({
                   
                   return (
                     <Box sx={{ 
-                      transform: 'scale(0.65)', 
+                      transform: 'scale(0.80)', 
                       transformOrigin: 'top left',
-                      width: '154%', // 100% / 0.65 = 154%
-                      height: '154%'
+                      width: '125%', // 100% / 0.80 = 125%
+                      height: '125%',
                     }}>
                       <ClassicResumeTemplate data={transformedData} />
                     </Box>

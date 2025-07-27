@@ -451,7 +451,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           overflow: 'hidden',
           pageBreakAfter: pageIndex < pages.length - 1 ? 'always' : 'auto',
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          borderRadius: '4px',
+          borderRadius: '20px',
           border: '1px solid #e0e0e0'
         }}
       >
