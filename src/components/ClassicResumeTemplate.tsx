@@ -329,15 +329,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           height = 60; // Publication title + authors + journal + year
           break;
         case 'award':
-          height = 70; // Award title + organization + year + bullet points
+          // Simplified height calculation for awards
+          height = 60; // Reduced base height for award title and organization
           if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 18;
+            height += content.bulletPoints.length * 16; // Reduced from 18px per bullet
           }
           break;
         case 'volunteer':
-          height = 70; // Volunteer position + organization + dates + bullet points
+          // Simplified height calculation for volunteer experience
+          height = 60; // Reduced base height for volunteer position and organization
           if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 18;
+            height += content.bulletPoints.length * 16; // Reduced from 18px per bullet
           }
           break;
         case 'reference':
@@ -535,8 +537,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       }
       
               // Process items individually for sections that should be kept together
-        // Note: Technical Skills is now processed individually like Projects and Work Experience
-        if (section.type === 'language' || section.type === 'skill' || section.type === 'interest' || section.type === 'summary') {
+        // Note: Most sections are now processed individually for better space utilization
+        if (section.type === 'summary') {
         // These sections should be kept together
         const totalHeight = section.items.reduce((total, item) => total + estimateContentHeight(item, section.type), 0) + (section.items.length - 1) * itemSpacing;
         
@@ -579,15 +581,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           case 'Professional Summary':
             // Mark this page as having the Professional Summary
             currentPage.hasProfessionalSummary = true;
-            break;
-          case 'Languages':
-            currentPage.languages = section.items;
-            break;
-          case 'Skills':
-            currentPage.skills = section.items;
-            break;
-          case 'Interests':
-            currentPage.interests = section.items;
             break;
         }
         currentPageHeight += totalHeight;
@@ -692,6 +685,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           case 'Courses':
             currentPage.courses.push(item);
             break;
+          case 'Languages':
+            currentPage.languages.push(item);
+            break;
+          case 'Skills':
+            currentPage.skills.push(item);
+            break;
+          case 'Interests':
+            currentPage.interests.push(item);
+            break;
           case 'Publications':
             currentPage.publications.push(item);
             break;
@@ -713,69 +715,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
     
     // Add the final page
-    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0) {
+    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0 || currentPage.skills.length > 0 || currentPage.interests.length > 0 || currentPage.publications.length > 0 || currentPage.awards.length > 0 || currentPage.volunteerExperience.length > 0 || (currentPage.references?.length || 0) > 0) {
       pages.push(currentPage);
     }
     
-    // Add skills and interests to the last page, but check for overflow
-    if (pages.length > 0) {
-      const lastPage = pages[pages.length - 1];
-      
-      // Estimate skills and interests height
-      const skillsHeight = data.strengths && data.strengths.length > 0 ? 50 : 0; // Reduced from 60 - Section header + content
-      const interestsHeight = data.interests && data.interests.length > 0 ? 50 : 0; // Reduced from 60 - Section header + content
-      const totalSkillsInterestsHeight = skillsHeight + interestsHeight;
-      
-      // Check if skills/interests would overflow the bottom margin
-      if (currentPageHeight + totalSkillsInterestsHeight > maxContentHeight - bottomMargin) {
-        // Create a new page for skills and interests
-        const newPage: PageContent = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          projects: [],
-          skills: data.strengths || [],
-          skillCategories: [],
-          interests: data.interests || [],
-          languages: [],
-          publications: [],
-          awards: [],
-          volunteerExperience: [],
-          workExperienceStarted: true,
-          coursesStarted: true,
-          educationStarted: true,
-          skillCategoriesStarted: true,
-          projectsStarted: true,
-          languagesStarted: false,
-          publicationsStarted: false,
-          awardsStarted: false,
-          volunteerExperienceStarted: false
-        };
-        pages.push(newPage);
-      } else {
-        // Add to current page
-        if (data.strengths && data.strengths.length > 0) {
-          lastPage.skills = [...data.strengths];
-        }
-        
-
-        
-        if (data.interests && data.interests.length > 0) {
-          lastPage.interests = [...data.interests];
-        }
-      }
-    }
-    
-    // If no pages were created at all, create one with just skills/interests
+    // If no pages were created at all, create one
     if (pages.length === 0) {
       pages.push({
         workExperience: [],
         education: [],
         courses: [],
         projects: [],
-        skills: data.strengths || [],
-        skillCategories: data.skillCategories || [],
-        interests: data.interests || [],
+        skills: [],
+        skillCategories: [],
+        interests: [],
         languages: [],
         publications: [],
         awards: [],
