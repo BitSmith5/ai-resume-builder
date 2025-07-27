@@ -369,10 +369,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
     // NEW APPROACH: Use sectionOrder from data to determine section order
     // Create a mapping from section names to data properties and their types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sectionMapping: Record<string, {
       dataKey: keyof ResumeData;
       type: 'work' | 'education' | 'course' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'skillCategories' | 'summary';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items: any[];
     }> = {
       'Professional Summary': { dataKey: 'content', type: 'summary', items: data.content.personalInfo.summary ? [data.content.personalInfo] : [] },
@@ -410,10 +410,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
 
 
     // Filter sections to only include those that have data and are in the sectionOrder
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const orderedSections: Array<{
       name: string;
       type: 'work' | 'education' | 'course' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'skillCategories' | 'summary';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items: any[];
       height: number;
     }> = [];
