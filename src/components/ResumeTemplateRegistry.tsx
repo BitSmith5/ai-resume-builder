@@ -25,6 +25,14 @@ export interface ResumeData {
     skillName: string;
     rating: number;
   }>;
+  skillCategories?: Array<{
+    id: string;
+    title: string;
+    skills: Array<{
+      id: string;
+      name: string;
+    }>;
+  }>;
   workExperience: Array<{
     id: number;
     company: string;
@@ -105,6 +113,7 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
       skillName: s.skillName,
       rating: s.rating
     })),
+    skillCategories: data.skillCategories,
     workExperience: data.workExperience.map(exp => ({
       company: exp.company,
       position: exp.position,

@@ -21,6 +21,14 @@ interface ResumeData {
     skillName: string;
     rating: number;
   }>;
+  skillCategories?: Array<{
+    id: string;
+    title: string;
+    skills: Array<{
+      id: string;
+      name: string;
+    }>;
+  }>;
   workExperience: Array<{
     company: string;
     position: string;
@@ -88,6 +96,14 @@ interface PageContent {
     skillName: string;
     rating: number;
   }>;
+  skillCategories: Array<{
+    id: string;
+    title: string;
+    skills: Array<{
+      id: string;
+      name: string;
+    }>;
+  }>;
   interests: Array<{
     name: string;
     icon: string;
@@ -96,6 +112,7 @@ interface PageContent {
   workExperienceStarted: boolean;
   coursesStarted: boolean;
   educationStarted: boolean;
+  skillCategoriesStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -131,7 +148,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     const itemSpacing = 15;
     
     // Helper function to estimate content height
-    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0], type: 'work' | 'education' | 'course'): number => {
+    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0] | NonNullable<ResumeData['skillCategories']>[0], type: 'work' | 'education' | 'course' | 'skillCategories'): number => {
       let height = 0;
       
       switch (type) {
@@ -146,6 +163,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           break;
         case 'course':
           height = 45;
+          break;
+        case 'skillCategories':
+          height = 40; // Category title + skills
+          if ('skills' in content && content.skills && content.skills.length > 0) {
+            height += Math.ceil(content.skills.length / 3) * 20; // Estimate 3 skills per row
+          }
           break;
       }
       
@@ -179,16 +202,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       sections.push({ type: 'education', items: data.education, height: educationHeight });
     }
     
+
+    
     // NEW APPROACH: Process sections in correct visual order but optimize Education placement
     let currentPage: PageContent = {
       workExperience: [],
       education: [],
       courses: [],
       skills: [],
+      skillCategories: [],
       interests: [],
       workExperienceStarted: false,
       coursesStarted: false,
-      educationStarted: false
+      educationStarted: false,
+      skillCategoriesStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -197,7 +224,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
 
     
-    // Process sections in correct visual order: work, courses, education
+    // Process sections in correct visual order: work, skillCategories, courses, education
     for (const section of sections) {
       
       if (section.type === 'education') {
@@ -213,7 +240,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           currentPageHeight += section.height;
         } else {
           // Start new page for Education
-          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.skillCategories.length > 0) {
             pages.push(currentPage);
           }
           
@@ -222,10 +249,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             education: [],
             courses: [],
             skills: [],
+            skillCategories: [],
             interests: [],
             workExperienceStarted: false,
             coursesStarted: false,
-            educationStarted: false
+            educationStarted: false,
+            skillCategoriesStarted: false
           };
           currentPageHeight = 0;
           
@@ -235,6 +264,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }
         continue;
       }
+      
+
       
       // For Work Experience and Courses, process items individually to allow splitting
       const sectionHeaderHeight = estimateSectionHeaderHeight();
@@ -251,10 +282,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           education: [],
           courses: [],
           skills: [],
+          skillCategories: [],
           interests: [],
           workExperienceStarted: false,
           coursesStarted: false,
-          educationStarted: false
+          educationStarted: false,
+          skillCategoriesStarted: false
         };
         currentPageHeight = 0;
       }
@@ -272,12 +305,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       
       // Process items individually
       for (const item of section.items) {
-        const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : section.type) + itemSpacing;
+        const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : 'work') + itemSpacing;
         
         // Check if item fits on current page
         if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin - 20) {
           // Start new page
-          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.skillCategories.length > 0) {
             pages.push(currentPage);
           }
           
@@ -286,10 +319,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             education: [],
             courses: [],
             skills: [],
+            skillCategories: [],
             interests: [],
             workExperienceStarted: true, // Section already started - don't show header again
             coursesStarted: true, // Section already started - don't show header again
-            educationStarted: false
+            educationStarted: false,
+            skillCategoriesStarted: false
           };
           currentPageHeight = 0;
           
@@ -318,8 +353,19 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       }
     }
     
+    // Add skillCategories to the first page after the summary
+    if (data.skillCategories && data.skillCategories.length > 0 && pages.length > 0) {
+      const firstPage = pages[0];
+      firstPage.skillCategories = [...data.skillCategories];
+      firstPage.skillCategoriesStarted = false;
+    } else if (data.skillCategories && data.skillCategories.length > 0 && pages.length === 0) {
+      // If no pages exist yet, create a page with skill categories
+      currentPage.skillCategories = [...data.skillCategories];
+      currentPage.skillCategoriesStarted = false;
+    }
+    
     // Add the final page
-    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
+    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.skillCategories.length > 0) {
       pages.push(currentPage);
     }
     
@@ -340,10 +386,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           education: [],
           courses: [],
           skills: data.strengths || [],
+          skillCategories: [],
           interests: data.interests || [],
           workExperienceStarted: true,
           coursesStarted: true,
-          educationStarted: true
+          educationStarted: true,
+          skillCategoriesStarted: true
         };
         pages.push(newPage);
       } else {
@@ -351,6 +399,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         if (data.strengths && data.strengths.length > 0) {
           lastPage.skills = [...data.strengths];
         }
+        
+
         
         if (data.interests && data.interests.length > 0) {
           lastPage.interests = [...data.interests];
@@ -365,10 +415,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         education: [],
         courses: [],
         skills: data.strengths || [],
+        skillCategories: data.skillCategories || [],
         interests: data.interests || [],
         workExperienceStarted: false,
         coursesStarted: false,
-        educationStarted: false
+        educationStarted: false,
+        skillCategoriesStarted: false
       });
     }
     
@@ -481,6 +533,46 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <p style={{ fontSize: '14px', margin: '0', textAlign: 'justify' }}>
               {personalInfo.summary}
             </p>
+          </div>
+        )}
+
+        {/* Technical Skills - only on first page */}
+        {isFirstPage && pageContent.skillCategories.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            {!pageContent.skillCategoriesStarted && (
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                margin: '0 0 12px 0',
+                textTransform: 'uppercase',
+                borderBottom: '1px solid #000',
+                paddingBottom: '4px'
+              }}>
+                Technical Skills
+              </h2>
+            )}
+            <ul style={{ 
+              fontSize: '14px', 
+              margin: '0', 
+              paddingLeft: '20px',
+              listStyleType: 'disc'
+            }}>
+              {pageContent.skillCategories.map((category, categoryIndex) => (
+                <li key={categoryIndex} style={{ 
+                  marginBottom: '8px',
+                  fontWeight: 'bold'
+                }}>
+                  {category.title}: {category.skills.map((skill, skillIndex) => (
+                    <span key={skillIndex} style={{ 
+                      fontWeight: 'normal',
+                      marginRight: '4px'
+                    }}>
+                      {skill.name}{skillIndex < category.skills.length - 1 ? ', ' : ''}
+                    </span>
+                  ))}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

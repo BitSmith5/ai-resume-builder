@@ -6986,6 +6986,7 @@ export default function ResumeEditorV2({
                     profilePicture: resumeData.profilePicture,
                     content: resumeData.content,
                     strengths: resumeData.strengths,
+                    skillCategories: resumeData.skillCategories,
                     workExperience: resumeData.workExperience.map(exp => ({
                       company: exp.company,
                       position: exp.position,
