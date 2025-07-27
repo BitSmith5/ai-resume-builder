@@ -7,7 +7,7 @@
 // - Users can re-add deleted sections through the "Add Section" button
 // - Section order and deletion state are saved automatically
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -342,6 +342,7 @@ export default function ResumeEditorV2({
   // Export panel state
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
+  const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [exportSettings, setExportSettings] = useState({
     template: 'standard',
     fontFamily: 'Times New Roman',
@@ -375,6 +376,15 @@ export default function ResumeEditorV2({
   
   useEffect(() => {
     setIsClient(true);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (exportPanelFallbackTimeoutRef.current) {
+        clearTimeout(exportPanelFallbackTimeoutRef.current);
+      }
+    };
   }, []);
 
   const [sectionOrder, setSectionOrder] = useState([
@@ -6143,7 +6153,10 @@ export default function ResumeEditorV2({
 
   const handleExportClose = () => {
     setExportPanelOpen(false);
-    // Don't set exportPanelFullyClosed here; wait for transition end
+    // Set a fallback timeout in case onTransitionEnd doesn't fire
+    exportPanelFallbackTimeoutRef.current = setTimeout(() => {
+      setExportPanelFullyClosed(true);
+    }, 300); // 300ms should be enough for the transition
   };
 
   const handleDownloadPDF = async () => {
@@ -6910,7 +6923,14 @@ export default function ResumeEditorV2({
         open={exportPanelOpen}
         onClose={handleExportClose}
         onTransitionEnd={() => {
-          if (!exportPanelOpen) setExportPanelFullyClosed(true);
+          if (!exportPanelOpen) {
+            setExportPanelFullyClosed(true);
+            // Clear the fallback timeout if it exists
+            if (exportPanelFallbackTimeoutRef.current) {
+              clearTimeout(exportPanelFallbackTimeoutRef.current);
+              exportPanelFallbackTimeoutRef.current = null;
+            }
+          }
         }}
         sx={{
           '& .MuiDrawer-paper': {
