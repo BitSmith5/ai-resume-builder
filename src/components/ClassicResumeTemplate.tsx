@@ -110,6 +110,15 @@ interface ResumeData {
     }>;
     hoursPerWeek: string;
   }>;
+  references?: Array<{
+    id: string;
+    name: string;
+    title: string;
+    company: string;
+    email: string;
+    phone: string;
+    relationship: string;
+  }>;
 }
 
 interface ClassicResumeTemplateProps {
@@ -210,6 +219,15 @@ interface PageContent {
     }>;
     hoursPerWeek: string;
   }>;
+  references?: Array<{
+    id: string;
+    name: string;
+    title: string;
+    company: string;
+    email: string;
+    phone: string;
+    relationship: string;
+  }>;
   // Flags to track which sections have already started on previous pages
   workExperienceStarted: boolean;
   coursesStarted: boolean;
@@ -220,6 +238,7 @@ interface PageContent {
   publicationsStarted: boolean;
   awardsStarted: boolean;
   volunteerExperienceStarted: boolean;
+  referencesStarted?: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -358,6 +377,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       publications: [],
       awards: [],
       volunteerExperience: [],
+      references: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
@@ -366,7 +386,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       languagesStarted: false,
       publicationsStarted: false,
       awardsStarted: false,
-      volunteerExperienceStarted: false
+      volunteerExperienceStarted: false,
+      referencesStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -407,6 +428,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             publications: [],
             awards: [],
             volunteerExperience: [],
+            references: [],
             workExperienceStarted: false,
             coursesStarted: false,
             educationStarted: false,
@@ -415,7 +437,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             languagesStarted: false,
             publicationsStarted: false,
             awardsStarted: false,
-            volunteerExperienceStarted: false
+            volunteerExperienceStarted: false,
+            referencesStarted: false
           };
           currentPageHeight = 0;
           
@@ -451,6 +474,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             publications: [],
             awards: [],
             volunteerExperience: [],
+            references: [],
             workExperienceStarted: false,
             coursesStarted: false,
             educationStarted: false,
@@ -459,7 +483,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             languagesStarted: false,
             publicationsStarted: false,
             awardsStarted: false,
-            volunteerExperienceStarted: false
+            volunteerExperienceStarted: false,
+            referencesStarted: false
           };
         currentPageHeight = 0;
       }
@@ -1302,6 +1327,71 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                     ))}
                   </ul>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* References */}
+        {data.references && data.references.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 'bold', 
+              margin: '0 0 12px 0',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid #000',
+              paddingBottom: '4px'
+            }}>
+              References
+            </h2>
+            {data.references.map((reference, index) => (
+              <div key={index} style={{ marginBottom: '16px' }}>
+                <div style={{ 
+                  fontSize: '16px', 
+                  fontWeight: 'bold', 
+                  margin: '0 0 5px 0',
+                  textTransform: 'uppercase'
+                }}>
+                  {reference.name}
+                </div>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  marginBottom: '4px',
+                  fontStyle: 'italic'
+                }}>
+                  {reference.title}
+                </div>
+                <div style={{ 
+                  fontSize: '13px', 
+                  color: '#666',
+                  marginBottom: '4px'
+                }}>
+                  {reference.company}
+                </div>
+                <div style={{ 
+                  fontSize: '13px', 
+                  color: '#666',
+                  marginBottom: '2px'
+                }}>
+                  {reference.email}
+                </div>
+                <div style={{ 
+                  fontSize: '13px', 
+                  color: '#666',
+                  marginBottom: '2px'
+                }}>
+                  {reference.phone}
+                </div>
+                <div style={{ 
+                  fontSize: '13px', 
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  {reference.relationship}
+                </div>
               </div>
             ))}
           </div>

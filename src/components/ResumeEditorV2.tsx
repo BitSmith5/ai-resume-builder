@@ -7023,7 +7023,8 @@ export default function ResumeEditorV2({
                     languages: resumeData.languages,
                     publications: resumeData.publications,
                     awards: resumeData.awards,
-                    volunteerExperience: resumeData.volunteerExperience
+                    volunteerExperience: resumeData.volunteerExperience,
+                    references: resumeData.references
                   };
 
                   
