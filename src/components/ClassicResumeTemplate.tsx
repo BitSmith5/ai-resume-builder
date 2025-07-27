@@ -282,9 +282,18 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       
       switch (type) {
         case 'work':
-          height = 70; // Reduced from 80
+          // Calculate exact height based on rendered elements:
+          // Position + dates div: 16px font + 5px margin = 21px
+          // Company + location div: 14px font + 8px margin = 22px  
+          // Bullet points: each bullet is 13px font + 2px margin = 15px per bullet
+          // Overall job entry: 16px margin bottom
+          // Line height factor: 1.6 (from page CSS)
+          const baseHeight = (21 + 22) * 1.6 + 16; // Position/company sections + overall margin
+          height = Math.ceil(baseHeight);
+          
           if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 18; // Reduced from 22
+            // Each bullet point: 15px * 1.6 line height = 24px per bullet
+            height += content.bulletPoints.length * 24;
           }
           break;
         case 'education':
@@ -555,17 +564,26 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         continue;
       }
       
-      // Regular processing for other sections
-      for (const item of section.items) {
+      // Mathematical approach: Process each subsection (complete item) as a unit
+      for (let i = 0; i < section.items.length; i++) {
+        const item = section.items[i];
         const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : section.type === 'projects' ? 'project' : 'work') + itemSpacing;
         
-        // Check if item fits on current page
-        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin) {
-          // Start new page
+        // Mathematical check: Will this entire subsection fit on the current page?
+        const availableHeight = maxContentHeight - bottomMargin - currentPageHeight;
+        
+        // Debug logging to verify calculations
+        console.log(`Section: ${section.type}, Item height: ${itemHeight}, Available: ${availableHeight}, Current page height: ${currentPageHeight}`);
+        
+        if (itemHeight > availableHeight) {
+          // This entire subsection won't fit - move it and all following content to next page
+          
+          // Save current page if it has content
           if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0) {
             pages.push(currentPage);
           }
           
+          // Create new page for this subsection and all remaining content
           currentPage = {
             workExperience: [],
             education: [],
@@ -578,35 +596,25 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             publications: [],
             awards: [],
             volunteerExperience: [],
-            workExperienceStarted: true, // Section already started - don't show header again
-            coursesStarted: true, // Section already started - don't show header again
-            educationStarted: false,
+            references: [],
+            workExperienceStarted: section.type === 'work' ? true : false,
+            coursesStarted: section.type === 'courses' ? true : false,
+            educationStarted: false, // Education is handled separately
             skillCategoriesStarted: false,
-            projectsStarted: true, // Section already started - don't show header again
-            languagesStarted: false,
+            projectsStarted: section.type === 'projects' ? true : false,
+            languagesStarted: false, // Languages are handled separately
             publicationsStarted: false,
             awardsStarted: false,
-            volunteerExperienceStarted: false
+            volunteerExperienceStarted: false,
+            referencesStarted: false
           };
           currentPageHeight = 0;
           
-          // Re-add section header on new page
+          // Re-add section header on new page if this is the first item of this section on the new page
           currentPageHeight += sectionHeaderHeight;
-          switch (section.type) {
-            case 'work':
-              currentPage.workExperienceStarted = true; // Don't show header again
-              break;
-            case 'courses':
-              currentPage.coursesStarted = true; // Don't show header again
-              break;
-                    case 'projects':
-          currentPage.projectsStarted = true; // Don't show header again
-          break;
-
-      }
         }
         
-        // Add item to current page
+        // Add this subsection to current page
         switch (section.type) {
           case 'work':
             currentPage.workExperience.push(item as ResumeData['workExperience'][0]);
@@ -614,11 +622,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           case 'courses':
             currentPage.courses.push(item as NonNullable<ResumeData['courses']>[0]);
             break;
-                  case 'projects':
-          currentPage.projects.push(item as NonNullable<ResumeData['projects']>[0]);
-          break;
-
-      }
+          case 'projects':
+            currentPage.projects.push(item as NonNullable<ResumeData['projects']>[0]);
+            break;
+        }
         currentPageHeight += itemHeight;
       }
     }
