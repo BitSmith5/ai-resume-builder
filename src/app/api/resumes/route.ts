@@ -24,7 +24,7 @@ export async function GET() {
         education: true,
         courses: true,
         interests: true,
-        // projects: true,
+        projects: true,
         // languages: true,
         // publications: true,
         // awards: true,
@@ -49,6 +49,11 @@ export async function GET() {
         startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : '',
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
+      projects: resume.projects?.map((project) => ({
+        ...project,
+        startDate: project.startDate ? project.startDate.toISOString().split('T')[0] : '',
+        endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
+      })) || [],
       deletedSections: (resume as { deletedSections?: string[] }).deletedSections || [],
       sectionOrder: (resume as { sectionOrder?: string[] }).sectionOrder || [],
     }));
@@ -146,6 +151,45 @@ export async function POST(request: NextRequest) {
       return rest;
     });
 
+    // Process projects data
+    const processedProjects = (projects || []).map((project: { id?: string; resumeId?: string; startDate: string; endDate?: string; [key: string]: unknown }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, resumeId, ...rest } = project;
+      
+      // Convert "MMM YYYY" format to Date object for database storage
+      const parseDate = (dateStr: string): Date => {
+        if (!dateStr || dateStr.trim() === '') return new Date();
+        
+        // Handle different date formats
+        if (dateStr.includes(' ')) {
+          // "MMM YYYY" format
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const parts = dateStr.split(' ');
+          if (parts.length >= 2) {
+            const month = parts[0];
+            const year = parts[1];
+            const monthIndex = months.indexOf(month);
+            if (monthIndex !== -1 && !isNaN(parseInt(year))) {
+              return new Date(parseInt(year), monthIndex, 1);
+            }
+          }
+        } else if (dateStr.includes('-')) {
+          // ISO date format (YYYY-MM-DD)
+          return new Date(dateStr);
+        }
+        
+        // Fallback to current date if parsing fails
+        console.warn(`Failed to parse date: ${dateStr}, using current date`);
+        return new Date();
+      };
+
+      return {
+        ...rest,
+        startDate: parseDate(project.startDate),
+        endDate: project.endDate ? parseDate(project.endDate) : null,
+      };
+    });
+
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
@@ -182,6 +226,9 @@ export async function POST(request: NextRequest) {
         interests: {
           create: processedInterests,
         },
+        projects: {
+          create: processedProjects,
+        },
       },
       include: {
         strengths: true,
@@ -189,6 +236,7 @@ export async function POST(request: NextRequest) {
         education: true,
         courses: true,
         interests: true,
+        projects: true,
       },
     });
 
@@ -207,7 +255,11 @@ export async function POST(request: NextRequest) {
       })) || [],
       // Extract additional data from content JSON
       skillCategories: (resume.content as Record<string, unknown>)?.skillCategories || [],
-      projects: (resume.content as Record<string, unknown>)?.projects || [],
+      projects: (resume as { projects?: Array<{ startDate: Date; endDate?: Date | null; [key: string]: unknown }> }).projects?.map((project: { startDate: Date; endDate?: Date | null; [key: string]: unknown }) => ({
+        ...project,
+        startDate: project.startDate ? project.startDate.toISOString().split('T')[0] : '',
+        endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
+      })) || [],
       languages: (resume.content as Record<string, unknown>)?.languages || [],
       publications: (resume.content as Record<string, unknown>)?.publications || [],
       awards: (resume.content as Record<string, unknown>)?.awards || [],

@@ -59,6 +59,19 @@ interface ResumeData {
     name: string;
     icon: string;
   }>;
+  projects?: Array<{
+    id: string;
+    title: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    technologies: string[];
+    link: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+  }>;
 }
 
 interface ClassicResumeTemplateProps {
@@ -92,6 +105,19 @@ interface PageContent {
     provider: string;
     link?: string;
   }>;
+  projects: Array<{
+    id: string;
+    title: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    technologies: string[];
+    link: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+  }>;
   skills: Array<{
     skillName: string;
     rating: number;
@@ -113,10 +139,13 @@ interface PageContent {
   coursesStarted: boolean;
   educationStarted: boolean;
   skillCategoriesStarted: boolean;
+  projectsStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
   const { personalInfo } = data.content;
+  
+
   
   // Function to format dates as MM/YYYY
   const formatDate = (dateString: string): string => {
@@ -142,32 +171,42 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   // Calculate content distribution across pages
   const calculatePages = (): PageContent[] => {
     const pages: PageContent[] = [];
-    const maxContentHeight = 900;
-    const bottomMargin = 80;
+    const maxContentHeight = 1000; // Increased from 900 to allow more content per page
+    const bottomMargin = 60; // Reduced from 80 to allow more content
     const headerHeight = 180; // Only on first page
-    const itemSpacing = 15;
+    const itemSpacing = 12; // Reduced from 15 to be more compact
     
     // Helper function to estimate content height
-    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0] | NonNullable<ResumeData['skillCategories']>[0], type: 'work' | 'education' | 'course' | 'skillCategories'): number => {
+    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0] | NonNullable<ResumeData['skillCategories']>[0] | NonNullable<ResumeData['projects']>[0], type: 'work' | 'education' | 'course' | 'skillCategories' | 'project'): number => {
       let height = 0;
       
       switch (type) {
         case 'work':
-          height = 80;
+          height = 70; // Reduced from 80
           if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 22;
+            height += content.bulletPoints.length * 18; // Reduced from 22
           }
           break;
         case 'education':
-          height = 60;
+          height = 50; // Reduced from 60
           break;
         case 'course':
-          height = 45;
+          height = 40; // Reduced from 45
+          break;
+        case 'project':
+          height = 70; // Reduced from 80
+          if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
+            height += content.bulletPoints.length * 18; // Reduced from 22
+          }
+          // Add height for technologies
+          if ('technologies' in content && content.technologies && content.technologies.length > 0) {
+            height += 18; // Reduced from 20
+          }
           break;
         case 'skillCategories':
-          height = 40; // Category title + skills
+          height = 35; // Reduced from 40
           if ('skills' in content && content.skills && content.skills.length > 0) {
-            height += Math.ceil(content.skills.length / 3) * 20; // Estimate 3 skills per row
+            height += Math.ceil(content.skills.length / 3) * 18; // Reduced from 20
           }
           break;
       }
@@ -177,19 +216,24 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
     // Helper function to estimate section header height
     const estimateSectionHeaderHeight = (): number => {
-      return 45; // Section title + border + spacing
+      return 40; // Reduced from 45 - Section title + border + spacing
     };
     
     // NEW APPROACH: Calculate all section heights first
     const sections: Array<{
-      type: 'work' | 'courses' | 'education';
-      items: ResumeData['workExperience'] | NonNullable<ResumeData['courses']> | ResumeData['education'];
+      type: 'work' | 'courses' | 'education' | 'projects';
+      items: ResumeData['workExperience'] | NonNullable<ResumeData['courses']> | ResumeData['education'] | NonNullable<ResumeData['projects']>;
       height: number;
     }> = [];
     
     if (data.workExperience && data.workExperience.length > 0) {
       const workHeight = estimateSectionHeaderHeight() + data.workExperience.reduce((total, item) => total + estimateContentHeight(item, 'work') + itemSpacing, 0);
       sections.push({ type: 'work', items: data.workExperience, height: workHeight });
+    }
+    
+    if (data.projects && data.projects.length > 0) {
+      const projectsHeight = estimateSectionHeaderHeight() + data.projects.reduce((total, item) => total + estimateContentHeight(item, 'project') + itemSpacing, 0);
+      sections.push({ type: 'projects', items: data.projects, height: projectsHeight });
     }
     
     if (data.courses && data.courses.length > 0) {
@@ -209,13 +253,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       workExperience: [],
       education: [],
       courses: [],
+      projects: [],
       skills: [],
       skillCategories: [],
       interests: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
-      skillCategoriesStarted: false
+      skillCategoriesStarted: false,
+      projectsStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -224,7 +270,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
 
     
-    // Process sections in correct visual order: work, skillCategories, courses, education
+    // Process sections in correct visual order: work, projects, courses, education
     for (const section of sections) {
       
       if (section.type === 'education') {
@@ -233,7 +279,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         // Force Education to fit on current page if we're on page 1 or 2
         const currentPageNumber = pages.length + 1;
         
-        if (currentPageNumber <= 2 || currentPageHeight + section.height <= maxContentHeight - bottomMargin - 20) {
+        if (currentPageNumber <= 2 || currentPageHeight + section.height <= maxContentHeight - bottomMargin) {
           // Add Education to current page
           currentPage.education = section.items as ResumeData['education'];
           currentPage.educationStarted = false;
@@ -248,13 +294,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             workExperience: [],
             education: [],
             courses: [],
+            projects: [],
             skills: [],
             skillCategories: [],
             interests: [],
             workExperienceStarted: false,
             coursesStarted: false,
             educationStarted: false,
-            skillCategoriesStarted: false
+            skillCategoriesStarted: false,
+            projectsStarted: false
           };
           currentPageHeight = 0;
           
@@ -271,7 +319,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       const sectionHeaderHeight = estimateSectionHeaderHeight();
       
       // Check if section header fits
-      if (currentPageHeight + sectionHeaderHeight > maxContentHeight - bottomMargin - 20) {
+      if (currentPageHeight + sectionHeaderHeight > maxContentHeight - bottomMargin) {
         // Start new page
         if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
           pages.push(currentPage);
@@ -281,13 +329,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           workExperience: [],
           education: [],
           courses: [],
+          projects: [],
           skills: [],
           skillCategories: [],
           interests: [],
           workExperienceStarted: false,
           coursesStarted: false,
           educationStarted: false,
-          skillCategoriesStarted: false
+          skillCategoriesStarted: false,
+          projectsStarted: false
         };
         currentPageHeight = 0;
       }
@@ -301,16 +351,19 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         case 'courses':
           currentPage.coursesStarted = false;
           break;
+        case 'projects':
+          currentPage.projectsStarted = false;
+          break;
       }
       
       // Process items individually
       for (const item of section.items) {
-        const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : 'work') + itemSpacing;
+        const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : section.type === 'projects' ? 'project' : 'work') + itemSpacing;
         
         // Check if item fits on current page
-        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin - 20) {
+        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin) {
           // Start new page
-          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.skillCategories.length > 0) {
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.skillCategories.length > 0) {
             pages.push(currentPage);
           }
           
@@ -318,13 +371,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             workExperience: [],
             education: [],
             courses: [],
+            projects: [],
             skills: [],
             skillCategories: [],
             interests: [],
             workExperienceStarted: true, // Section already started - don't show header again
             coursesStarted: true, // Section already started - don't show header again
             educationStarted: false,
-            skillCategoriesStarted: false
+            skillCategoriesStarted: false,
+            projectsStarted: true // Section already started - don't show header again
           };
           currentPageHeight = 0;
           
@@ -337,6 +392,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             case 'courses':
               currentPage.coursesStarted = true; // Don't show header again
               break;
+            case 'projects':
+              currentPage.projectsStarted = true; // Don't show header again
+              break;
           }
         }
         
@@ -347,6 +405,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             break;
           case 'courses':
             currentPage.courses.push(item as NonNullable<ResumeData['courses']>[0]);
+            break;
+          case 'projects':
+            currentPage.projects.push(item as NonNullable<ResumeData['projects']>[0]);
             break;
         }
         currentPageHeight += itemHeight;
@@ -365,7 +426,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
     
     // Add the final page
-    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.skillCategories.length > 0) {
+    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.skillCategories.length > 0) {
       pages.push(currentPage);
     }
     
@@ -374,24 +435,26 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       const lastPage = pages[pages.length - 1];
       
       // Estimate skills and interests height
-      const skillsHeight = data.strengths && data.strengths.length > 0 ? 60 : 0; // Section header + content
-      const interestsHeight = data.interests && data.interests.length > 0 ? 60 : 0; // Section header + content
+      const skillsHeight = data.strengths && data.strengths.length > 0 ? 50 : 0; // Reduced from 60 - Section header + content
+      const interestsHeight = data.interests && data.interests.length > 0 ? 50 : 0; // Reduced from 60 - Section header + content
       const totalSkillsInterestsHeight = skillsHeight + interestsHeight;
       
       // Check if skills/interests would overflow the bottom margin
-      if (currentPageHeight + totalSkillsInterestsHeight > maxContentHeight - bottomMargin - 20) {
+      if (currentPageHeight + totalSkillsInterestsHeight > maxContentHeight - bottomMargin) {
         // Create a new page for skills and interests
         const newPage: PageContent = {
           workExperience: [],
           education: [],
           courses: [],
+          projects: [],
           skills: data.strengths || [],
           skillCategories: [],
           interests: data.interests || [],
           workExperienceStarted: true,
           coursesStarted: true,
           educationStarted: true,
-          skillCategoriesStarted: true
+          skillCategoriesStarted: true,
+          projectsStarted: true
         };
         pages.push(newPage);
       } else {
@@ -414,13 +477,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         workExperience: [],
         education: [],
         courses: [],
+        projects: [],
         skills: data.strengths || [],
         skillCategories: data.skillCategories || [],
         interests: data.interests || [],
         workExperienceStarted: false,
         coursesStarted: false,
         educationStarted: false,
-        skillCategoriesStarted: false
+        skillCategoriesStarted: false,
+        projectsStarted: false
       });
     }
     
@@ -683,7 +748,70 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </div>
         )}
 
-
+        {/* Projects */}
+        {pageContent.projects.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            {!pageContent.projectsStarted && (
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                margin: '0 0 12px 0',
+                textTransform: 'uppercase',
+                borderBottom: '1px solid #000',
+                paddingBottom: '4px'
+              }}>
+                Projects
+              </h2>
+            )}
+            {pageContent.projects.map((project, index) => (
+              <div key={index} style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <h3 style={{ 
+                    fontSize: '16px', 
+                    fontWeight: 'bold', 
+                    margin: '0',
+                    textTransform: 'uppercase'
+                  }}>
+                    {project.title}
+                  </h3>
+                  <span style={{ fontSize: '12px', color: '#666' }}>
+                    {formatDate(project.startDate)} - {project.current ? 'Present' : formatDate(project.endDate)}
+                  </span>
+                </div>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  marginBottom: '8px',
+                  fontStyle: 'italic'
+                }}>
+                  Technologies: {project.technologies.join(', ')}
+                </div>
+                {project.bulletPoints.length > 0 && (
+                  <ul style={{ 
+                    fontSize: '13px', 
+                    margin: '0', 
+                    paddingLeft: '20px',
+                    textAlign: 'justify'
+                  }}>
+                    {project.bulletPoints.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} style={{ marginBottom: '2px' }}>
+                        {bullet.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {project.link && (
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    <a href={project.link} target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'underline' }}>
+                      {formatUrl(project.link)}
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Courses */}
         {pageContent.courses.length > 0 && (

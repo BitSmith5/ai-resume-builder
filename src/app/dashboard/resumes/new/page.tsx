@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Box, Typography, Button, Paper } from '@mui/material';
 import DashboardLayout from '@/components/DashboardLayout';
-import ResumeEditor from '@/components/ResumeEditor';
+import ResumeEditorV2 from '@/components/ResumeEditorV2';
 import { useRouter } from 'next/navigation';
 
 // Placeholder for template previews
@@ -62,7 +62,7 @@ export default function NewResumePage() {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
           Build your professional resume with our easy-to-use editor
         </Typography>
-        <ResumeEditor onSave={handleSave} template={selectedTemplate} />
+        <ResumeEditorV2 onSave={handleSave} template={selectedTemplate} />
       </Box>
     </DashboardLayout>
   );

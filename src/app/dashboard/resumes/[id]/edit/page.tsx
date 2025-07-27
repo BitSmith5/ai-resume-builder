@@ -2,7 +2,7 @@
 
 import { Box, Typography } from '@mui/material';
 import DashboardLayout from '@/components/DashboardLayout';
-import ResumeEditor from '@/components/ResumeEditor';
+import ResumeEditorV2 from '@/components/ResumeEditorV2';
 import { useRouter } from 'next/navigation';
 import { useParams } from 'next/navigation';
 
@@ -50,7 +50,7 @@ export default function EditResumePage() {
           </Typography>
         </Box>
         
-        <ResumeEditor 
+        <ResumeEditorV2 
           resumeId={resumeId} 
           onSave={handleSave} 
           template="modern"

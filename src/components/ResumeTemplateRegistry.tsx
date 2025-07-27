@@ -65,6 +65,19 @@ export interface ResumeData {
     name: string;
     icon: string;
   }>;
+  projects?: Array<{
+    id: string;
+    title: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    technologies: string[];
+    link: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+  }>;
   createdAt: string;
 }
 
@@ -103,6 +116,8 @@ interface ResumeTemplateRegistryProps {
 }
 
 const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, templateId }) => {
+
+  
   // Transform the data to match the template interface
   const transformedData = {
     title: data.title,
@@ -139,8 +154,20 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
     interests: data.interests?.map(interest => ({
       name: interest.name,
       icon: interest.icon
+    })),
+    projects: data.projects?.map(project => ({
+      id: project.id,
+      title: project.title,
+      bulletPoints: project.bulletPoints,
+      technologies: project.technologies,
+      link: project.link,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      current: project.current
     }))
   };
+  
+
 
   switch (templateId) {
     case 'modern':

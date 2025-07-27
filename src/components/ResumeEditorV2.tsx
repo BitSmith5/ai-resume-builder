@@ -6998,7 +6998,8 @@ export default function ResumeEditorV2({
                     })),
                     education: resumeData.education,
                     courses: resumeData.courses,
-                    interests: resumeData.interests
+                    interests: resumeData.interests,
+                    projects: resumeData.projects
                   };
                   
                   return (
