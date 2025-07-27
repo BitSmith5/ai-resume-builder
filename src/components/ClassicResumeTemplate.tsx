@@ -304,19 +304,22 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           height = 40; // Reduced from 45
           break;
         case 'project':
-          height = 70; // Reduced from 80
+          // Simplified height calculation for projects
+          height = 60; // Reduced base height for project title and dates
           if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 18; // Reduced from 22
+            height += content.bulletPoints.length * 16; // Reduced from 18px per bullet
           }
           // Add height for technologies
           if ('technologies' in content && content.technologies && content.technologies.length > 0) {
-            height += 18; // Reduced from 20
+            height += 15; // Reduced from 18px for technologies
           }
           break;
         case 'skillCategories':
-          height = 35; // Reduced from 40
+          // Simplified height calculation for skill categories
+          height = 30; // Reduced base height for category title
           if ('skills' in content && content.skills && content.skills.length > 0) {
-            height += Math.ceil(content.skills.length / 3) * 18; // Reduced from 20
+            // Each row of skills (3 skills per row): 15px per row (reduced from 18px)
+            height += Math.ceil(content.skills.length / 3) * 15;
           }
           break;
         case 'language':
@@ -345,12 +348,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           break;
         case 'interest':
           height = 20; // Interest name + icon
-          break;
-        case 'skillCategories':
-          height = 35; // Skill category title + skills list
-          if ('skills' in content && content.skills && content.skills.length > 0) {
-            height += Math.ceil(content.skills.length / 3) * 18;
-          }
           break;
         case 'summary':
           height = 40; // Summary text
@@ -537,8 +534,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           break;
       }
       
-      // Process items individually for sections that can be split across pages
-      if (section.type === 'language' || section.type === 'skill' || section.type === 'interest' || section.type === 'summary') {
+              // Process items individually for sections that should be kept together
+        // Note: Technical Skills is now processed individually like Projects and Work Experience
+        if (section.type === 'language' || section.type === 'skill' || section.type === 'interest' || section.type === 'summary') {
         // These sections should be kept together
         const totalHeight = section.items.reduce((total, item) => total + estimateContentHeight(item, section.type), 0) + (section.items.length - 1) * itemSpacing;
         
@@ -564,7 +562,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             workExperienceStarted: true,
             coursesStarted: true,
             educationStarted: true,
-            skillCategoriesStarted: true,
+            skillCategoriesStarted: false, // Set to false since Technical Skills is starting on this page
             projectsStarted: true,
             languagesStarted: false,
             publicationsStarted: true,
@@ -608,9 +606,29 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         // Check if this item fits on the current page
         const availableHeight = maxContentHeight - bottomMargin - currentPageHeight;
         
-        // Debug logging for work experience items (commented out for production)
+        // Debug logging for work experience, projects, and technical skills items (commented out for production)
         // if (section.name === 'Work Experience') {
         //   console.log(`Work Experience Item ${i + 1}:`, {
+        //     itemHeight,
+        //     availableHeight,
+        //     currentPageHeight,
+        //     maxContentHeight,
+        //     bottomMargin,
+        //     willFit: itemHeight <= availableHeight
+        //   });
+        // }
+        // if (section.name === 'Projects') {
+        //   console.log(`Project ${i + 1}:`, {
+        //     itemHeight,
+        //     availableHeight,
+        //     currentPageHeight,
+        //     maxContentHeight,
+        //     bottomMargin,
+        //     willFit: itemHeight <= availableHeight
+        //   });
+        // }
+        // if (section.name === 'Technical Skills') {
+        //   console.log(`Technical Skills Category ${i + 1}:`, {
         //     itemHeight,
         //     availableHeight,
         //     currentPageHeight,
@@ -642,7 +660,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             workExperienceStarted: section.name === 'Work Experience' ? true : false,
             coursesStarted: section.name === 'Courses' ? true : false,
             educationStarted: section.name === 'Education' ? true : false,
-            skillCategoriesStarted: false,
+            skillCategoriesStarted: section.name === 'Technical Skills' ? false : true,
             projectsStarted: section.name === 'Projects' ? true : false,
             languagesStarted: false,
             publicationsStarted: section.name === 'Publications' ? true : false,
@@ -693,8 +711,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         currentPageHeight += itemHeight;
       }
     }
-    
-    // Technical Skills are now processed through the normal section order
     
     // Add the final page
     if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0) {
