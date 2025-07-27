@@ -196,20 +196,20 @@ interface PageContent {
       description: string;
     }>;
   }>;
-  // volunteerExperience: Array<{
-  //   id: string;
-  //   organization: string;
-  //   position: string;
-  //   location: string;
-  //   startDate: string;
-  //   endDate: string;
-  //   current: boolean;
-  //   bulletPoints: Array<{
-  //     id: string;
-  //     description: string;
-  //   }>;
-  //   hoursPerWeek: string;
-  // }>;
+  volunteerExperience: Array<{
+    id: string;
+    organization: string;
+    position: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    hoursPerWeek: string;
+  }>;
   // Flags to track which sections have already started on previous pages
   workExperienceStarted: boolean;
   coursesStarted: boolean;
@@ -219,7 +219,7 @@ interface PageContent {
   languagesStarted: boolean;
   publicationsStarted: boolean;
   awardsStarted: boolean;
-  // volunteerExperienceStarted: boolean;
+  volunteerExperienceStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -357,6 +357,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       languages: [],
       publications: [],
       awards: [],
+      volunteerExperience: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
@@ -364,7 +365,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       projectsStarted: false,
       languagesStarted: false,
       publicationsStarted: false,
-      awardsStarted: false
+      awardsStarted: false,
+      volunteerExperienceStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -502,13 +504,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             interests: [],
             languages: [],
             publications: [],
+            awards: [],
+            volunteerExperience: [],
             workExperienceStarted: true,
             coursesStarted: true,
             educationStarted: true,
             skillCategoriesStarted: true,
             projectsStarted: true,
             languagesStarted: false,
-            publicationsStarted: false
+            publicationsStarted: false,
+            awardsStarted: false,
+            volunteerExperienceStarted: false
           };
           currentPageHeight = 0;
           
@@ -545,13 +551,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             interests: [],
             languages: [],
             publications: [],
+            awards: [],
+            volunteerExperience: [],
             workExperienceStarted: true, // Section already started - don't show header again
             coursesStarted: true, // Section already started - don't show header again
             educationStarted: false,
             skillCategoriesStarted: false,
             projectsStarted: true, // Section already started - don't show header again
             languagesStarted: false,
-            publicationsStarted: false
+            publicationsStarted: false,
+            awardsStarted: false,
+            volunteerExperienceStarted: false
           };
           currentPageHeight = 0;
           
@@ -626,13 +636,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           interests: data.interests || [],
           languages: [],
           publications: [],
+          awards: [],
+          volunteerExperience: [],
           workExperienceStarted: true,
           coursesStarted: true,
           educationStarted: true,
           skillCategoriesStarted: true,
           projectsStarted: true,
           languagesStarted: false,
-          publicationsStarted: false
+          publicationsStarted: false,
+          awardsStarted: false,
+          volunteerExperienceStarted: false
         };
         pages.push(newPage);
       } else {
@@ -661,13 +675,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         interests: data.interests || [],
         languages: [],
         publications: [],
+        awards: [],
+        volunteerExperience: [],
         workExperienceStarted: false,
         coursesStarted: false,
         educationStarted: false,
         skillCategoriesStarted: false,
         projectsStarted: false,
         languagesStarted: false,
-        publicationsStarted: false
+        publicationsStarted: false,
+        awardsStarted: false,
+        volunteerExperienceStarted: false
       });
     }
     
