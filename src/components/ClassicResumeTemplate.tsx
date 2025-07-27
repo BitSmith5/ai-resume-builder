@@ -196,20 +196,20 @@ interface PageContent {
       description: string;
     }>;
   }>;
-  volunteerExperience: Array<{
-    id: string;
-    organization: string;
-    position: string;
-    location: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    bulletPoints: Array<{
-      id: string;
-      description: string;
-    }>;
-    hoursPerWeek: string;
-  }>;
+  // volunteerExperience: Array<{
+  //   id: string;
+  //   organization: string;
+  //   position: string;
+  //   location: string;
+  //   startDate: string;
+  //   endDate: string;
+  //   current: boolean;
+  //   bulletPoints: Array<{
+  //     id: string;
+  //     description: string;
+  //   }>;
+  //   hoursPerWeek: string;
+  // }>;
   // Flags to track which sections have already started on previous pages
   workExperienceStarted: boolean;
   coursesStarted: boolean;
@@ -219,7 +219,7 @@ interface PageContent {
   languagesStarted: boolean;
   publicationsStarted: boolean;
   awardsStarted: boolean;
-  volunteerExperienceStarted: boolean;
+  // volunteerExperienceStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -306,30 +306,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       return 40; // Reduced from 45 - Section title + border + spacing
     };
     
-    // Helper function to create a new PageContent object with all required properties
-    const createPageContent = (overrides: Partial<PageContent> = {}): PageContent => ({
-      workExperience: [],
-      education: [],
-      courses: [],
-      projects: [],
-      skills: [],
-      skillCategories: [],
-      interests: [],
-      languages: [],
-      publications: [],
-      awards: [],
-      volunteerExperience: [],
-      workExperienceStarted: false,
-      coursesStarted: false,
-      educationStarted: false,
-      skillCategoriesStarted: false,
-      projectsStarted: false,
-      languagesStarted: false,
-      publicationsStarted: false,
-      awardsStarted: false,
-      volunteerExperienceStarted: false,
-      ...overrides
-    });
+
     
     // NEW APPROACH: Calculate all section heights first
     const sections: Array<{
@@ -380,7 +357,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       languages: [],
       publications: [],
       awards: [],
-      volunteerExperience: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
@@ -388,8 +364,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       projectsStarted: false,
       languagesStarted: false,
       publicationsStarted: false,
-      awardsStarted: false,
-      volunteerExperienceStarted: false
+      awardsStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
