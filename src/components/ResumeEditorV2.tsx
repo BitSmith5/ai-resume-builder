@@ -792,10 +792,29 @@ export default function ResumeEditorV2({
       const deletedSections = data.deletedSections || [];
       console.log('Filtering data for deleted sections:', deletedSections);
       
+      // Sync profileData with resumeData.content.personalInfo
+      const updatedContent = {
+        ...data.content,
+        personalInfo: {
+          ...data.content.personalInfo,
+          name: profileData.name || data.content.personalInfo.name || '',
+          email: profileData.email || data.content.personalInfo.email || '',
+          phone: profileData.phone || data.content.personalInfo.phone || '',
+          city: profileData.location || data.content.personalInfo.city || '',
+          state: data.content.personalInfo.state || '',
+          summary: data.content.personalInfo.summary || '',
+          website: profileData.portfolioUrl || data.content.personalInfo.website || '',
+          linkedin: profileData.linkedinUrl || data.content.personalInfo.linkedin || '',
+          github: profileData.githubUrl || data.content.personalInfo.github || '',
+        }
+      };
+      
       const filteredData = {
         ...data,
+        content: updatedContent,
         // Only include data for sections that are not deleted
         strengths: deletedSections.includes('Technical Skills') ? [] : (data.strengths || []),
+        skillCategories: deletedSections.includes('Technical Skills') ? [] : (data.skillCategories || []),
         workExperience: deletedSections.includes('Work Experience') ? [] : (data.workExperience || []),
         education: deletedSections.includes('Education') ? [] : (data.education || []),
         courses: deletedSections.includes('Courses') ? [] : (data.courses || []),
@@ -821,6 +840,7 @@ export default function ResumeEditorV2({
         deletedSections: filteredData.deletedSections || [],
         sectionOrder: currentSectionOrder, // Add sectionOrder to save payload
         strengths: filteredData.strengths || [],
+        skillCategories: filteredData.skillCategories || [],
         workExperience: filteredData.workExperience || [],
         education: filteredData.education || [],
         courses: filteredData.courses || [],
@@ -930,6 +950,7 @@ export default function ResumeEditorV2({
         deletedSections: newDeletedSections,
         // Clear data for the deleted section
         strengths: sectionName === 'Technical Skills' ? [] : prev.strengths,
+        skillCategories: sectionName === 'Technical Skills' ? [] : prev.skillCategories,
         workExperience: sectionName === 'Work Experience' ? [] : prev.workExperience,
         education: sectionName === 'Education' ? [] : prev.education,
         courses: sectionName === 'Courses' ? [] : prev.courses,
@@ -1330,9 +1351,7 @@ export default function ResumeEditorV2({
           <Box
             ref={setNodeRef}
             style={style}
-            {...attributes}
-            {...listeners}
-                        sx={{
+            sx={{
               display: 'flex',
               alignItems: 'center',
               bgcolor: isDragging ? '#f5f5f5' : '#f5f5f5',
@@ -1353,17 +1372,38 @@ export default function ResumeEditorV2({
               },
             }}
           >
-            <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+            {/* Drag handle area */}
+            <Box
+              {...attributes}
+              {...listeners}
+              sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}
+            >
+              <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+            </Box>
+            
+            {/* Skill name */}
             <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
               {skill.name}
             </Typography>
-            <IconButton
-              size="small"
-              onClick={() => onDelete(categoryId, skill.id)}
-              sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
-            >
-              <CloseIcon sx={{ fontSize: 16 }} />
-            </IconButton>
+            
+            {/* Delete button - separate from drag area */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(categoryId, skill.id);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
+              >
+                <CloseIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Box>
           </Box>
         );
       };
@@ -1389,7 +1429,6 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Technical Skills');
                 handleDeleteSection('Technical Skills');
               }}
               sx={{ 
@@ -3279,8 +3318,6 @@ export default function ResumeEditorV2({
           <Box
             ref={setNodeRef}
             style={style}
-            {...attributes}
-            {...listeners}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -3302,17 +3339,38 @@ export default function ResumeEditorV2({
               },
             }}
           >
-            <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+            {/* Drag handle area */}
+            <Box
+              {...attributes}
+              {...listeners}
+              sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}
+            >
+              <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+            </Box>
+            
+            {/* Technology name */}
             <Typography variant="body2" sx={{ mr: 1, flex: 1, fontSize: '0.8rem' }}>
               {technology}
             </Typography>
-            <IconButton
+            
+            {/* Delete button - separate from drag area */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <IconButton
               size="small"
-              onClick={() => onRemove(projectId, index)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemove(projectId, index);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
             >
-              <CloseIcon sx={{ fontSize: 16 }} />
-            </IconButton>
+                <CloseIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Box>
           </Box>
         );
       };

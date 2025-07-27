@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
       deletedSections,
       sectionOrder,
       strengths, 
+      skillCategories,
       workExperience, 
       education, 
       courses, 
@@ -146,6 +147,7 @@ export async function POST(request: NextRequest) {
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
+      skillCategories: skillCategories || [],
       projects: projects || [],
       languages: languages || [],
       publications: publications || [],

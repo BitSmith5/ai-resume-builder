@@ -57,6 +57,7 @@ export async function GET(
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
       // Extract additional data from content JSON
+      skillCategories: (resume.content as { skillCategories?: unknown[] })?.skillCategories || [],
       projects: (resume.content as { projects?: unknown[] })?.projects || [],
       languages: (resume.content as { languages?: unknown[] })?.languages || [],
       publications: (resume.content as { publications?: unknown[] })?.publications || [],
@@ -102,6 +103,7 @@ export async function PUT(
       deletedSections,
       sectionOrder,
       strengths, 
+      skillCategories,
       workExperience, 
       education, 
       courses, 
@@ -166,6 +168,7 @@ export async function PUT(
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
+      skillCategories: skillCategories || [],
       projects: projects || [],
       languages: languages || [],
       publications: publications || [],
