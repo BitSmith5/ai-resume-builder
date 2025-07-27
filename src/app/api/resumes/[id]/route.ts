@@ -57,13 +57,13 @@ export async function GET(
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
       // Extract additional data from content JSON
-      skillCategories: (resume.content as { skillCategories?: unknown[] })?.skillCategories || [],
-      projects: (resume.content as { projects?: unknown[] })?.projects || [],
-      languages: (resume.content as { languages?: unknown[] })?.languages || [],
-      publications: (resume.content as { publications?: unknown[] })?.publications || [],
-      awards: (resume.content as { awards?: unknown[] })?.awards || [],
-      volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
-      references: (resume.content as { references?: unknown[] })?.references || [],
+      skillCategories: (resume.content as any)?.skillCategories || [],
+      projects: (resume.content as any)?.projects || [],
+      languages: (resume.content as any)?.languages || [],
+      publications: (resume.content as any)?.publications || [],
+      awards: (resume.content as any)?.awards || [],
+      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
+      references: (resume.content as any)?.references || [],
     };
 
     // Add deletedSections and sectionOrder to the response
@@ -94,6 +94,8 @@ export async function PUT(
     }
 
     const body = await request.json();
+    console.log("PUT request body received:", JSON.stringify(body, null, 2));
+    
     const { 
       title, 
       jobTitle, 
@@ -103,7 +105,6 @@ export async function PUT(
       deletedSections,
       sectionOrder,
       strengths, 
-      skillCategories,
       workExperience, 
       education, 
       courses, 
@@ -123,52 +124,152 @@ export async function PUT(
       );
     }
 
-    // Convert string dates to Date objects for workExperience and remove id/resumeId fields
-    const processedWorkExperience = (workExperience || []).map((exp: { id?: number; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, resumeId, ...rest } = exp;
-      return {
-        ...rest,
-        startDate: new Date(exp.startDate),
-        endDate: exp.endDate ? new Date(exp.endDate) : null,
-      };
+    // Validate that the resume exists and belongs to the user
+    const existingResume = await prisma.resume.findFirst({
+      where: {
+        id: parseInt(resolvedParams.id),
+        userId: user.id,
+      },
     });
+
+    if (!existingResume) {
+      return NextResponse.json(
+        { error: "Resume not found or access denied" },
+        { status: 404 }
+      );
+    }
+
+    // Convert string dates to Date objects for workExperience and remove id/resumeId fields
+    const processedWorkExperience = (workExperience || [])
+      .filter((exp: { company: string; position: string; startDate: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return exp.company && exp.position && exp.startDate;
+      })
+      .map((exp: { id?: number; resumeId?: number; startDate: string; endDate?: string; company: string; position: string; location?: string; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = exp;
+        
+        // Convert "MMM YYYY" format to Date object for database storage
+        const parseDate = (dateStr: string): Date => {
+          if (!dateStr || dateStr.trim() === '') return new Date();
+          
+          // Handle different date formats
+          if (dateStr.includes(' ')) {
+            // "MMM YYYY" format
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const parts = dateStr.split(' ');
+            if (parts.length >= 2) {
+              const month = parts[0];
+              const year = parts[1];
+              const monthIndex = months.indexOf(month);
+              if (monthIndex !== -1 && !isNaN(parseInt(year))) {
+                return new Date(parseInt(year), monthIndex, 1);
+              }
+            }
+          } else if (dateStr.includes('-')) {
+            // ISO date format (YYYY-MM-DD)
+            return new Date(dateStr);
+          }
+          
+          // Fallback to current date if parsing fails
+          console.warn(`Failed to parse date: ${dateStr}, using current date`);
+          return new Date();
+        };
+
+        // Remove location field as it's not in the database schema
+        const { location, ...restWithoutLocation } = rest;
+        
+        return {
+          ...restWithoutLocation,
+          startDate: parseDate(exp.startDate),
+          endDate: exp.endDate ? parseDate(exp.endDate) : null,
+        };
+      });
 
     // Convert string dates to Date objects for education and remove id/resumeId fields
-    const processedEducation = (education || []).map((edu: { id?: number; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, resumeId, ...rest } = edu;
-      return {
-        ...rest,
-        startDate: new Date(edu.startDate),
-        endDate: edu.endDate ? new Date(edu.endDate) : null,
-      };
-    });
+    const processedEducation = (education || [])
+      .filter((edu: { institution: string; degree: string; field: string; startDate: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return edu.institution && edu.degree && edu.field && edu.startDate;
+      })
+      .map((edu: { id?: number; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = edu;
+        
+        // Convert "MMM YYYY" format to Date object for database storage
+        const parseDate = (dateStr: string): Date => {
+          if (!dateStr || dateStr.trim() === '') return new Date();
+          
+          // Handle different date formats
+          if (dateStr.includes(' ')) {
+            // "MMM YYYY" format
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const parts = dateStr.split(' ');
+            if (parts.length >= 2) {
+              const month = parts[0];
+              const year = parts[1];
+              const monthIndex = months.indexOf(month);
+              if (monthIndex !== -1 && !isNaN(parseInt(year))) {
+                return new Date(parseInt(year), monthIndex, 1);
+              }
+            }
+          } else if (dateStr.includes('-')) {
+            // ISO date format (YYYY-MM-DD)
+            return new Date(dateStr);
+          }
+          
+          // Fallback to current date if parsing fails
+          console.warn(`Failed to parse date: ${dateStr}, using current date`);
+          return new Date();
+        };
+
+        return {
+          ...rest,
+          startDate: parseDate(edu.startDate),
+          endDate: edu.endDate ? parseDate(edu.endDate) : null,
+        };
+      });
 
     // Filter out id and resumeId fields from strengths
-    const processedStrengths = (strengths || []).map((strength: { id?: number; resumeId?: number; [key: string]: unknown }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, resumeId, ...rest } = strength;
-      return rest;
-    });
+    const processedStrengths = (strengths || [])
+      .filter((strength: { skillName: string; rating: number; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return strength.skillName && strength.rating;
+      })
+      .map((strength: { id?: number; resumeId?: number; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = strength;
+        return rest;
+      });
 
     // Filter out id and resumeId fields from courses
-    const processedCourses = (courses || []).map((course: { id?: number; resumeId?: number; [key: string]: unknown }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, resumeId, ...rest } = course;
-      return rest;
-    });
+    const processedCourses = (courses || [])
+      .filter((course: { title: string; provider: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return course.title && course.provider;
+      })
+      .map((course: { id?: number; resumeId?: number; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = course;
+        return rest;
+      });
 
     // Filter out id and resumeId fields from interests
-    const processedInterests = (interests || []).map((interest: { id?: number; resumeId?: number; [key: string]: unknown }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, resumeId, ...rest } = interest;
-      return rest;
-    });
+    const processedInterests = (interests || [])
+      .filter((interest: { name: string; icon: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return interest.name && interest.icon;
+      })
+      .map((interest: { id?: number; resumeId?: number; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = interest;
+        return rest;
+      });
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
-      skillCategories: skillCategories || [],
+      skillCategories: (content as any)?.skillCategories || [],
+      workExperience: workExperience || [], // Include work experience with location in content
       projects: projects || [],
       languages: languages || [],
       publications: publications || [],
@@ -193,7 +294,9 @@ export async function PUT(
     }
 
     // Use a transaction to ensure data consistency
+    console.log("Starting database transaction...");
     const resume = await prisma.$transaction(async (tx) => {
+      console.log("Deleting existing data...");
       // Delete existing related data within the transaction
       await tx.strength.deleteMany({
         where: { resumeId: parseInt(resolvedParams.id) },
@@ -212,6 +315,14 @@ export async function PUT(
       });
 
       // Update the resume and recreate related data within the same transaction
+      console.log("Updating resume with basic data:", {
+        title,
+        jobTitle,
+        template,
+        deletedSections,
+        sectionOrder,
+      });
+      
       return await tx.resume.update({
         where: {
           id: parseInt(resolvedParams.id),
@@ -247,12 +358,6 @@ export async function PUT(
           education: true,
           courses: true,
           interests: true,
-          // projects: true,
-          // languages: true,
-          // publications: true,
-          // awards: true,
-          // volunteerExperience: true,
-          // references: true,
         },
       });
     });
@@ -285,8 +390,12 @@ export async function PUT(
     return NextResponse.json(processedResume);
   } catch (error) {
     console.error("Error updating resume:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

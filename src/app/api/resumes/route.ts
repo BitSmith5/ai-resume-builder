@@ -73,6 +73,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log("POST request body received:", JSON.stringify(body, null, 2));
+    
     const { 
       title, 
       jobTitle, 
@@ -82,7 +84,6 @@ export async function POST(request: NextRequest) {
       deletedSections,
       sectionOrder,
       strengths, 
-      skillCategories,
       workExperience, 
       education, 
       courses, 
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
-      skillCategories: skillCategories || [],
+      skillCategories: (content as any)?.skillCategories || [],
       projects: projects || [],
       languages: languages || [],
       publications: publications || [],
@@ -206,19 +207,21 @@ export async function POST(request: NextRequest) {
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })) || [],
       // Extract additional data from content JSON
-      projects: (resume.content as { projects?: unknown[] })?.projects || [],
-      languages: (resume.content as { languages?: unknown[] })?.languages || [],
-      publications: (resume.content as { publications?: unknown[] })?.publications || [],
-      awards: (resume.content as { awards?: unknown[] })?.awards || [],
-      volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
-      references: (resume.content as { references?: unknown[] })?.references || [],
+      skillCategories: (resume.content as any)?.skillCategories || [],
+      projects: (resume.content as any)?.projects || [],
+      languages: (resume.content as any)?.languages || [],
+      publications: (resume.content as any)?.publications || [],
+      awards: (resume.content as any)?.awards || [],
+      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
+      references: (resume.content as any)?.references || [],
     };
 
     return NextResponse.json(processedResume, { status: 201 });
   } catch (error) {
     console.error("Error creating resume:", error);
+    console.error("Error details:", JSON.stringify(error, null, 2));
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

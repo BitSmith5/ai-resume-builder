@@ -691,18 +691,123 @@ export default function ResumeEditorV2({
                 github: "",
               },
             },
-            strengths: resume.strengths || [],
+            strengths: (resume.strengths || []).map((strength: any) => ({
+              ...strength,
+              id: String(strength.id || Math.random())
+            })),
             skillCategories: resume.skillCategories || [],
-            workExperience: resume.workExperience || [],
-            education: resume.education || [],
+            workExperience: (() => {
+              // Get work experience from database (has dates but no location)
+              const dbWorkExperience = resume.workExperience || [];
+              // Get work experience from content (has location but dates might be strings)
+              const contentWorkExperience = (resume.content as any)?.workExperience || [];
+              
+              // Merge the data, prioritizing content data for location
+              return dbWorkExperience.map((dbWork: any, index: number) => {
+                const contentWork = contentWorkExperience[index] || {};
+                
+                // Convert Date objects back to "MMM YYYY" format
+                const formatDate = (date: Date | string): string => {
+                  if (!date) return '';
+                  const d = new Date(date);
+                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  return `${months[d.getMonth()]} ${d.getFullYear()}`;
+                };
+
+                return {
+                  ...dbWork,
+                  ...contentWork, // This will include location from content
+                  id: String(dbWork.id || contentWork.id || Math.random()),
+                  startDate: formatDate(dbWork.startDate),
+                  endDate: formatDate(dbWork.endDate),
+                  bulletPoints: (dbWork.bulletPoints || []).map((bullet: any) => ({
+                    ...bullet,
+                    id: String(bullet.id || Math.random())
+                  }))
+                };
+              });
+            })(),
+            education: (resume.education || []).map((edu: any) => {
+              // Convert Date objects back to "MMM YYYY" format
+              const formatDate = (date: Date | string): string => {
+                if (!date) return '';
+                const d = new Date(date);
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[d.getMonth()]} ${d.getFullYear()}`;
+              };
+
+              return {
+                ...edu,
+                id: String(edu.id || Math.random()),
+                startDate: formatDate(edu.startDate),
+                endDate: formatDate(edu.endDate),
+              };
+            }),
             courses: resume.courses || [],
-            interests: resume.interests || [],
-            projects: resume.projects || [],
-            languages: resume.languages || [],
-            publications: resume.publications || [],
-            awards: resume.awards || [],
-            volunteerExperience: resume.volunteerExperience || [],
-            references: resume.references || [],
+            interests: (resume.interests || []).map((interest: any) => ({
+              ...interest,
+              id: String(interest.id || Math.random())
+            })),
+            projects: (resume.projects || []).map((project: any) => {
+              // Convert Date objects back to "MMM YYYY" format
+              const formatDate = (date: Date | string): string => {
+                if (!date) return '';
+                const d = new Date(date);
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[d.getMonth()]} ${d.getFullYear()}`;
+              };
+
+              return {
+                ...project,
+                id: String(project.id || Math.random()),
+                startDate: formatDate(project.startDate),
+                endDate: formatDate(project.endDate),
+                bulletPoints: (project.bulletPoints || []).map((bullet: any) => ({
+                  ...bullet,
+                  id: String(bullet.id || Math.random())
+                }))
+              };
+            }),
+            languages: (resume.languages || []).map((language: any) => ({
+              ...language,
+              id: String(language.id || Math.random())
+            })),
+            publications: (resume.publications || []).map((publication: any) => ({
+              ...publication,
+              id: String(publication.id || Math.random())
+            })),
+            awards: (resume.awards || []).map((award: any) => ({
+              ...award,
+              id: String(award.id || Math.random()),
+              bulletPoints: (award.bulletPoints || []).map((bullet: any) => ({
+                ...bullet,
+                id: String(bullet.id || Math.random())
+              }))
+            })),
+            volunteerExperience: (resume.volunteerExperience || []).map((volunteer: any) => {
+              // Convert Date objects back to "MMM YYYY" format
+              const formatDate = (date: Date | string): string => {
+                if (!date) return '';
+                const d = new Date(date);
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[d.getMonth()]} ${d.getFullYear()}`;
+              };
+
+              return {
+                ...volunteer,
+                id: String(volunteer.id || Math.random()),
+                startDate: formatDate(volunteer.startDate),
+                endDate: formatDate(volunteer.endDate),
+                bulletPoints: (volunteer.bulletPoints || []).map((bullet: any) => ({
+                  ...bullet,
+                  id: String(bullet.id || Math.random())
+                }))
+              };
+            }),
+            references: (resume.references || []).map((reference: any) => ({
+              ...reference,
+              id: String(reference.id || Math.random())
+            })),
           });
           
           // Load sectionOrder from database
@@ -840,7 +945,6 @@ export default function ResumeEditorV2({
         deletedSections: filteredData.deletedSections || [],
         sectionOrder: currentSectionOrder, // Add sectionOrder to save payload
         strengths: filteredData.strengths || [],
-        skillCategories: filteredData.skillCategories || [],
         workExperience: filteredData.workExperience || [],
         education: filteredData.education || [],
         courses: filteredData.courses || [],
