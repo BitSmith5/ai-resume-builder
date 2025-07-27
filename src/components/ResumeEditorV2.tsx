@@ -31,6 +31,7 @@ import {
   Slider,
   FormControlLabel,
   Stack,
+  Chip,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -56,7 +57,7 @@ import {
 import { ToggleButton } from "@mui/material";
 import ClassicResumeTemplate from './ClassicResumeTemplate';
 
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
 import {
   DndContext,
   closestCenter,
@@ -192,6 +193,7 @@ interface ResumeData {
   template?: string;
   profilePicture?: string;
   deletedSections?: string[]; // Array of section names that have been deleted
+  sectionOrder?: string[]; // Array of section names in display order
   content: {
     personalInfo: {
       name: string;
@@ -342,6 +344,9 @@ export default function ResumeEditorV2({
   // Export panel state
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [exportSettings, setExportSettings] = useState({
     template: 'standard',
@@ -828,6 +833,12 @@ export default function ResumeEditorV2({
             const filteredSectionOrder = resume.sectionOrder.filter((section: string) => !deletedSections.includes(section));
             console.log('Filtered sectionOrder after loading:', filteredSectionOrder);
             setSectionOrder(filteredSectionOrder);
+            
+            // Also set sectionOrder in resumeData
+            setResumeData(prev => ({
+              ...prev,
+              sectionOrder: filteredSectionOrder
+            }));
           }
         } else {
           console.error('Failed to load resume:', response.status);
@@ -1014,8 +1025,64 @@ export default function ResumeEditorV2({
   }, [exportSettings]);
 
 
+  // Auto-scroll handlers for drag and drop
+  const handleDragStart = (result: DragStart) => {
+    setIsDragging(true);
+  };
+
+  const handleDragUpdate = (result: DragUpdate) => {
+    if (!scrollContainerRef.current) return;
+
+    // Clear any existing scroll interval
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+
+    // Get current mouse position from the document
+    let mouseY = 0;
+    if (window.event && window.event instanceof MouseEvent) {
+      mouseY = window.event.clientY;
+    } else {
+      // Fallback: try to get from the drag update result if available
+      mouseY = (result as any).clientY || 0;
+    }
+    
+    const container = scrollContainerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const scrollSpeed = 15; // Reduced scroll speed for smoother control
+    const scrollThreshold = 250; // Increased threshold for better detection
+
+    // Check if dragging near the top edge
+    if (mouseY - containerRect.top < scrollThreshold) {
+      // Start continuous scrolling up
+      scrollIntervalRef.current = setInterval(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop -= scrollSpeed;
+        }
+      }, 16); // ~60fps
+    }
+    // Check if dragging near the bottom edge
+    else if (containerRect.bottom - mouseY < scrollThreshold) {
+      // Start continuous scrolling down
+      scrollIntervalRef.current = setInterval(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop += scrollSpeed;
+        }
+      }, 16); // ~60fps
+    }
+  };
+
   // Handle drag end for section reordering
   const handleDragEnd = (result: DropResult) => {
+    setIsDragging(false);
+    
+    // Clear any active scroll interval
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+    
     if (!result.destination) return;
     console.log('Section drag end - source:', result.source.index, 'destination:', result.destination.index);
     console.log('Current sectionOrder:', sectionOrder);
@@ -6384,24 +6451,30 @@ export default function ResumeEditorV2({
           </Box>
 
           {/* Scrollable Content Area */}
-          <Box sx={{
-            flex: 1,
-            overflowY: 'auto',
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              background: 'transparent',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: '#e0e0e0',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb:hover': {
-              background: '#c0c0c0',
-            },
-          }}>
-            <DragDropContext onDragEnd={handleDragEnd}>
+          <Box 
+            ref={scrollContainerRef}
+            sx={{
+              flex: 1,
+              overflowY: 'auto',
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#e0e0e0',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#c0c0c0',
+              },
+            }}>
+            <DragDropContext 
+              onDragStart={handleDragStart}
+              onDragUpdate={handleDragUpdate}
+              onDragEnd={handleDragEnd}
+            >
               <Droppable droppableId="main-section-list" type="main-section">
                 {(provided) => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
@@ -6993,6 +7066,8 @@ export default function ResumeEditorV2({
             }}>
 
               
+
+
               {/* Resume Preview */}
               <Box sx={{ 
                 overflow: 'visible',
@@ -7000,10 +7075,15 @@ export default function ResumeEditorV2({
               }}>
                 {/* Transform data for ClassicResumeTemplate */}
                 {(() => {
+                  // Debug: Log the section order being passed to template
+                  console.log('🎯 ResumeEditorV2 - Current sectionOrder:', sectionOrder);
+                  console.log('🎯 ResumeEditorV2 - ResumeData sectionOrder:', resumeData.sectionOrder);
+                  
                   const transformedData = {
                     title: resumeData.title,
                     jobTitle: resumeData.jobTitle,
                     profilePicture: resumeData.profilePicture,
+                    sectionOrder: sectionOrder, // Add sectionOrder to transformed data
                     content: resumeData.content,
                     strengths: resumeData.strengths,
                     skillCategories: resumeData.skillCategories,

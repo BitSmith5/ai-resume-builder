@@ -4,6 +4,7 @@ interface ResumeData {
   title: string;
   jobTitle?: string;
   profilePicture?: string;
+  sectionOrder?: string[]; // Array of section names in display order
   content: {
     personalInfo: {
       name: string;

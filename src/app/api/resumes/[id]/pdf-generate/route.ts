@@ -121,6 +121,7 @@ export async function GET(
       title: resume.title,
       jobTitle: (resume as ResumeWithTemplate).jobTitle || undefined,
       profilePicture: profilePictureUrl || undefined,
+      sectionOrder: Array.isArray(resume.sectionOrder) ? (resume.sectionOrder as string[]) : undefined, // Add sectionOrder from database
       content: {
         personalInfo: {
           name: personalInfo.name || resume.user.name || '',

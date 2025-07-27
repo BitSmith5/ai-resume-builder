@@ -7,6 +7,7 @@ export interface ResumeData {
   title: string;
   jobTitle?: string;
   profilePicture?: string;
+  sectionOrder?: string[]; // Array of section names in display order
   content: {
     personalInfo: {
       name: string;
@@ -156,6 +157,7 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
     title: data.title,
     jobTitle: data.jobTitle,
     profilePicture: data.profilePicture,
+    sectionOrder: data.sectionOrder, // Add sectionOrder to transformed data
     content: data.content,
     strengths: data.strengths.map(s => ({
       skillName: s.skillName,
