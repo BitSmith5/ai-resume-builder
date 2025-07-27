@@ -72,6 +72,11 @@ interface ResumeData {
     endDate: string;
     current: boolean;
   }>;
+  languages?: Array<{
+    id: string;
+    name: string;
+    proficiency: string;
+  }>;
 }
 
 interface ClassicResumeTemplateProps {
@@ -134,16 +139,23 @@ interface PageContent {
     name: string;
     icon: string;
   }>;
+  languages: Array<{
+    id: string;
+    name: string;
+    proficiency: string;
+  }>;
   // Flags to track which sections have already started on previous pages
   workExperienceStarted: boolean;
   coursesStarted: boolean;
   educationStarted: boolean;
   skillCategoriesStarted: boolean;
   projectsStarted: boolean;
+  languagesStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
   const { personalInfo } = data.content;
+
   
 
   
@@ -177,7 +189,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     const itemSpacing = 12; // Reduced from 15 to be more compact
     
     // Helper function to estimate content height
-    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0] | NonNullable<ResumeData['skillCategories']>[0] | NonNullable<ResumeData['projects']>[0], type: 'work' | 'education' | 'course' | 'skillCategories' | 'project'): number => {
+    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0] | NonNullable<ResumeData['skillCategories']>[0] | NonNullable<ResumeData['projects']>[0] | NonNullable<ResumeData['languages']>[0], type: 'work' | 'education' | 'course' | 'skillCategories' | 'project' | 'language'): number => {
       let height = 0;
       
       switch (type) {
@@ -209,6 +221,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             height += Math.ceil(content.skills.length / 3) * 18; // Reduced from 20
           }
           break;
+        case 'language':
+          height = 30; // Language name + proficiency
+          break;
       }
       
       return height;
@@ -221,8 +236,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
     // NEW APPROACH: Calculate all section heights first
     const sections: Array<{
-      type: 'work' | 'courses' | 'education' | 'projects';
-      items: ResumeData['workExperience'] | NonNullable<ResumeData['courses']> | ResumeData['education'] | NonNullable<ResumeData['projects']>;
+      type: 'work' | 'courses' | 'education' | 'projects' | 'languages';
+      items: ResumeData['workExperience'] | NonNullable<ResumeData['courses']> | ResumeData['education'] | NonNullable<ResumeData['projects']> | NonNullable<ResumeData['languages']>;
       height: number;
     }> = [];
     
@@ -246,6 +261,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       sections.push({ type: 'education', items: data.education, height: educationHeight });
     }
     
+    if (data.languages && data.languages.length > 0) {
+      const languagesHeight = estimateSectionHeaderHeight() + data.languages.reduce((total, item) => total + estimateContentHeight(item, 'language') + itemSpacing, 0);
+      sections.push({ type: 'languages', items: data.languages, height: languagesHeight });
+
+    }
+    
 
     
     // NEW APPROACH: Process sections in correct visual order but optimize Education placement
@@ -257,11 +278,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       skills: [],
       skillCategories: [],
       interests: [],
+      languages: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
       skillCategoriesStarted: false,
-      projectsStarted: false
+      projectsStarted: false,
+      languagesStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -298,11 +321,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             skills: [],
             skillCategories: [],
             interests: [],
+            languages: [],
             workExperienceStarted: false,
             coursesStarted: false,
             educationStarted: false,
             skillCategoriesStarted: false,
-            projectsStarted: false
+            projectsStarted: false,
+            languagesStarted: false
           };
           currentPageHeight = 0;
           
@@ -316,6 +341,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
 
       
       // For Work Experience and Courses, process items individually to allow splitting
+      // For Languages, keep them together as a single unit
       const sectionHeaderHeight = estimateSectionHeaderHeight();
       
       // Check if section header fits
@@ -333,11 +359,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           skills: [],
           skillCategories: [],
           interests: [],
+          languages: [],
           workExperienceStarted: false,
           coursesStarted: false,
           educationStarted: false,
           skillCategoriesStarted: false,
-          projectsStarted: false
+          projectsStarted: false,
+          languagesStarted: false
         };
         currentPageHeight = 0;
       }
@@ -354,16 +382,21 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         case 'projects':
           currentPage.projectsStarted = false;
           break;
+        case 'languages':
+          currentPage.languagesStarted = false;
+          break;
       }
       
       // Process items individually
-      for (const item of section.items) {
-        const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : section.type === 'projects' ? 'project' : 'work') + itemSpacing;
+      // Special handling for languages - keep them together
+      if (section.type === 'languages') {
+        // Calculate total height for all languages
+        const totalLanguagesHeight = section.items.reduce((total, item) => total + estimateContentHeight(item, 'language'), 0) + (section.items.length - 1) * itemSpacing;
         
-        // Check if item fits on current page
-        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin) {
-          // Start new page
-          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.skillCategories.length > 0) {
+        // Check if all languages fit on current page
+        if (currentPageHeight + sectionHeaderHeight + totalLanguagesHeight > maxContentHeight - bottomMargin) {
+          // Start new page for languages
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0) {
             pages.push(currentPage);
           }
           
@@ -375,11 +408,54 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             skills: [],
             skillCategories: [],
             interests: [],
+            languages: [],
+            workExperienceStarted: true,
+            coursesStarted: true,
+            educationStarted: true,
+            skillCategoriesStarted: true,
+            projectsStarted: true,
+            languagesStarted: false
+          };
+          currentPageHeight = 0;
+          
+          // Add section header on new page
+          currentPageHeight += sectionHeaderHeight;
+        }
+        
+        // Add all languages to current page
+        for (const item of section.items) {
+          currentPage.languages.push(item as NonNullable<ResumeData['languages']>[0]);
+        }
+        currentPageHeight += totalLanguagesHeight;
+        continue;
+      }
+      
+      // Regular processing for other sections
+      for (const item of section.items) {
+        const itemHeight = estimateContentHeight(item, section.type === 'courses' ? 'course' : section.type === 'projects' ? 'project' : 'work') + itemSpacing;
+        
+        // Check if item fits on current page
+        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin) {
+          // Start new page
+          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0) {
+            pages.push(currentPage);
+          }
+          
+          currentPage = {
+            workExperience: [],
+            education: [],
+            courses: [],
+            projects: [],
+            skills: [],
+            skillCategories: [],
+            interests: [],
+            languages: [],
             workExperienceStarted: true, // Section already started - don't show header again
             coursesStarted: true, // Section already started - don't show header again
             educationStarted: false,
             skillCategoriesStarted: false,
-            projectsStarted: true // Section already started - don't show header again
+            projectsStarted: true, // Section already started - don't show header again
+            languagesStarted: false
           };
           currentPageHeight = 0;
           
@@ -392,10 +468,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             case 'courses':
               currentPage.coursesStarted = true; // Don't show header again
               break;
-            case 'projects':
-              currentPage.projectsStarted = true; // Don't show header again
-              break;
-          }
+                    case 'projects':
+          currentPage.projectsStarted = true; // Don't show header again
+          break;
+
+      }
         }
         
         // Add item to current page
@@ -406,10 +483,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           case 'courses':
             currentPage.courses.push(item as NonNullable<ResumeData['courses']>[0]);
             break;
-          case 'projects':
-            currentPage.projects.push(item as NonNullable<ResumeData['projects']>[0]);
-            break;
-        }
+                  case 'projects':
+          currentPage.projects.push(item as NonNullable<ResumeData['projects']>[0]);
+          break;
+
+      }
         currentPageHeight += itemHeight;
       }
     }
@@ -426,7 +504,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
     
     // Add the final page
-    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.skillCategories.length > 0) {
+    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0) {
       pages.push(currentPage);
     }
     
@@ -450,11 +528,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           skills: data.strengths || [],
           skillCategories: [],
           interests: data.interests || [],
+          languages: [],
           workExperienceStarted: true,
           coursesStarted: true,
           educationStarted: true,
           skillCategoriesStarted: true,
-          projectsStarted: true
+          projectsStarted: true,
+          languagesStarted: false
         };
         pages.push(newPage);
       } else {
@@ -481,14 +561,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         skills: data.strengths || [],
         skillCategories: data.skillCategories || [],
         interests: data.interests || [],
+        languages: [],
         workExperienceStarted: false,
         coursesStarted: false,
         educationStarted: false,
         skillCategoriesStarted: false,
-        projectsStarted: false
+        projectsStarted: false,
+        languagesStarted: false
       });
     }
     
+
     return pages;
   };
 
@@ -961,6 +1044,30 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   {interest.icon} {interest.name}
                 </span>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Languages */}
+        {pageContent.languages.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+
+            {!pageContent.languagesStarted && (
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                margin: '0 0 8px 0',
+                textTransform: 'uppercase',
+                borderBottom: '1px solid #000',
+                paddingBottom: '4px'
+              }}>
+                Languages
+              </h2>
+            )}
+            <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+              {pageContent.languages.map((language, index) => 
+                `${language.name} (${language.proficiency})`
+              ).join(', ')}
             </div>
           </div>
         )}

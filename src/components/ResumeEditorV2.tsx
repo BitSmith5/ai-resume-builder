@@ -6999,8 +6999,10 @@ export default function ResumeEditorV2({
                     education: resumeData.education,
                     courses: resumeData.courses,
                     interests: resumeData.interests,
-                    projects: resumeData.projects
+                    projects: resumeData.projects,
+                    languages: resumeData.languages
                   };
+
                   
                   return (
                     <Box sx={{ 
