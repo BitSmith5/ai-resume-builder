@@ -57,13 +57,13 @@ export async function GET(
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })),
       // Extract additional data from content JSON
-      skillCategories: (resume.content as any)?.skillCategories || [],
-      projects: (resume.content as any)?.projects || [],
-      languages: (resume.content as any)?.languages || [],
-      publications: (resume.content as any)?.publications || [],
-      awards: (resume.content as any)?.awards || [],
-      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
-      references: (resume.content as any)?.references || [],
+      skillCategories: (resume.content as Record<string, unknown>)?.skillCategories || [],
+      projects: (resume.content as Record<string, unknown>)?.projects || [],
+      languages: (resume.content as Record<string, unknown>)?.languages || [],
+      publications: (resume.content as Record<string, unknown>)?.publications || [],
+      awards: (resume.content as Record<string, unknown>)?.awards || [],
+      volunteerExperience: (resume.content as Record<string, unknown>)?.volunteerExperience || [],
+      references: (resume.content as Record<string, unknown>)?.references || [],
     };
 
     // Add deletedSections and sectionOrder to the response
@@ -177,6 +177,7 @@ export async function PUT(
         };
 
         // Remove location field as it's not in the database schema
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { location, ...restWithoutLocation } = rest;
         
         return {
@@ -268,7 +269,7 @@ export async function PUT(
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
-      skillCategories: (content as any)?.skillCategories || [],
+      skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
       workExperience: workExperience || [], // Include work experience with location in content
       projects: projects || [],
       languages: languages || [],

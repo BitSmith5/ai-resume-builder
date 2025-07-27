@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
-      skillCategories: (content as any)?.skillCategories || [],
+      skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
       projects: projects || [],
       languages: languages || [],
       publications: publications || [],
@@ -182,8 +182,7 @@ export async function POST(request: NextRequest) {
         interests: {
           create: processedInterests,
         },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
+      },
       include: {
         strengths: true,
         workExperience: true,
@@ -207,13 +206,13 @@ export async function POST(request: NextRequest) {
         endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
       })) || [],
       // Extract additional data from content JSON
-      skillCategories: (resume.content as any)?.skillCategories || [],
-      projects: (resume.content as any)?.projects || [],
-      languages: (resume.content as any)?.languages || [],
-      publications: (resume.content as any)?.publications || [],
-      awards: (resume.content as any)?.awards || [],
-      volunteerExperience: (resume.content as any)?.volunteerExperience || [],
-      references: (resume.content as any)?.references || [],
+      skillCategories: (resume.content as Record<string, unknown>)?.skillCategories || [],
+      projects: (resume.content as Record<string, unknown>)?.projects || [],
+      languages: (resume.content as Record<string, unknown>)?.languages || [],
+      publications: (resume.content as Record<string, unknown>)?.publications || [],
+      awards: (resume.content as Record<string, unknown>)?.awards || [],
+      volunteerExperience: (resume.content as Record<string, unknown>)?.volunteerExperience || [],
+      references: (resume.content as Record<string, unknown>)?.references || [],
     };
 
     return NextResponse.json(processedResume, { status: 201 });

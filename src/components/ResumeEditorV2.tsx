@@ -691,7 +691,7 @@ export default function ResumeEditorV2({
                 github: "",
               },
             },
-            strengths: (resume.strengths || []).map((strength: any) => ({
+            strengths: (resume.strengths || []).map((strength: Record<string, unknown>) => ({
               ...strength,
               id: String(strength.id || Math.random())
             })),
@@ -700,10 +700,10 @@ export default function ResumeEditorV2({
               // Get work experience from database (has dates but no location)
               const dbWorkExperience = resume.workExperience || [];
               // Get work experience from content (has location but dates might be strings)
-              const contentWorkExperience = (resume.content as any)?.workExperience || [];
+              const contentWorkExperience = (resume.content as Record<string, unknown>)?.workExperience as Array<Record<string, unknown>> || [];
               
               // Merge the data, prioritizing content data for location
-              return dbWorkExperience.map((dbWork: any, index: number) => {
+              return dbWorkExperience.map((dbWork: Record<string, unknown>, index: number) => {
                 const contentWork = contentWorkExperience[index] || {};
                 
                 // Convert Date objects back to "MMM YYYY" format
@@ -718,16 +718,16 @@ export default function ResumeEditorV2({
                   ...dbWork,
                   ...contentWork, // This will include location from content
                   id: String(dbWork.id || contentWork.id || Math.random()),
-                  startDate: formatDate(dbWork.startDate),
-                  endDate: formatDate(dbWork.endDate),
-                  bulletPoints: (dbWork.bulletPoints || []).map((bullet: any) => ({
+                  startDate: formatDate(dbWork.startDate as string | Date),
+                  endDate: formatDate(dbWork.endDate as string | Date),
+                  bulletPoints: ((dbWork.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
                     ...bullet,
                     id: String(bullet.id || Math.random())
                   }))
                 };
               });
             })(),
-            education: (resume.education || []).map((edu: any) => {
+            education: (resume.education || []).map((edu: Record<string, unknown>) => {
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
@@ -739,16 +739,16 @@ export default function ResumeEditorV2({
               return {
                 ...edu,
                 id: String(edu.id || Math.random()),
-                startDate: formatDate(edu.startDate),
-                endDate: formatDate(edu.endDate),
+                startDate: formatDate(edu.startDate as string | Date),
+                endDate: formatDate(edu.endDate as string | Date),
               };
             }),
             courses: resume.courses || [],
-            interests: (resume.interests || []).map((interest: any) => ({
+            interests: (resume.interests || []).map((interest: Record<string, unknown>) => ({
               ...interest,
               id: String(interest.id || Math.random())
             })),
-            projects: (resume.projects || []).map((project: any) => {
+            projects: (resume.projects || []).map((project: Record<string, unknown>) => {
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
@@ -760,31 +760,31 @@ export default function ResumeEditorV2({
               return {
                 ...project,
                 id: String(project.id || Math.random()),
-                startDate: formatDate(project.startDate),
-                endDate: formatDate(project.endDate),
-                bulletPoints: (project.bulletPoints || []).map((bullet: any) => ({
+                startDate: formatDate(project.startDate as string | Date),
+                endDate: formatDate(project.endDate as string | Date),
+                bulletPoints: ((project.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
                   ...bullet,
                   id: String(bullet.id || Math.random())
                 }))
               };
             }),
-            languages: (resume.languages || []).map((language: any) => ({
+            languages: (resume.languages || []).map((language: Record<string, unknown>) => ({
               ...language,
               id: String(language.id || Math.random())
             })),
-            publications: (resume.publications || []).map((publication: any) => ({
+            publications: (resume.publications || []).map((publication: Record<string, unknown>) => ({
               ...publication,
               id: String(publication.id || Math.random())
             })),
-            awards: (resume.awards || []).map((award: any) => ({
+            awards: (resume.awards || []).map((award: Record<string, unknown>) => ({
               ...award,
               id: String(award.id || Math.random()),
-              bulletPoints: (award.bulletPoints || []).map((bullet: any) => ({
+              bulletPoints: ((award.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
                 ...bullet,
                 id: String(bullet.id || Math.random())
               }))
             })),
-            volunteerExperience: (resume.volunteerExperience || []).map((volunteer: any) => {
+            volunteerExperience: (resume.volunteerExperience || []).map((volunteer: Record<string, unknown>) => {
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
@@ -796,15 +796,15 @@ export default function ResumeEditorV2({
               return {
                 ...volunteer,
                 id: String(volunteer.id || Math.random()),
-                startDate: formatDate(volunteer.startDate),
-                endDate: formatDate(volunteer.endDate),
-                bulletPoints: (volunteer.bulletPoints || []).map((bullet: any) => ({
+                startDate: formatDate(volunteer.startDate as string | Date),
+                endDate: formatDate(volunteer.endDate as string | Date),
+                bulletPoints: ((volunteer.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
                   ...bullet,
                   id: String(bullet.id || Math.random())
                 }))
               };
             }),
-            references: (resume.references || []).map((reference: any) => ({
+            references: (resume.references || []).map((reference: Record<string, unknown>) => ({
               ...reference,
               id: String(reference.id || Math.random())
             })),
@@ -2695,7 +2695,8 @@ export default function ResumeEditorV2({
                                   } else if (/^\d*\.?\d*$/.test(value)) {
                                     // Allow partial decimal input during typing
                                     if (value.endsWith('.') || value === '.') {
-                                      updateEducation(eduIndex, { gpa: value as any });
+                                      // Store as string temporarily during typing
+                                      updateEducation(eduIndex, { gpa: value as unknown as number });
                                     } else {
                                       const numValue = parseFloat(value);
                                       if (!isNaN(numValue) && numValue >= 0 && numValue <= 4.0) {
