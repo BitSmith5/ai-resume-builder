@@ -2474,7 +2474,7 @@ export default function ResumeEditorV2({
                             }}
                           >
                             {/* Education Header with Drag Handle */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 600 }}>
                               <Box
                                 {...provided.dragHandleProps}
                                 sx={{
@@ -2495,6 +2495,7 @@ export default function ResumeEditorV2({
                                 variant="standard"
                                 sx={{ 
                                   fontWeight: 600,
+                                  width: 380,
                                   px: 1,
                                   mr: 1,
                                   borderRadius: 2,
