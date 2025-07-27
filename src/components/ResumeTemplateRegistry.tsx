@@ -78,6 +78,15 @@ export interface ResumeData {
     endDate: string;
     current: boolean;
   }>;
+  publications?: Array<{
+    id: string;
+    title: string;
+    authors: string;
+    journal: string;
+    year: string;
+    doi: string;
+    link: string;
+  }>;
   createdAt: string;
 }
 
@@ -164,6 +173,15 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
       startDate: project.startDate,
       endDate: project.endDate,
       current: project.current
+    })),
+    publications: data.publications?.map(publication => ({
+      id: publication.id,
+      title: publication.title,
+      authors: publication.authors,
+      journal: publication.journal,
+      year: publication.year,
+      doi: publication.doi,
+      link: publication.link
     }))
   };
   

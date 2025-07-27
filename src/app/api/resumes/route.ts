@@ -26,7 +26,7 @@ export async function GET() {
         interests: true,
         projects: true,
         languages: true,
-        // publications: true,
+        publications: true,
         // awards: true,
         // volunteerExperience: true,
         // references: true,
@@ -198,6 +198,13 @@ export async function POST(request: NextRequest) {
       return rest;
     });
 
+    // Process publications data
+    const processedPublications = (publications || []).map((publication: { id?: string; resumeId?: string; [key: string]: unknown }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, resumeId, ...rest } = publication;
+      return rest;
+    });
+
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
@@ -240,6 +247,9 @@ export async function POST(request: NextRequest) {
         languages: {
           create: processedLanguages,
         },
+        publications: {
+          create: processedPublications,
+        },
       },
       include: {
         strengths: true,
@@ -249,6 +259,7 @@ export async function POST(request: NextRequest) {
         interests: true,
         projects: true,
         languages: true,
+        publications: true,
       },
     });
 
@@ -273,7 +284,7 @@ export async function POST(request: NextRequest) {
         endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
       })) || [],
       languages: resume.languages || [],
-      publications: (resume.content as Record<string, unknown>)?.publications || [],
+      publications: resume.publications || [],
       awards: (resume.content as Record<string, unknown>)?.awards || [],
       volunteerExperience: (resume.content as Record<string, unknown>)?.volunteerExperience || [],
       references: (resume.content as Record<string, unknown>)?.references || [],

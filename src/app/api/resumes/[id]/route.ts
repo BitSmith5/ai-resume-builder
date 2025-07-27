@@ -32,7 +32,7 @@ export async function GET(
         interests: true,
         projects: true,
         languages: true,
-        // publications: true,
+        publications: true,
         // awards: true,
         // volunteerExperience: true,
         // references: true,
@@ -64,7 +64,7 @@ export async function GET(
       // Extract additional data from content JSON
       skillCategories: (resume.content as Record<string, unknown>)?.skillCategories || [],
       languages: resume.languages || [],
-      publications: (resume.content as Record<string, unknown>)?.publications || [],
+      publications: resume.publications || [],
       awards: (resume.content as Record<string, unknown>)?.awards || [],
       volunteerExperience: (resume.content as Record<string, unknown>)?.volunteerExperience || [],
       references: (resume.content as Record<string, unknown>)?.references || [],
@@ -327,6 +327,18 @@ export async function PUT(
         return rest;
       });
 
+    // Process publications data
+    const processedPublications = (publications || [])
+      .filter((publication: { title: string; authors: string; journal: string; year: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return publication.title && publication.authors && publication.journal && publication.year;
+      })
+      .map((publication: { id?: string; resumeId?: number; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = publication;
+        return rest;
+      });
+
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
@@ -380,6 +392,9 @@ export async function PUT(
       await tx.language.deleteMany({
         where: { resumeId: parseInt(resolvedParams.id) },
       });
+      await tx.publication.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
 
       // Update the resume and recreate related data within the same transaction
       console.log("Updating resume with basic data:", {
@@ -424,6 +439,9 @@ export async function PUT(
           languages: {
             create: processedLanguages,
           },
+          publications: {
+            create: processedPublications,
+          },
         } as Prisma.ResumeUpdateInput,
         include: {
           strengths: true,
@@ -433,6 +451,7 @@ export async function PUT(
           interests: true,
           projects: true,
           languages: true,
+          publications: true,
         },
       });
     });
@@ -456,7 +475,7 @@ export async function PUT(
         endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
       })) || [],
       languages: resume.languages || [],
-      publications: (resume.content as { publications?: unknown[] })?.publications || [],
+      publications: resume.publications || [],
       awards: (resume.content as { awards?: unknown[] })?.awards || [],
       volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
       references: (resume.content as { references?: unknown[] })?.references || [],

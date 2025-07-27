@@ -77,6 +77,15 @@ interface ResumeData {
     name: string;
     proficiency: string;
   }>;
+  publications?: Array<{
+    id: string;
+    title: string;
+    authors: string;
+    journal: string;
+    year: string;
+    doi: string;
+    link: string;
+  }>;
 }
 
 interface ClassicResumeTemplateProps {
@@ -144,6 +153,15 @@ interface PageContent {
     name: string;
     proficiency: string;
   }>;
+  publications: Array<{
+    id: string;
+    title: string;
+    authors: string;
+    journal: string;
+    year: string;
+    doi: string;
+    link: string;
+  }>;
   // Flags to track which sections have already started on previous pages
   workExperienceStarted: boolean;
   coursesStarted: boolean;
@@ -151,6 +169,7 @@ interface PageContent {
   skillCategoriesStarted: boolean;
   projectsStarted: boolean;
   languagesStarted: boolean;
+  publicationsStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -189,7 +208,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     const itemSpacing = 12; // Reduced from 15 to be more compact
     
     // Helper function to estimate content height
-    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0] | NonNullable<ResumeData['skillCategories']>[0] | NonNullable<ResumeData['projects']>[0] | NonNullable<ResumeData['languages']>[0], type: 'work' | 'education' | 'course' | 'skillCategories' | 'project' | 'language'): number => {
+    const estimateContentHeight = (content: ResumeData['workExperience'][0] | ResumeData['education'][0] | NonNullable<ResumeData['courses']>[0] | NonNullable<ResumeData['skillCategories']>[0] | NonNullable<ResumeData['projects']>[0] | NonNullable<ResumeData['languages']>[0] | NonNullable<ResumeData['publications']>[0], type: 'work' | 'education' | 'course' | 'skillCategories' | 'project' | 'language' | 'publication'): number => {
       let height = 0;
       
       switch (type) {
@@ -223,6 +242,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           break;
         case 'language':
           height = 30; // Language name + proficiency
+          break;
+        case 'publication':
+          height = 60; // Publication title + authors + journal + year
           break;
       }
       
@@ -269,6 +291,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
 
     
+
+    
     // NEW APPROACH: Process sections in correct visual order but optimize Education placement
     let currentPage: PageContent = {
       workExperience: [],
@@ -279,12 +303,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       skillCategories: [],
       interests: [],
       languages: [],
+      publications: [],
       workExperienceStarted: false,
       coursesStarted: false,
       educationStarted: false,
       skillCategoriesStarted: false,
       projectsStarted: false,
-      languagesStarted: false
+      languagesStarted: false,
+      publicationsStarted: false
     };
     
     let currentPageHeight = headerHeight; // Start with header height for first page
@@ -322,12 +348,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             skillCategories: [],
             interests: [],
             languages: [],
+            publications: [],
             workExperienceStarted: false,
             coursesStarted: false,
             educationStarted: false,
             skillCategoriesStarted: false,
             projectsStarted: false,
-            languagesStarted: false
+            languagesStarted: false,
+            publicationsStarted: false
           };
           currentPageHeight = 0;
           
@@ -351,22 +379,24 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           pages.push(currentPage);
         }
         
-        currentPage = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          projects: [],
-          skills: [],
-          skillCategories: [],
-          interests: [],
-          languages: [],
-          workExperienceStarted: false,
-          coursesStarted: false,
-          educationStarted: false,
-          skillCategoriesStarted: false,
-          projectsStarted: false,
-          languagesStarted: false
-        };
+                  currentPage = {
+            workExperience: [],
+            education: [],
+            courses: [],
+            projects: [],
+            skills: [],
+            skillCategories: [],
+            interests: [],
+            languages: [],
+            publications: [],
+            workExperienceStarted: false,
+            coursesStarted: false,
+            educationStarted: false,
+            skillCategoriesStarted: false,
+            projectsStarted: false,
+            languagesStarted: false,
+            publicationsStarted: false
+          };
         currentPageHeight = 0;
       }
       
@@ -409,12 +439,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             skillCategories: [],
             interests: [],
             languages: [],
+            publications: [],
             workExperienceStarted: true,
             coursesStarted: true,
             educationStarted: true,
             skillCategoriesStarted: true,
             projectsStarted: true,
-            languagesStarted: false
+            languagesStarted: false,
+            publicationsStarted: false
           };
           currentPageHeight = 0;
           
@@ -450,12 +482,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             skillCategories: [],
             interests: [],
             languages: [],
+            publications: [],
             workExperienceStarted: true, // Section already started - don't show header again
             coursesStarted: true, // Section already started - don't show header again
             educationStarted: false,
             skillCategoriesStarted: false,
             projectsStarted: true, // Section already started - don't show header again
-            languagesStarted: false
+            languagesStarted: false,
+            publicationsStarted: false
           };
           currentPageHeight = 0;
           
@@ -529,12 +563,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           skillCategories: [],
           interests: data.interests || [],
           languages: [],
+          publications: [],
           workExperienceStarted: true,
           coursesStarted: true,
           educationStarted: true,
           skillCategoriesStarted: true,
           projectsStarted: true,
-          languagesStarted: false
+          languagesStarted: false,
+          publicationsStarted: false
         };
         pages.push(newPage);
       } else {
@@ -562,12 +598,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         skillCategories: data.skillCategories || [],
         interests: data.interests || [],
         languages: [],
+        publications: [],
         workExperienceStarted: false,
         coursesStarted: false,
         educationStarted: false,
         skillCategoriesStarted: false,
         projectsStarted: false,
-        languagesStarted: false
+        languagesStarted: false,
+        publicationsStarted: false
       });
     }
     
@@ -1069,6 +1107,67 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 `${language.name} (${language.proficiency})`
               ).join(', ')}
             </div>
+          </div>
+        )}
+
+        {/* Publications */}
+        {data.publications && data.publications.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 'bold', 
+              margin: '0 0 12px 0',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid #000',
+              paddingBottom: '4px'
+            }}>
+              Publications
+            </h2>
+            {data.publications.map((publication, index) => (
+              <div key={index} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <h3 style={{ 
+                    fontSize: '16px', 
+                    fontWeight: 'bold', 
+                    margin: '0',
+                    textTransform: 'uppercase'
+                  }}>
+                    {publication.title}
+                  </h3>
+                  <span style={{ fontSize: '12px', color: '#666' }}>
+                    {publication.year}
+                  </span>
+                </div>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  marginBottom: '3px',
+                  fontStyle: 'italic'
+                }}>
+                  {publication.authors}
+                </div>
+                <div style={{ 
+                  fontSize: '13px', 
+                  color: '#666',
+                  marginBottom: '3px'
+                }}>
+                  {publication.journal}
+                </div>
+                {publication.doi && (
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    DOI: {publication.doi}
+                  </div>
+                )}
+                {publication.link && (
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    <a href={publication.link} target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'underline' }}>
+                      {formatUrl(publication.link)}
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
         </div> {/* Close content wrapper */}
