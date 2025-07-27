@@ -34,7 +34,7 @@ export async function GET(
         languages: true,
         publications: true,
         awards: true,
-        // volunteerExperience: true,
+        volunteerExperience: true,
         // references: true,
       },
     });
@@ -351,6 +351,50 @@ export async function PUT(
         return rest;
       });
 
+    // Process volunteer experience data
+    const processedVolunteerExperience = (volunteerExperience || [])
+      .filter((volunteer: { organization: string; position: string; startDate: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return volunteer.organization && volunteer.position && volunteer.startDate;
+      })
+      .map((volunteer: { id?: string; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = volunteer;
+        
+        // Convert string dates to Date objects for database storage
+        const parseDate = (dateStr: string): Date => {
+          if (!dateStr || dateStr.trim() === '') return new Date();
+          
+          // Handle different date formats
+          if (dateStr.includes(' ')) {
+            // "MMM YYYY" format
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const parts = dateStr.split(' ');
+            if (parts.length >= 2) {
+              const month = parts[0];
+              const year = parts[1];
+              const monthIndex = months.indexOf(month);
+              if (monthIndex !== -1 && !isNaN(parseInt(year))) {
+                return new Date(parseInt(year), monthIndex, 1);
+              }
+            }
+          } else if (dateStr.includes('-')) {
+            // ISO date format (YYYY-MM-DD)
+            return new Date(dateStr);
+          }
+          
+          // Fallback to current date if parsing fails
+          console.warn(`Failed to parse date: ${dateStr}, using current date`);
+          return new Date();
+        };
+
+        return {
+          ...rest,
+          startDate: parseDate(volunteer.startDate),
+          endDate: volunteer.endDate ? parseDate(volunteer.endDate) : null,
+        };
+      });
+
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
@@ -410,6 +454,9 @@ export async function PUT(
       await tx.award.deleteMany({
         where: { resumeId: parseInt(resolvedParams.id) },
       });
+      await tx.volunteerExperience.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
 
       // Update the resume and recreate related data within the same transaction
       console.log("Updating resume with basic data:", {
@@ -460,6 +507,9 @@ export async function PUT(
           awards: {
             create: processedAwards,
           },
+          volunteerExperience: {
+            create: processedVolunteerExperience,
+          },
         } as Prisma.ResumeUpdateInput,
         include: {
           strengths: true,
@@ -471,6 +521,7 @@ export async function PUT(
           languages: true,
           publications: true,
           awards: true,
+          volunteerExperience: true,
         },
       });
     });
@@ -496,7 +547,7 @@ export async function PUT(
       languages: resume.languages || [],
       publications: resume.publications || [],
       awards: resume.awards || [],
-      volunteerExperience: (resume.content as { volunteerExperience?: unknown[] })?.volunteerExperience || [],
+      volunteerExperience: resume.volunteerExperience || [],
       references: (resume.content as { references?: unknown[] })?.references || [],
     };
 

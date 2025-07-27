@@ -96,6 +96,20 @@ interface ResumeData {
       description: string;
     }>;
   }>;
+  volunteerExperience?: Array<{
+    id: string;
+    organization: string;
+    position: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    hoursPerWeek: string;
+  }>;
 }
 
 interface ClassicResumeTemplateProps {
@@ -182,6 +196,20 @@ interface PageContent {
       description: string;
     }>;
   }>;
+  volunteerExperience: Array<{
+    id: string;
+    organization: string;
+    position: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    hoursPerWeek: string;
+  }>;
   // Flags to track which sections have already started on previous pages
   workExperienceStarted: boolean;
   coursesStarted: boolean;
@@ -191,6 +219,7 @@ interface PageContent {
   languagesStarted: boolean;
   publicationsStarted: boolean;
   awardsStarted: boolean;
+  volunteerExperienceStarted: boolean;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
@@ -1239,6 +1268,76 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                     textAlign: 'justify'
                   }}>
                     {award.bulletPoints.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} style={{ marginBottom: '2px' }}>
+                        {bullet.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Volunteer Experience */}
+        {data.volunteerExperience && data.volunteerExperience.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 'bold', 
+              margin: '0 0 12px 0',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid #000',
+              paddingBottom: '4px'
+            }}>
+              Volunteer Experience
+            </h2>
+            {data.volunteerExperience.map((volunteer, index) => (
+              <div key={index} style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <h3 style={{ 
+                    fontSize: '16px', 
+                    fontWeight: 'bold', 
+                    margin: '0',
+                    textTransform: 'uppercase'
+                  }}>
+                    {volunteer.position}
+                  </h3>
+                  <span style={{ fontSize: '12px', color: '#666' }}>
+                    {formatDate(volunteer.startDate)} - {volunteer.current ? 'Present' : formatDate(volunteer.endDate)}
+                  </span>
+                </div>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  marginBottom: '8px',
+                  fontStyle: 'italic'
+                }}>
+                  {volunteer.organization}
+                  {volunteer.location && (
+                    <span style={{ fontSize: '12px', color: '#666', fontWeight: 'normal' }}>
+                      {' - '}{volunteer.location}
+                    </span>
+                  )}
+                </div>
+                {volunteer.hoursPerWeek && (
+                  <div style={{ 
+                    fontSize: '13px', 
+                    color: '#666',
+                    marginBottom: '8px'
+                  }}>
+                    {volunteer.hoursPerWeek} hours per week
+                  </div>
+                )}
+                {volunteer.bulletPoints.length > 0 && (
+                  <ul style={{ 
+                    fontSize: '13px', 
+                    margin: '0', 
+                    paddingLeft: '20px',
+                    textAlign: 'justify'
+                  }}>
+                    {volunteer.bulletPoints.map((bullet, bulletIndex) => (
                       <li key={bulletIndex} style={{ marginBottom: '2px' }}>
                         {bullet.description}
                       </li>

@@ -7002,7 +7002,8 @@ export default function ResumeEditorV2({
                     projects: resumeData.projects,
                     languages: resumeData.languages,
                     publications: resumeData.publications,
-                    awards: resumeData.awards
+                    awards: resumeData.awards,
+                    volunteerExperience: resumeData.volunteerExperience
                   };
 
                   

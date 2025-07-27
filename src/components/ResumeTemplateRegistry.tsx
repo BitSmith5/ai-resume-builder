@@ -97,6 +97,20 @@ export interface ResumeData {
       description: string;
     }>;
   }>;
+  volunteerExperience?: Array<{
+    id: string;
+    organization: string;
+    position: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    hoursPerWeek: string;
+  }>;
   createdAt: string;
 }
 
@@ -199,6 +213,17 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
       organization: award.organization,
       year: award.year,
       bulletPoints: award.bulletPoints
+    })),
+    volunteerExperience: data.volunteerExperience?.map(volunteer => ({
+      id: volunteer.id,
+      organization: volunteer.organization,
+      position: volunteer.position,
+      location: volunteer.location,
+      startDate: volunteer.startDate,
+      endDate: volunteer.endDate,
+      current: volunteer.current,
+      bulletPoints: volunteer.bulletPoints,
+      hoursPerWeek: volunteer.hoursPerWeek
     }))
   };
   

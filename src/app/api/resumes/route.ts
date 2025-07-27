@@ -28,7 +28,7 @@ export async function GET() {
         languages: true,
         publications: true,
         awards: true,
-        // volunteerExperience: true,
+        volunteerExperience: true,
         // references: true,
       },
       orderBy: {
@@ -212,6 +212,45 @@ export async function POST(request: NextRequest) {
       return rest;
     });
 
+    // Process volunteer experience data
+    const processedVolunteerExperience = (volunteerExperience || []).map((volunteer: { id?: string; resumeId?: string; startDate: string; endDate?: string; [key: string]: unknown }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, resumeId, ...rest } = volunteer;
+      
+      // Convert "MMM YYYY" format to Date object for database storage
+      const parseDate = (dateStr: string): Date => {
+        if (!dateStr || dateStr.trim() === '') return new Date();
+        
+        // Handle different date formats
+        if (dateStr.includes(' ')) {
+          // "MMM YYYY" format
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const parts = dateStr.split(' ');
+          if (parts.length >= 2) {
+            const month = parts[0];
+            const year = parts[1];
+            const monthIndex = months.indexOf(month);
+            if (monthIndex !== -1 && !isNaN(parseInt(year))) {
+              return new Date(parseInt(year), monthIndex, 1);
+            }
+          }
+        } else if (dateStr.includes('-')) {
+          // ISO date format (YYYY-MM-DD)
+          return new Date(dateStr);
+        }
+        
+        // Fallback to current date if parsing fails
+        console.warn(`Failed to parse date: ${dateStr}, using current date`);
+        return new Date();
+      };
+
+      return {
+        ...rest,
+        startDate: parseDate(volunteer.startDate),
+        endDate: volunteer.endDate ? parseDate(volunteer.endDate) : null,
+      };
+    });
+
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
@@ -260,6 +299,9 @@ export async function POST(request: NextRequest) {
         awards: {
           create: processedAwards,
         },
+        volunteerExperience: {
+          create: processedVolunteerExperience,
+        },
       },
       include: {
         strengths: true,
@@ -271,6 +313,7 @@ export async function POST(request: NextRequest) {
         languages: true,
         publications: true,
         awards: true,
+        volunteerExperience: true,
       },
     });
 
@@ -297,7 +340,7 @@ export async function POST(request: NextRequest) {
       languages: resume.languages || [],
       publications: resume.publications || [],
       awards: resume.awards || [],
-      volunteerExperience: (resume.content as Record<string, unknown>)?.volunteerExperience || [],
+      volunteerExperience: resume.volunteerExperience || [],
       references: (resume.content as Record<string, unknown>)?.references || [],
     };
 
