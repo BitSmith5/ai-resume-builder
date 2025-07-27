@@ -31,7 +31,6 @@ import {
   Slider,
   FormControlLabel,
   Stack,
-  Chip,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -344,7 +343,6 @@ export default function ResumeEditorV2({
   // Export panel state
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1026,8 +1024,9 @@ export default function ResumeEditorV2({
 
 
   // Auto-scroll handlers for drag and drop
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDragStart = (result: DragStart) => {
-    setIsDragging(true);
+    // Drag start handler
   };
 
   const handleDragUpdate = (result: DragUpdate) => {
@@ -1045,6 +1044,7 @@ export default function ResumeEditorV2({
       mouseY = window.event.clientY;
     } else {
       // Fallback: try to get from the drag update result if available
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mouseY = (result as any).clientY || 0;
     }
     
@@ -1075,7 +1075,6 @@ export default function ResumeEditorV2({
 
   // Handle drag end for section reordering
   const handleDragEnd = (result: DropResult) => {
-    setIsDragging(false);
     
     // Clear any active scroll interval
     if (scrollIntervalRef.current) {

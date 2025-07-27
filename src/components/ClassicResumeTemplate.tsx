@@ -282,6 +282,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     const itemSpacing = 12; // Reduced from 15 to be more compact
     
     // Helper function to estimate content height
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const estimateContentHeight = (content: any, type: 'work' | 'education' | 'course' | 'skillCategories' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'summary'): number => {
       let height = 0;
       
@@ -368,6 +369,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     
     // NEW APPROACH: Use sectionOrder from data to determine section order
     // Create a mapping from section names to data properties and their types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sectionMapping: Record<string, {
       dataKey: keyof ResumeData;
       type: 'work' | 'education' | 'course' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'skillCategories' | 'summary';
@@ -408,6 +410,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
 
 
     // Filter sections to only include those that have data and are in the sectionOrder
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const orderedSections: Array<{
       name: string;
       type: 'work' | 'education' | 'course' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'skillCategories' | 'summary';
@@ -605,17 +608,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         // Check if this item fits on the current page
         const availableHeight = maxContentHeight - bottomMargin - currentPageHeight;
         
-        // Debug logging for work experience items
-        if (section.name === 'Work Experience') {
-          console.log(`Work Experience Item ${i + 1}:`, {
-            itemHeight,
-            availableHeight,
-            currentPageHeight,
-            maxContentHeight,
-            bottomMargin,
-            willFit: itemHeight <= availableHeight
-          });
-        }
+        // Debug logging for work experience items (commented out for production)
+        // if (section.name === 'Work Experience') {
+        //   console.log(`Work Experience Item ${i + 1}:`, {
+        //     itemHeight,
+        //     availableHeight,
+        //     currentPageHeight,
+        //     maxContentHeight,
+        //     bottomMargin,
+        //     willFit: itemHeight <= availableHeight
+        //   });
+        // }
         
         if (itemHeight > availableHeight) {
            // This item won't fit - start new page
