@@ -252,16 +252,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   
 
   
-  // Function to format dates as MM/YYYY
+  // Function to format dates as MMM YYYY
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return dateString;
       
-      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const monthNames = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      const month = monthNames[date.getMonth()];
       const year = date.getFullYear();
-      return `${month}/${year}`;
+      return `${month} ${year}`;
     } catch {
       return dateString;
     }
@@ -953,7 +957,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               }}>
                 {exp.position}
               </h3>
-              <span style={{ fontSize: '12px', color: '#666' }}>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
                 {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
               </span>
             </div>
@@ -1018,7 +1022,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               }}>
                 {project.title}
               </h3>
-              <span style={{ fontSize: '12px', color: '#666' }}>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
                 {formatDate(project.startDate)} - {project.current ? 'Present' : formatDate(project.endDate)}
               </span>
             </div>
@@ -1135,7 +1139,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               }}>
                 {edu.degree} in {edu.field}
               </h3>
-              <span style={{ fontSize: '12px', color: '#666' }}>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
                 {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
               </span>
             </div>
@@ -1268,7 +1272,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               }}>
                 {publication.title}
               </h3>
-              <span style={{ fontSize: '12px', color: '#666' }}>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
                 {publication.year}
               </span>
             </div>
@@ -1331,7 +1335,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               }}>
                 {award.title}
               </h3>
-              <span style={{ fontSize: '12px', color: '#666' }}>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
                 {award.year}
               </span>
             </div>
@@ -1456,7 +1460,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               }}>
                 {volunteer.position}
               </h3>
-              <span style={{ fontSize: '12px', color: '#666' }}>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
                 {formatDate(volunteer.startDate)} - {volunteer.current ? 'Present' : formatDate(volunteer.endDate)}
               </span>
             </div>
