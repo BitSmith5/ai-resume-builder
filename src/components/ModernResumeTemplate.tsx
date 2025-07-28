@@ -10,6 +10,11 @@ interface ResumeData {
   title: string;
   jobTitle?: string;
   profilePicture?: string;
+  fontFamily?: string; // Font family for the resume
+  nameSize?: number; // Font size for the name header
+  sectionHeadersSize?: number; // Font size for section headers
+  subHeadersSize?: number; // Font size for sub-headers (job titles, company names, etc.)
+  bodyTextSize?: number; // Font size for body text
   content: {
     personalInfo: {
       name: string;
@@ -394,7 +399,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
   const renderHeader = () => (
     <div style={{ marginBottom: 16, background: MASTER_COLOR, padding: '12px' }}>
       <div style={{ 
-        fontSize: '30px', 
+        fontSize: `${data.nameSize || 30}px`, 
         fontWeight: 500, 
         color: 'white',
         wordWrap: 'break-word',
@@ -406,7 +411,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       <div 
         ref={titleRef}
         style={{ 
-          fontSize: '16px', 
+          fontSize: `${data.subHeadersSize || 16}px`, 
           fontWeight: 500, 
           color: 'white',
           wordWrap: 'break-word',
@@ -422,7 +427,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
         margin: '6px 0 12px 0' 
       }} />
       <div style={{ 
-        fontSize: '12px', 
+        fontSize: `${data.bodyTextSize || 12}px`, 
         color: 'white',
         wordWrap: 'break-word',
         overflowWrap: 'break-word',
@@ -465,7 +470,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             <>
               <div style={{ 
                 fontWeight: 700, 
-                fontSize: 'clamp(14px, 2.2vw, 18px)', 
+                fontSize: `${data.sectionHeadersSize || 18}px`, 
                 color: MASTER_COLOR, 
                 marginBottom: 4,
                 marginLeft: '20px'
@@ -482,7 +487,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             <div key={i} style={{ marginBottom: 12, marginLeft: '20px' }}>
               <div style={{ 
                 fontWeight: 700, 
-                fontSize: '16px',
+                fontSize: `${data.subHeadersSize || 16}px`,
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
@@ -490,7 +495,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               }}>{exp.position}</div>
               <div style={{ 
                 fontWeight: 600, 
-                fontSize: '14px',
+                fontSize: `${data.subHeadersSize || 14}px`,
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
@@ -525,7 +530,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               </div>
               {exp.bulletPoints.length > 0 && (
                 <div style={{ 
-                  fontSize: 'clamp(11px, 1.8vw, 14px)',
+                  fontSize: `${data.bodyTextSize || 14}px`,
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'normal',
@@ -559,7 +564,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             <>
               <div style={{ 
                 fontWeight: 700, 
-                fontSize: 'clamp(14px, 2.2vw, 18px)', 
+                fontSize: `${data.sectionHeadersSize || 18}px`, 
                 color: MASTER_COLOR, 
                 marginBottom: 8,
                 marginLeft: '20px'
@@ -581,7 +586,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 marginBottom: 2
               }}>
                 <div style={{ 
-                  fontSize: '14px',
+                  fontSize: `${data.subHeadersSize || 14}px`,
                   fontWeight: 500,
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
@@ -626,7 +631,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             <>
               <div style={{ 
                 fontWeight: 700, 
-                fontSize: 'clamp(14px, 2.2vw, 18px)', 
+                fontSize: `${data.sectionHeadersSize || 18}px`, 
                 color: MASTER_COLOR, 
                 marginBottom: 8,
                 marginLeft: '20px'
@@ -643,7 +648,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             <div key={i} style={{ marginBottom: 12, marginLeft: '20px' }}>
               <div style={{ 
                 fontWeight: 600, 
-                fontSize: '16px',
+                fontSize: `${data.subHeadersSize || 16}px`,
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 whiteSpace: 'normal',
@@ -704,7 +709,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
         className="modern-resume-page"
         style={{
           display: 'flex',
-          fontFamily: 'sans-serif',
+          fontFamily: data.fontFamily || 'sans-serif',
           background: '#fff',
           color: '#333',
           borderRadius: 12,
@@ -932,7 +937,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: 16 }}>
                   <div style={{ 
                     fontWeight: 700, 
-                    fontSize: '16px', 
+                    fontSize: `${data.sectionHeadersSize || 16}px`, 
                     color: MASTER_COLOR,
                     textAlign: 'left',
                   }}>TECHNICAL SKILLS</div>
@@ -947,7 +952,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
               {pageContent.leftColumnContent.skills.map((s, i) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ 
-                    fontSize: 'clamp(10px, 1.5vw, 12px)', 
+                    fontSize: `${data.bodyTextSize || 12}px`, 
                     marginBottom: 4, 
                     wordWrap: 'break-word', 
                     overflowWrap: 'break-word', 
@@ -978,7 +983,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
             <div style={{ width: '100%', maxWidth: '180px', justifyContent: 'flex-start' }}>
               <div style={{ 
                 fontWeight: 700, 
-                fontSize: 'clamp(12px, 2vw, 16px)', 
+                fontSize: `${data.sectionHeadersSize || 16}px`, 
                 color: MASTER_COLOR,
                 textAlign: 'left'
               }}>INTERESTS</div>
@@ -1003,7 +1008,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
                     justifyContent: 'center',
                   }}>{interest.icon}</span>
                   <div style={{ 
-                    fontSize: 'clamp(11px, 1.8vw, 14px)', 
+                    fontSize: `${data.bodyTextSize || 14}px`, 
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
                     whiteSpace: 'normal',

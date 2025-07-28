@@ -7082,6 +7082,11 @@ export default function ResumeEditorV2({
                     title: resumeData.title,
                     jobTitle: resumeData.jobTitle,
                     profilePicture: resumeData.profilePicture,
+                    fontFamily: exportSettings.fontFamily, // Add fontFamily from export settings
+                    nameSize: exportSettings.nameSize, // Add nameSize from export settings
+                    sectionHeadersSize: exportSettings.sectionHeadersSize, // Add sectionHeadersSize from export settings
+                    subHeadersSize: exportSettings.subHeadersSize, // Add subHeadersSize from export settings
+                    bodyTextSize: exportSettings.bodyTextSize, // Add bodyTextSize from export settings
                     sectionOrder: sectionOrder, // Add sectionOrder to transformed data
                     content: resumeData.content,
                     strengths: resumeData.strengths,

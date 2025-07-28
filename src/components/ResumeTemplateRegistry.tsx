@@ -7,6 +7,11 @@ export interface ResumeData {
   title: string;
   jobTitle?: string;
   profilePicture?: string;
+  fontFamily?: string; // Font family for the resume
+  nameSize?: number; // Font size for the name header
+  sectionHeadersSize?: number; // Font size for section headers
+  subHeadersSize?: number; // Font size for sub-headers (job titles, company names, etc.)
+  bodyTextSize?: number; // Font size for body text
   sectionOrder?: string[]; // Array of section names in display order
   content: {
     personalInfo: {
@@ -157,6 +162,11 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
     title: data.title,
     jobTitle: data.jobTitle,
     profilePicture: data.profilePicture,
+    fontFamily: data.fontFamily, // Add fontFamily to transformed data
+    nameSize: data.nameSize, // Add nameSize to transformed data
+    sectionHeadersSize: data.sectionHeadersSize, // Add sectionHeadersSize to transformed data
+    subHeadersSize: data.subHeadersSize, // Add subHeadersSize to transformed data
+    bodyTextSize: data.bodyTextSize, // Add bodyTextSize to transformed data
     sectionOrder: data.sectionOrder, // Add sectionOrder to transformed data
     content: data.content,
     strengths: data.strengths.map(s => ({

@@ -4,6 +4,11 @@ interface ResumeData {
   title: string;
   jobTitle?: string;
   profilePicture?: string;
+  fontFamily?: string; // Font family for the resume
+  nameSize?: number; // Font size for the name header
+  sectionHeadersSize?: number; // Font size for section headers
+  subHeadersSize?: number; // Font size for sub-headers (job titles, company names, etc.)
+  bodyTextSize?: number; // Font size for body text
   sectionOrder?: string[]; // Array of section names in display order
   content: {
     personalInfo: {
@@ -786,10 +791,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }} />
       )}
       <h1 style={{ 
-        fontSize: '40px', 
+        fontSize: `${data.nameSize || 40}px`, 
         fontWeight: 'normal', 
         margin: '0 0 -8px 0',
-        fontFamily: 'Times New Roman, serif'
+        fontFamily: data.fontFamily || 'Times New Roman, serif'
       }}>
         {personalInfo.name}
       </h1>
@@ -798,7 +803,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: '16px', 
           fontWeight: 'normal', 
           margin: '0 0 2px 0',
-          fontFamily: 'Times New Roman, serif',
+          fontFamily: data.fontFamily || 'Times New Roman, serif',
           color: '#333'
         }}>
           {data.jobTitle}
@@ -807,7 +812,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <div style={{ 
         fontSize: '12px', 
         color: '#333',
-        fontFamily: 'Times New Roman, serif',
+        fontFamily: data.fontFamily || 'Times New Roman, serif',
         lineHeight: '1.4'
       }}>
         {[
@@ -872,7 +877,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     return (
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ 
-          fontSize: '18px', 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 8px 0',
           textTransform: 'uppercase',
@@ -881,7 +886,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Professional Summary
         </h2>
-        <p style={{ fontSize: '14px', margin: '0', textAlign: 'justify' }}>
+        <p style={{ fontSize: `${data.bodyTextSize || 14}px`, margin: '0', textAlign: 'justify' }}>
           {personalInfo.summary}
         </p>
       </div>
@@ -894,7 +899,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <div style={{ marginBottom: '20px' }}>
         {!pageContent.skillCategoriesStarted && (
           <h2 style={{ 
-            fontSize: '18px', 
+            fontSize: `${data.sectionHeadersSize || 18}px`, 
             fontWeight: 'bold', 
             margin: '0 0 12px 0',
             textTransform: 'uppercase',
@@ -905,7 +910,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </h2>
         )}
         <ul style={{ 
-          fontSize: '14px', 
+          fontSize: `${data.bodyTextSize || 14}px`, 
           margin: '0', 
           paddingLeft: '20px',
           listStyleType: 'disc'
@@ -936,7 +941,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <div style={{ marginBottom: '20px' }}>
         {!pageContent.workExperienceStarted && (
           <h2 style={{ 
-            fontSize: '18px', 
+            fontSize: `${data.sectionHeadersSize || 18}px`, 
             fontWeight: 'bold', 
             margin: '0 0 12px 0',
             textTransform: 'uppercase',
@@ -950,7 +955,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           <div key={index} style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
-                fontSize: '16px', 
+                fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
                 textTransform: 'uppercase'
@@ -962,7 +967,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               </span>
             </div>
             <div style={{ 
-              fontSize: '14px', 
+              fontSize: `${data.subHeadersSize || 14}px`, 
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '8px',
@@ -977,7 +982,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             </div>
             {exp.bulletPoints.length > 0 && (
               <ul style={{ 
-                fontSize: '13px', 
+                fontSize: `${data.bodyTextSize || 13}px`, 
                 margin: '0', 
                 paddingLeft: '20px',
                 textAlign: 'justify'
@@ -1001,7 +1006,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <div style={{ marginBottom: '20px' }}>
         {!pageContent.projectsStarted && (
           <h2 style={{ 
-            fontSize: '18px', 
+            fontSize: `${data.sectionHeadersSize || 18}px`, 
             fontWeight: 'bold', 
             margin: '0 0 12px 0',
             textTransform: 'uppercase',
@@ -1015,7 +1020,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           <div key={index} style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
-                fontSize: '16px', 
+                fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
                 textTransform: 'uppercase'
@@ -1027,7 +1032,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               </span>
             </div>
             <div style={{ 
-              fontSize: '14px', 
+              fontSize: `${data.subHeadersSize || 14}px`, 
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '8px',
@@ -1037,7 +1042,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             </div>
             {project.bulletPoints.length > 0 && (
               <ul style={{ 
-                fontSize: '13px', 
+                fontSize: `${data.bodyTextSize || 13}px`, 
                 margin: '0', 
                 paddingLeft: '20px',
                 textAlign: 'justify'
@@ -1068,7 +1073,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <div style={{ marginBottom: '20px' }}>
         {!pageContent.coursesStarted && (
           <h2 style={{ 
-            fontSize: '18px', 
+            fontSize: `${data.sectionHeadersSize || 18}px`, 
             fontWeight: 'bold', 
             margin: '0 0 12px 0',
             textTransform: 'uppercase',
@@ -1082,7 +1087,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           <div key={index} style={{ marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
-                fontSize: '16px', 
+                fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
                 textTransform: 'uppercase'
@@ -1091,7 +1096,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               </h3>
             </div>
             <div style={{ 
-              fontSize: '14px', 
+              fontSize: `${data.subHeadersSize || 14}px`, 
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '3px',
@@ -1118,7 +1123,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <div style={{ marginBottom: '20px' }}>
         {!pageContent.educationStarted && (
           <h2 style={{ 
-            fontSize: '18px', 
+            fontSize: `${data.sectionHeadersSize || 18}px`, 
             fontWeight: 'bold', 
             margin: '0 0 12px 0',
             textTransform: 'uppercase',
@@ -1132,7 +1137,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           <div key={index} style={{ marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
-                fontSize: '16px', 
+                fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
                 textTransform: 'uppercase'
@@ -1144,7 +1149,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               </span>
             </div>
             <div style={{ 
-              fontSize: '14px', 
+              fontSize: `${data.subHeadersSize || 14}px`, 
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '3px',
@@ -1168,7 +1173,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     return (
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ 
-          fontSize: '18px', 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 8px 0',
           textTransform: 'uppercase',
@@ -1177,7 +1182,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Skills
         </h2>
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
           {pageContent.skills.map((strength, index) => (
             <span key={index} style={{ 
               display: 'inline-block',
@@ -1198,7 +1203,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     return (
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ 
-          fontSize: '18px', 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 8px 0',
           textTransform: 'uppercase',
@@ -1207,7 +1212,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Interests
         </h2>
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
           {pageContent.interests.map((interest, index) => (
             <span key={index} style={{ 
               display: 'inline-block',
@@ -1551,7 +1556,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <div
         key={pageIndex}
         style={{ 
-          fontFamily: 'Times New Roman, serif', 
+          fontFamily: data.fontFamily || 'Times New Roman, serif', 
           background: '#fff', 
           color: '#000', 
           padding: '40px',

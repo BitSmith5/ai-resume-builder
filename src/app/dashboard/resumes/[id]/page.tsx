@@ -71,7 +71,12 @@ export default function ViewResumePage() {
         const response = await fetch(`/api/resumes/${resumeId}`);
         if (response.ok) {
           const resume = await response.json();
-          setResumeData(resume);
+          // Add default fontFamily if not present
+          const resumeWithFont = {
+            ...resume,
+            fontFamily: resume.fontFamily || 'Times New Roman'
+          };
+          setResumeData(resumeWithFont);
           // Set the selected template to the saved template from the database
           setSelectedTemplate(resume.template || 'modern');
         } else {

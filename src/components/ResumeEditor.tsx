@@ -2288,6 +2288,7 @@ export default function ResumeEditor({
                   title: resumeData.title,
                   jobTitle: resumeData.jobTitle,
                   profilePicture: localProfilePicture || resumeData.profilePicture,
+                  fontFamily: 'Times New Roman', // Default font family
                   content: resumeData.content,
                   strengths: resumeData.strengths.map((s, index) => ({
                     id: index,
