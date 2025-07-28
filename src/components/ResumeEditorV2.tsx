@@ -838,6 +838,15 @@ export default function ResumeEditorV2({
               sectionOrder: filteredSectionOrder
             }));
           }
+
+          // Load exportSettings from database
+          if (resume.exportSettings) {
+            console.log('Loading exportSettings from database:', resume.exportSettings);
+            setExportSettings(prev => ({
+              ...prev,
+              ...resume.exportSettings
+            }));
+          }
         } else {
           console.error('Failed to load resume:', response.status);
         }
@@ -963,6 +972,7 @@ export default function ResumeEditorV2({
         profilePicture: filteredData.profilePicture || "",
         deletedSections: filteredData.deletedSections || [],
         sectionOrder: currentSectionOrder, // Add sectionOrder to save payload
+        exportSettings: exportSettings, // Add exportSettings to save payload
         strengths: filteredData.strengths || [],
         workExperience: filteredData.workExperience || [],
         education: filteredData.education || [],
@@ -1014,7 +1024,7 @@ export default function ResumeEditorV2({
     
     console.log('Autosave triggered - sectionOrder:', sectionOrder);
     debouncedSave(resumeData, profileData, sectionOrder);
-  }, [resumeData, profileData, sectionOrder, loading, session?.user, resumeId, debouncedSave]);
+  }, [resumeData, profileData, sectionOrder, exportSettings, loading, session?.user, resumeId, debouncedSave]);
 
   // Real-time preview update effect
   useEffect(() => {

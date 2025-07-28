@@ -71,6 +71,7 @@ model Resume {
   profilePicture      String?               // Stores file path like "uploads/profile-pictures/filename.jpg"
   deletedSections     Json?                 @default("[]") // Array of section names that have been deleted
   sectionOrder        Json?                 @default("[]") // Array of section names in display order
+  exportSettings      Json?                 @default("{}") // Export settings for PDF generation
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   education           Education[]

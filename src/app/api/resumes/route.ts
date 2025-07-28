@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       profilePicture, 
       deletedSections,
       sectionOrder,
+      exportSettings,
       strengths, 
       workExperience, 
       education, 
@@ -271,6 +272,7 @@ export async function POST(request: NextRequest) {
         profilePicture: profilePicture || null,
         deletedSections: deletedSections || [],
         sectionOrder: sectionOrder || [],
+        exportSettings: exportSettings || {},
         userId: user.id,
         strengths: {
           create: processedStrengths,

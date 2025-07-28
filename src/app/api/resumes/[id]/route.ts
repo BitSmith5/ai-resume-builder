@@ -70,9 +70,10 @@ export async function GET(
       references: (resume.content as Record<string, unknown>)?.references || [],
     };
 
-    // Add deletedSections and sectionOrder to the response
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown }).sectionOrder = (resume as { sectionOrder?: unknown }).sectionOrder || [];
+    // Add deletedSections, sectionOrder, and exportSettings to the response
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).sectionOrder = (resume as { sectionOrder?: unknown }).sectionOrder || [];
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).exportSettings = (resume as { exportSettings?: unknown }).exportSettings || {};
 
     return NextResponse.json(processedResume);
   } catch (error) {
@@ -108,6 +109,7 @@ export async function PUT(
       profilePicture, 
       deletedSections,
       sectionOrder,
+      exportSettings,
       strengths, 
       workExperience, 
       education, 
@@ -465,6 +467,7 @@ export async function PUT(
         template,
         deletedSections,
         sectionOrder,
+        exportSettings,
       });
       
       return await tx.resume.update({
@@ -480,6 +483,7 @@ export async function PUT(
           profilePicture: profilePicture || null,
           deletedSections: deletedSections || [],
           sectionOrder: sectionOrder || [],
+          exportSettings: exportSettings || {},
           strengths: {
             create: processedStrengths,
           },
