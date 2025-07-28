@@ -462,10 +462,24 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     for (const section of orderedSections) {
       const sectionHeaderHeight = estimateSectionHeaderHeight();
       
-      // Check if section header fits
-      if (currentPageHeight + sectionHeaderHeight > maxContentHeight - bottomMargin) {
+      // Check if section header plus at least one item fits
+      // This ensures we don't start a section if there's only room for the header
+      const minItemHeight = section.items.length > 0 ? estimateContentHeight(section.items[0], section.type) + itemSpacing : 0;
+      const totalMinHeight = sectionHeaderHeight + minItemHeight;
+      
+      // Debug logging for section space utilization (commented out for production)
+      // console.log(`Section "${section.name}":`, {
+      //   currentPageHeight,
+      //   sectionHeaderHeight,
+      //   minItemHeight,
+      //   totalMinHeight,
+      //   availableHeight: maxContentHeight - bottomMargin - currentPageHeight,
+      //   willStartNewPage: currentPageHeight + totalMinHeight > maxContentHeight - bottomMargin
+      // });
+      
+      if (currentPageHeight + totalMinHeight > maxContentHeight - bottomMargin) {
         // Start new page
-        if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0 || currentPage.publications.length > 0 || currentPage.awards.length > 0 || currentPage.volunteerExperience.length > 0 || (currentPage.references?.length || 0) > 0) {
+        if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0 || currentPage.skills.length > 0 || currentPage.interests.length > 0 || currentPage.publications.length > 0 || currentPage.awards.length > 0 || currentPage.volunteerExperience.length > 0 || (currentPage.references?.length || 0) > 0) {
           pages.push(currentPage);
         }
         
