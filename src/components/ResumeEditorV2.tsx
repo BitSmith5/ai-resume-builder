@@ -349,7 +349,7 @@ export default function ResumeEditorV2({
   const [exportSettings, setExportSettings] = useState({
     template: 'standard',
     fontFamily: 'Times New Roman',
-    nameSize: 25,
+    nameSize: 40,
     sectionHeadersSize: 11,
     subHeadersSize: 10.5,
     bodyTextSize: 10,
@@ -6243,7 +6243,7 @@ export default function ResumeEditorV2({
     setExportSettings({
       template: 'standard',
       fontFamily: 'Times New Roman',
-      nameSize: 25,
+      nameSize: 40,
       sectionHeadersSize: 11,
       subHeadersSize: 10.5,
       bodyTextSize: 10,

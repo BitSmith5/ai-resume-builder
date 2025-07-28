@@ -799,7 +799,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       <h1 style={{ 
         fontSize: `${data.nameSize || 40}px`, 
         fontWeight: 'normal', 
-        margin: '0 0 -8px 0',
+        margin: '0 0 1px 0',
         fontFamily: data.fontFamily || 'Times New Roman, serif'
       }}>
         {personalInfo.name}
@@ -808,7 +808,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <div style={{ 
           fontSize: '16px', 
           fontWeight: 'normal', 
-          margin: '0 0 2px 0',
+          margin: '0 0 4px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           color: '#333'
         }}>
