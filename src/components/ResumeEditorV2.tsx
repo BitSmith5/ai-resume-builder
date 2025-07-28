@@ -348,17 +348,20 @@ export default function ResumeEditorV2({
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [exportSettings, setExportSettings] = useState({
     template: 'standard',
+    pageSize: 'letter',
     fontFamily: 'Times New Roman',
     nameSize: 40,
     sectionHeadersSize: 11,
     subHeadersSize: 10.5,
     bodyTextSize: 10,
-    sectionSpacing: 10,
-    entrySpacing: 8,
+    sectionSpacing: 20,
+    entrySpacing: 12,
     lineSpacing: 10,
     topBottomMargin: 20,
     sideMargins: 33,
     alignTextLeftRight: false,
+    pageWidth: 850,
+    pageHeight: 1100,
   });
 
   // Autosave state
@@ -6252,17 +6255,20 @@ export default function ResumeEditorV2({
   const handleResetFormatting = () => {
     setExportSettings({
       template: 'standard',
+      pageSize: 'letter',
       fontFamily: 'Times New Roman',
       nameSize: 40,
       sectionHeadersSize: 11,
       subHeadersSize: 10.5,
       bodyTextSize: 10,
-      sectionSpacing: 10,
-      entrySpacing: 8,
+      sectionSpacing: 20,
+      entrySpacing: 12,
       lineSpacing: 10,
       topBottomMargin: 20,
       sideMargins: 33,
       alignTextLeftRight: false,
+      pageWidth: 850,
+      pageHeight: 1100,
     });
   };
 
@@ -7103,6 +7109,8 @@ export default function ResumeEditorV2({
                     topBottomMargin: exportSettings.topBottomMargin, // Add topBottomMargin from export settings
                     sideMargins: exportSettings.sideMargins, // Add sideMargins from export settings
                     alignTextLeftRight: exportSettings.alignTextLeftRight, // Add alignTextLeftRight from export settings
+                    pageWidth: exportSettings.pageWidth, // Add pageWidth from export settings
+                    pageHeight: exportSettings.pageHeight, // Add pageHeight from export settings
                     sectionOrder: sectionOrder, // Add sectionOrder to transformed data
                     content: resumeData.content,
                     strengths: resumeData.strengths,
@@ -7183,8 +7191,16 @@ export default function ResumeEditorV2({
                 </Typography>
                 <FormControl fullWidth sx={{ mb: 2 }}>
                   <Select
-                    value={exportSettings.template}
-                    onChange={(e) => setExportSettings(prev => ({ ...prev, template: e.target.value }))}
+                    value={exportSettings.pageSize}
+                    onChange={(e) => {
+                      const newPageSize = e.target.value;
+                      setExportSettings(prev => ({
+                        ...prev,
+                        pageSize: newPageSize,
+                        pageWidth: newPageSize === 'letter' ? 850 : 794,
+                        pageHeight: newPageSize === 'letter' ? 1100 : 1123,
+                      }));
+                    }}
                     sx={{
                       height: 33,
                       fontSize: 14,
@@ -7223,8 +7239,8 @@ export default function ResumeEditorV2({
                       },
                     }}
                   >
-                    <MenuItem value="standard" sx={{ fontSize: 14 }}>Letter (8.5&quot; x 11&quot;)</MenuItem>
-                    <MenuItem value="compact" sx={{ fontSize: 14 }}>Compact</MenuItem>
+                    <MenuItem value="letter" sx={{ fontSize: 14 }}>Letter (8.5&quot; x 11&quot;)</MenuItem>
+                    <MenuItem value="a4" sx={{ fontSize: 14 }}>A4 (210mm x 297mm)</MenuItem>
                   </Select>
                 </FormControl>
                 
@@ -7247,7 +7263,12 @@ export default function ResumeEditorV2({
                       color: 'black',
                     })
                   }}
-                  onClick={() => setExportSettings(prev => ({ ...prev, template: 'standard' }))}
+                  onClick={() => setExportSettings(prev => ({ 
+                    ...prev, 
+                    template: 'standard',
+                    sectionSpacing: 20,
+                    entrySpacing: 12
+                  }))}
                   >
                     <Typography variant="body2" fontWeight={500}>Standard</Typography>
                     {exportSettings.template === 'standard' && (
@@ -7277,7 +7298,12 @@ export default function ResumeEditorV2({
                       color: 'black',
                     })
                   }}
-                  onClick={() => setExportSettings(prev => ({ ...prev, template: 'compact' }))}
+                  onClick={() => setExportSettings(prev => ({ 
+                    ...prev, 
+                    template: 'compact',
+                    sectionSpacing: 10,
+                    entrySpacing: 6
+                  }))}
                   >
                     <Typography variant="body2" fontWeight={500}>Compact</Typography>
                     {exportSettings.template === 'compact' && (

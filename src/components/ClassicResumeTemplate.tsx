@@ -16,6 +16,8 @@ interface ResumeData {
   sideMargins?: number; // Left and right margins
   alignTextLeftRight?: boolean; // Whether to justify text
   sectionOrder?: string[]; // Array of section names in display order
+  pageWidth?: number; // Page width in pixels
+  pageHeight?: number; // Page height in pixels
   content: {
     personalInfo: {
       name: string;
@@ -1614,8 +1616,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           background: '#fff', 
           color: '#000', 
           padding: `${data.topBottomMargin !== undefined ? data.topBottomMargin : 40}px ${data.sideMargins !== undefined ? data.sideMargins : 40}px`,
-          width: '850px', // Match modern template width
-          height: '1100px', // Letter size aspect ratio: 8.5:11 = 0.773, 850/1100 = 0.773 ✓
+          width: `${data.pageWidth || 850}px`, // Use page width from export settings
+          height: `${data.pageHeight || 1100}px`, // Use page height from export settings
           margin: '0 auto',
           marginBottom: pageIndex < pages.length - 1 ? '20px' : '0',
           lineHeight: '1.2', // Default line height for the container
