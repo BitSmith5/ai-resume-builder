@@ -9,6 +9,12 @@ interface ResumeData {
   sectionHeadersSize?: number; // Font size for section headers
   subHeadersSize?: number; // Font size for sub-headers (job titles, company names, etc.)
   bodyTextSize?: number; // Font size for body text
+  sectionSpacing?: number; // Spacing between sections
+  entrySpacing?: number; // Spacing between subsections
+  lineSpacing?: number; // Line spacing for text
+  topBottomMargin?: number; // Top and bottom margins
+  sideMargins?: number; // Left and right margins
+  alignTextLeftRight?: boolean; // Whether to justify text
   sectionOrder?: string[]; // Array of section names in display order
   content: {
     personalInfo: {
@@ -875,7 +881,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderProfessionalSummary = () => {
     if (!personalInfo.summary) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -886,7 +892,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Professional Summary
         </h2>
-        <p style={{ fontSize: `${data.bodyTextSize || 14}px`, margin: '0', textAlign: 'justify' }}>
+        <p style={{ 
+          fontSize: `${data.bodyTextSize || 14}px`, 
+          margin: '0', 
+          lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+        }}>
           {personalInfo.summary}
         </p>
       </div>
@@ -896,7 +907,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderTechnicalSkills = (pageContent: PageContent) => {
     if (pageContent.skillCategories.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         {!pageContent.skillCategoriesStarted && (
           <h2 style={{ 
             fontSize: `${data.sectionHeadersSize || 18}px`, 
@@ -913,12 +924,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.bodyTextSize || 14}px`, 
           margin: '0', 
           paddingLeft: '20px',
-          listStyleType: 'disc'
+          listStyleType: 'disc',
+          lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
         }}>
           {pageContent.skillCategories.map((category, categoryIndex) => (
             <li key={categoryIndex} style={{ 
-              marginBottom: '8px',
-              fontWeight: 'bold'
+              marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '8px',
+              fontWeight: 'bold',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
             }}>
               {category.title}: {category.skills.map((skill, skillIndex) => (
                 <span key={skillIndex} style={{ 
@@ -938,7 +951,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderWorkExperience = (pageContent: PageContent) => {
     if (pageContent.workExperience.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         {!pageContent.workExperienceStarted && (
           <h2 style={{ 
             fontSize: `${data.sectionHeadersSize || 18}px`, 
@@ -952,12 +965,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </h2>
         )}
         {pageContent.workExperience.map((exp, index) => (
-          <div key={index} style={{ marginBottom: '16px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
                 fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
                 {exp.position}
@@ -971,6 +985,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '8px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               {exp.company}
@@ -985,10 +1000,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 fontSize: `${data.bodyTextSize || 13}px`, 
                 margin: '0', 
                 paddingLeft: '20px',
-                textAlign: 'justify'
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
               }}>
                 {exp.bulletPoints.map((bullet, bulletIndex) => (
-                  <li key={bulletIndex} style={{ marginBottom: '2px' }}>
+                  <li key={bulletIndex} style={{ 
+                    marginBottom: '2px',
+                    lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
+                  }}>
                     {bullet.description}
                   </li>
                 ))}
@@ -1003,7 +1022,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderProjects = (pageContent: PageContent) => {
     if (pageContent.projects.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         {!pageContent.projectsStarted && (
           <h2 style={{ 
             fontSize: `${data.sectionHeadersSize || 18}px`, 
@@ -1017,12 +1036,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </h2>
         )}
         {pageContent.projects.map((project, index) => (
-          <div key={index} style={{ marginBottom: '16px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
                 fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
                 {project.title}
@@ -1036,6 +1056,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '8px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               Technologies: {project.technologies.join(', ')}
@@ -1045,10 +1066,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 fontSize: `${data.bodyTextSize || 13}px`, 
                 margin: '0', 
                 paddingLeft: '20px',
-                textAlign: 'justify'
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
               }}>
                 {project.bulletPoints.map((bullet, bulletIndex) => (
-                  <li key={bulletIndex} style={{ marginBottom: '2px' }}>
+                  <li key={bulletIndex} style={{ 
+                    marginBottom: '2px',
+                    lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
+                  }}>
                     {bullet.description}
                   </li>
                 ))}
@@ -1070,7 +1095,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderCourses = (pageContent: PageContent) => {
     if (pageContent.courses.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         {!pageContent.coursesStarted && (
           <h2 style={{ 
             fontSize: `${data.sectionHeadersSize || 18}px`, 
@@ -1084,12 +1109,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </h2>
         )}
         {pageContent.courses.map((course, index) => (
-          <div key={index} style={{ marginBottom: '12px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
                 fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
                 {course.title}
@@ -1100,6 +1126,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '3px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               {course.provider}
@@ -1120,7 +1147,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderEducation = (pageContent: PageContent) => {
     if (pageContent.education.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         {!pageContent.educationStarted && (
           <h2 style={{ 
             fontSize: `${data.sectionHeadersSize || 18}px`, 
@@ -1134,12 +1161,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           </h2>
         )}
         {pageContent.education.map((edu, index) => (
-          <div key={index} style={{ marginBottom: '12px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
                 fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
                 {edu.degree} in {edu.field}
@@ -1153,6 +1181,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '3px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               {edu.institution}
@@ -1171,7 +1200,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderSkills = (pageContent: PageContent) => {
     if (pageContent.skills.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -1182,12 +1211,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Skills
         </h2>
-        <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+        <div style={{ 
+          fontSize: `${data.bodyTextSize || 14}px`,
+          lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
+        }}>
           {pageContent.skills.map((strength, index) => (
             <span key={index} style={{ 
               display: 'inline-block',
               marginRight: '15px',
-              marginBottom: '4px',
+              marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '4px',
               fontWeight: 'bold'
             }}>
               {strength.skillName} ({strength.rating}/10)
@@ -1201,7 +1233,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderInterests = (pageContent: PageContent) => {
     if (pageContent.interests.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -1212,12 +1244,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Interests
         </h2>
-        <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+        <div style={{ 
+          fontSize: `${data.bodyTextSize || 14}px`,
+          lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
+        }}>
           {pageContent.interests.map((interest, index) => (
             <span key={index} style={{ 
               display: 'inline-block',
               marginRight: '15px',
-              marginBottom: '4px'
+              marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '4px'
             }}>
               {interest.icon} {interest.name}
             </span>
@@ -1230,10 +1265,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderLanguages = (pageContent: PageContent) => {
     if (pageContent.languages.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         {!pageContent.languagesStarted && (
           <h2 style={{ 
-            fontSize: '18px', 
+            fontSize: `${data.sectionHeadersSize || 18}px`, 
             fontWeight: 'bold', 
             margin: '0 0 8px 0',
             textTransform: 'uppercase',
@@ -1243,7 +1278,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             Languages
           </h2>
         )}
-        <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+        <div style={{ 
+          fontSize: `${data.bodyTextSize || 14}px`, 
+          fontWeight: 'bold',
+          lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+        }}>
           {pageContent.languages.map((language) => 
             `${language.name} (${language.proficiency})`
           ).join(', ')}
@@ -1255,9 +1295,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderPublications = (pageContent: PageContent) => {
     if (pageContent.publications.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         <h2 style={{ 
-          fontSize: '18px', 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 12px 0',
           textTransform: 'uppercase',
@@ -1267,12 +1307,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Publications
         </h2>
         {pageContent.publications.map((publication, index) => (
-          <div key={index} style={{ marginBottom: '12px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
                 fontSize: '16px', 
                 fontWeight: 'bold', 
                 margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
                 {publication.title}
@@ -1286,6 +1327,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '3px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               {publication.authors}
@@ -1318,9 +1360,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderAwards = (pageContent: PageContent) => {
     if (pageContent.awards.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         <h2 style={{ 
-          fontSize: '18px', 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 12px 0',
           textTransform: 'uppercase',
@@ -1330,12 +1372,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Awards and Recognition
         </h2>
         {pageContent.awards.map((award, index) => (
-          <div key={index} style={{ marginBottom: '16px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
                 fontSize: '16px', 
                 fontWeight: 'bold', 
                 margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
                 {award.title}
@@ -1349,19 +1392,24 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '8px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               {award.organization}
             </div>
             {award.bulletPoints.length > 0 && (
               <ul style={{ 
-                fontSize: '13px', 
+                fontSize: `${data.bodyTextSize || 13}px`, 
                 margin: '0', 
                 paddingLeft: '20px',
-                textAlign: 'justify'
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
               }}>
                 {award.bulletPoints.map((bullet, bulletIndex) => (
-                  <li key={bulletIndex} style={{ marginBottom: '2px' }}>
+                  <li key={bulletIndex} style={{ 
+                    marginBottom: '2px',
+                    lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
+                  }}>
                     {bullet.description}
                   </li>
                 ))}
@@ -1376,9 +1424,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderReferences = (pageContent: PageContent) => {
     if (!pageContent.references || pageContent.references.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         <h2 style={{ 
-          fontSize: '18px', 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 12px 0',
           textTransform: 'uppercase',
@@ -1388,7 +1436,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           References
         </h2>
         {pageContent.references!.map((reference, index) => (
-          <div key={index} style={{ marginBottom: '16px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ 
               fontSize: '16px', 
               fontWeight: 'bold', 
@@ -1443,9 +1491,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderVolunteerExperience = (pageContent: PageContent) => {
     if (pageContent.volunteerExperience.length === 0) return null;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
         <h2 style={{ 
-          fontSize: '18px', 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 12px 0',
           textTransform: 'uppercase',
@@ -1455,12 +1503,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Volunteer Experience
         </h2>
         {pageContent.volunteerExperience.map((volunteer, index) => (
-          <div key={index} style={{ marginBottom: '16px' }}>
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
                 fontSize: '16px', 
                 fontWeight: 'bold', 
                 margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
                 {volunteer.position}
@@ -1474,6 +1523,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '8px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               {volunteer.organization}
@@ -1494,13 +1544,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             )}
             {volunteer.bulletPoints.length > 0 && (
               <ul style={{ 
-                fontSize: '13px', 
+                fontSize: `${data.bodyTextSize || 13}px`, 
                 margin: '0', 
                 paddingLeft: '20px',
-                textAlign: 'justify'
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
               }}>
                 {volunteer.bulletPoints.map((bullet, bulletIndex) => (
-                  <li key={bulletIndex} style={{ marginBottom: '2px' }}>
+                  <li key={bulletIndex} style={{ 
+                    marginBottom: '2px',
+                    lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
+                  }}>
                     {bullet.description}
                   </li>
                 ))}
@@ -1559,12 +1613,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontFamily: data.fontFamily || 'Times New Roman, serif', 
           background: '#fff', 
           color: '#000', 
-          padding: '40px',
+          padding: `${data.topBottomMargin !== undefined ? data.topBottomMargin : 40}px ${data.sideMargins !== undefined ? data.sideMargins : 40}px`,
           width: '850px', // Match modern template width
           height: '1100px', // Letter size aspect ratio: 8.5:11 = 0.773, 850/1100 = 0.773 ✓
           margin: '0 auto',
           marginBottom: pageIndex < pages.length - 1 ? '20px' : '0',
-          lineHeight: '1.6',
+          lineHeight: '1.2', // Default line height for the container
           position: 'relative',
           overflow: 'hidden',
           pageBreakAfter: pageIndex < pages.length - 1 ? 'always' : 'auto',
@@ -1575,8 +1629,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       >
         {/* Content wrapper that respects bottom margin */}
         <div style={{ 
-          paddingBottom: '80px', // Ensure content doesn't overlap with bottom margin
-          minHeight: 'calc(100% - 80px)' // Ensure content area respects bottom margin
+          paddingBottom: data.topBottomMargin !== undefined ? `${data.topBottomMargin}px` : '80px', // Ensure content doesn't overlap with bottom margin
+          minHeight: data.topBottomMargin !== undefined ? `calc(100% - ${data.topBottomMargin}px)` : 'calc(100% - 80px)' // Ensure content area respects bottom margin
         }}>
           {/* Header - only on first page */}
           {isFirstPage && renderHeader()}

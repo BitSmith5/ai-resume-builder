@@ -353,11 +353,11 @@ export default function ResumeEditorV2({
     sectionHeadersSize: 11,
     subHeadersSize: 10.5,
     bodyTextSize: 10,
-    sectionSpacing: 2,
-    entrySpacing: 0,
-    lineSpacing: 12,
-    topBottomMargin: 26,
-    sideMargins: 36,
+    sectionSpacing: 10,
+    entrySpacing: 8,
+    lineSpacing: 10,
+    topBottomMargin: 20,
+    sideMargins: 33,
     alignTextLeftRight: false,
   });
 
@@ -6247,11 +6247,11 @@ export default function ResumeEditorV2({
       sectionHeadersSize: 11,
       subHeadersSize: 10.5,
       bodyTextSize: 10,
-      sectionSpacing: 2,
-      entrySpacing: 0,
-      lineSpacing: 12,
-      topBottomMargin: 26,
-      sideMargins: 36,
+      sectionSpacing: 10,
+      entrySpacing: 8,
+      lineSpacing: 10,
+      topBottomMargin: 20,
+      sideMargins: 33,
       alignTextLeftRight: false,
     });
   };
@@ -7087,6 +7087,12 @@ export default function ResumeEditorV2({
                     sectionHeadersSize: exportSettings.sectionHeadersSize, // Add sectionHeadersSize from export settings
                     subHeadersSize: exportSettings.subHeadersSize, // Add subHeadersSize from export settings
                     bodyTextSize: exportSettings.bodyTextSize, // Add bodyTextSize from export settings
+                    sectionSpacing: exportSettings.sectionSpacing, // Add sectionSpacing from export settings
+                    entrySpacing: exportSettings.entrySpacing, // Add entrySpacing from export settings
+                    lineSpacing: exportSettings.lineSpacing, // Add lineSpacing from export settings
+                    topBottomMargin: exportSettings.topBottomMargin, // Add topBottomMargin from export settings
+                    sideMargins: exportSettings.sideMargins, // Add sideMargins from export settings
+                    alignTextLeftRight: exportSettings.alignTextLeftRight, // Add alignTextLeftRight from export settings
                     sectionOrder: sectionOrder, // Add sectionOrder to transformed data
                     content: resumeData.content,
                     strengths: resumeData.strengths,
@@ -7614,8 +7620,8 @@ export default function ResumeEditorV2({
                     <Slider
                       value={exportSettings.sectionSpacing}
                       onChange={(_, value) => setExportSettings(prev => ({ ...prev, sectionSpacing: value as number }))}
-                      min={0}
-                      max={10}
+                      min={4}
+                      max={20}
                       step={1}
                       valueLabelDisplay="auto"
                       valueLabelFormat={(value) => `${value} pt`}
@@ -7672,8 +7678,8 @@ export default function ResumeEditorV2({
                     <Slider
                       value={exportSettings.entrySpacing}
                       onChange={(_, value) => setExportSettings(prev => ({ ...prev, entrySpacing: value as number }))}
-                      min={0}
-                      max={10}
+                      min={4}
+                      max={16}
                       step={1}
                       valueLabelDisplay="auto"
                       valueLabelFormat={(value) => `${value} pt`}
