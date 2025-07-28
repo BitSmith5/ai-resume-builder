@@ -7331,6 +7331,10 @@ export default function ResumeEditorV2({
                     <MenuItem value="Arial">Arial</MenuItem>
                     <MenuItem value="Calibri">Calibri</MenuItem>
                     <MenuItem value="Georgia">Georgia</MenuItem>
+                    <MenuItem value="Helvetica">Helvetica</MenuItem>
+                    <MenuItem value="Verdana">Verdana</MenuItem>
+                    <MenuItem value="Garamond">Garamond</MenuItem>
+                    <MenuItem value="Bookman">Bookman</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -7384,11 +7388,24 @@ export default function ResumeEditorV2({
                                 backgroundColor: COLORS.selected,
                               },
                             },
+                            '&::-webkit-scrollbar': {
+                              width: '8px',
+                            },
+                            '&::-webkit-scrollbar-track': {
+                              background: 'transparent',
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                              background: '#ccc',
+                              borderRadius: '4px',
+                            },
+                            '&::-webkit-scrollbar-thumb:hover': {
+                              background: '#999',
+                            },
                           },
                         },
                       }}
                     >
-                      {[18, 19, 20, 21, 22, 23, 24, 25, 26].map((size) => (
+                      {[18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52].map((size) => (
                         <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
                       ))}
                     </Select>
