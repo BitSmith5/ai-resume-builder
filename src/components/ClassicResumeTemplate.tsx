@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
 interface ResumeData {
   title: string;
@@ -145,7 +145,7 @@ interface SectionInfo {
   name: string;
   element: HTMLElement;
   height: number;
-  content: any;
+  content: unknown; // Changed from 'any' to 'unknown'
   type: string;
 }
 
@@ -217,7 +217,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   };
 
   // Calculate pages based on actual DOM measurements
-  const calculatePagesFromDOM = (): PageInfo[] => {
+  const calculatePagesFromDOM = useCallback((): PageInfo[] => {
     const targetPageHeight = data.pageHeight || 1100;
     const paddingBuffer = 20;
     const headerHeight = data.profilePicture ? 180 : 120; // Header height for first page
@@ -289,7 +289,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
 
     return pages;
-  };
+  }, [data.pageHeight, data.profilePicture, data.topBottomMargin, data.sectionOrder, data.deletedSections]);
 
   // Effect to measure sections and calculate pages
   useEffect(() => {
@@ -303,7 +303,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [data]);
+  }, [calculatePagesFromDOM]);
 
   // Render header (same for all pages)
   const renderHeader = () => (
