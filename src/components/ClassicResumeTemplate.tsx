@@ -289,20 +289,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
 
     return pages;
-  }, [
-    data.pageHeight, 
-    data.profilePicture, 
-    data.topBottomMargin, 
-    data.sectionOrder, 
-    data.deletedSections,
-    // Add missing export settings dependencies
-    data.sectionHeadersSize,
-    data.subHeadersSize,
-    data.bodyTextSize,
-    data.sectionSpacing,
-    data.entrySpacing,
-    data.lineSpacing
-  ]);
+  }, [data.pageHeight, data.profilePicture, data.topBottomMargin, data.sectionOrder, data.deletedSections]);
 
   // Effect to measure sections and calculate pages
   useEffect(() => {

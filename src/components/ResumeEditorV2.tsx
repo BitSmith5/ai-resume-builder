@@ -7,7 +7,7 @@
 // - Users can re-add deleted sections through the "Add Section" button
 // - Section order and deletion state are saved automatically
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
