@@ -7,7 +7,7 @@
 // - Users can re-add deleted sections through the "Add Section" button
 // - Section order and deletion state are saved automatically
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -7134,7 +7134,6 @@ export default function ResumeEditorV2({
                     volunteerExperience: resumeData.volunteerExperience,
                     references: resumeData.references
                   };
-
                   
                   return (
                     <Box sx={{ 
@@ -7143,7 +7142,10 @@ export default function ResumeEditorV2({
                       width: '125%', // 100% / 0.80 = 125%
                       height: '125%',
                     }}>
-                      <ClassicResumeTemplate data={transformedData} />
+                      <ClassicResumeTemplate 
+                        key={`${exportSettings.sectionHeadersSize}-${exportSettings.subHeadersSize}-${exportSettings.bodyTextSize}-${exportSettings.sectionSpacing}-${exportSettings.entrySpacing}-${exportSettings.lineSpacing}`}
+                        data={transformedData} 
+                      />
                     </Box>
                   );
                 })()}
