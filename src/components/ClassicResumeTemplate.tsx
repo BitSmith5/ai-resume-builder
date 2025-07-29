@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 interface ResumeData {
   title: string;
@@ -133,138 +133,34 @@ interface ResumeData {
     phone: string;
     relationship: string;
   }>;
+  deletedSections?: string[]; // New field for deleted sections
 }
 
 interface ClassicResumeTemplateProps {
   data: ResumeData;
 }
 
-interface PageContent {
-  workExperience: Array<{
-    company: string;
-    position: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    city?: string;
-    state?: string;
-    bulletPoints: Array<{
-      description: string;
-    }>;
-  }>;
-  education: Array<{
-    institution: string;
-    degree: string;
-    field: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    gpa?: number;
-  }>;
-  courses: Array<{
-    title: string;
-    provider: string;
-    link?: string;
-  }>;
-  projects: Array<{
-    id: string;
-    title: string;
-    bulletPoints: Array<{
-      id: string;
-      description: string;
-    }>;
-    technologies: string[];
-    link: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-  }>;
-  skills: Array<{
-    skillName: string;
-    rating: number;
-  }>;
-  skillCategories: Array<{
-    id: string;
-    title: string;
-    skills: Array<{
-      id: string;
-      name: string;
-    }>;
-  }>;
-  interests: Array<{
-    name: string;
-    icon: string;
-  }>;
-  languages: Array<{
-    id: string;
-    name: string;
-    proficiency: string;
-  }>;
-  publications: Array<{
-    id: string;
-    title: string;
-    authors: string;
-    journal: string;
-    year: string;
-    doi: string;
-    link: string;
-  }>;
-  awards: Array<{
-    id: string;
-    title: string;
-    organization: string;
-    year: string;
-    bulletPoints: Array<{
-      id: string;
-      description: string;
-    }>;
-  }>;
-  volunteerExperience: Array<{
-    id: string;
-    organization: string;
-    position: string;
-    location: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    bulletPoints: Array<{
-      id: string;
-      description: string;
-    }>;
-    hoursPerWeek: string;
-  }>;
-  references?: Array<{
-    id: string;
-    name: string;
-    title: string;
-    company: string;
-    email: string;
-    phone: string;
-    relationship: string;
-  }>;
-  // Professional Summary flag to track if it should be rendered on this page
-  hasProfessionalSummary?: boolean;
-  // Flags to track which sections have already started on previous pages
-  workExperienceStarted: boolean;
-  coursesStarted: boolean;
-  educationStarted: boolean;
-  skillCategoriesStarted: boolean;
-  projectsStarted: boolean;
-  languagesStarted: boolean;
-  publicationsStarted: boolean;
-  awardsStarted: boolean;
-  volunteerExperienceStarted: boolean;
-  referencesStarted?: boolean;
+interface SectionInfo {
+  id: string;
+  name: string;
+  element: HTMLElement;
+  height: number;
+  content: any;
+  type: string;
+}
+
+interface PageInfo {
+  sections: SectionInfo[];
+  totalHeight: number;
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
   const { personalInfo } = data.content;
+  const [pages, setPages] = useState<PageInfo[]>([]);
+  const [isMeasuring, setIsMeasuring] = useState(true);
+  const resumeRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
 
-
-
-  
-
-  
   // Function to format dates as MMM YYYY
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
@@ -290,123 +186,49 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
   };
 
-  // Calculate content distribution across pages
-  const calculatePages = (): PageContent[] => {
-    const pages: PageContent[] = [];
-    const maxContentHeight = 1050; // Increased to allow more content per page
-    const bottomMargin = 50; // Reduced to allow more content
-    const headerHeight = 180; // Only on first page
-    const itemSpacing = 12; // Reduced from 15 to be more compact
+  // Get actual height of an element including margins
+  const getElementHeight = (element: HTMLElement): number => {
+    const rect = element.getBoundingClientRect();
+    const styles = window.getComputedStyle(element);
     
-    // Helper function to estimate content height
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const estimateContentHeight = (content: any, type: 'work' | 'education' | 'course' | 'skillCategories' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'summary'): number => {
-      let height = 0;
-      
-      switch (type) {
-        case 'work':
-          // Simplified height calculation for work experience
-          // Base height for position, company, and dates
-          height = 60; // Reduced from complex calculation
-          
-          if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            // Each bullet point: 20px per bullet (reduced from 24px)
-            height += content.bulletPoints.length * 20;
-          }
-          break;
-        case 'education':
-          height = 50; // Reduced from 60
-          break;
-        case 'course':
-          height = 40; // Reduced from 45
-          break;
-        case 'project':
-          // Simplified height calculation for projects
-          height = 60; // Reduced base height for project title and dates
-          if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 16; // Reduced from 18px per bullet
-          }
-          // Add height for technologies
-          if ('technologies' in content && content.technologies && content.technologies.length > 0) {
-            height += 15; // Reduced from 18px for technologies
-          }
-          break;
-        case 'skillCategories':
-          // Simplified height calculation for skill categories
-          height = 30; // Reduced base height for category title
-          if ('skills' in content && content.skills && content.skills.length > 0) {
-            // Each row of skills (3 skills per row): 15px per row (reduced from 18px)
-            height += Math.ceil(content.skills.length / 3) * 15;
-          }
-          break;
-        case 'language':
-          height = 30; // Language name + proficiency
-          break;
-        case 'publication':
-          height = 60; // Publication title + authors + journal + year
-          break;
-        case 'award':
-          // Simplified height calculation for awards
-          height = 60; // Reduced base height for award title and organization
-          if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 16; // Reduced from 18px per bullet
-          }
-          break;
-        case 'volunteer':
-          // Simplified height calculation for volunteer experience
-          height = 60; // Reduced base height for volunteer position and organization
-          if ('bulletPoints' in content && content.bulletPoints && content.bulletPoints.length > 0) {
-            height += content.bulletPoints.length * 16; // Reduced from 18px per bullet
-          }
-          break;
-        case 'reference':
-          height = 80; // Reference name + title + company + contact info
-          break;
-        case 'skill':
-          height = 20; // Skill name + rating
-          break;
-        case 'interest':
-          height = 20; // Interest name + icon
-          break;
-        case 'summary':
-          height = 40; // Summary text
-          break;
-      }
-      
-      return height;
-    };
+    // Get the element's height including padding and border
+    let height = rect.height;
     
-    // Helper function to estimate section header height
-    const estimateSectionHeaderHeight = (): number => {
-      return 40; // Reduced from 45 - Section title + border + spacing
-    };
+    // Add margins (top + bottom)
+    const marginTop = parseFloat(styles.marginTop) || 0;
+    const marginBottom = parseFloat(styles.marginBottom) || 0;
+    height += marginTop + marginBottom;
     
+    return height;
+  };
 
+  // Calculate collapsed margin height between elements
+  const getCollapsedMarginHeight = (prevElement: HTMLElement | null, currentElement: HTMLElement): number => {
+    if (!prevElement) return 0;
     
-    // NEW APPROACH: Use sectionOrder from data to determine section order
-    // Create a mapping from section names to data properties and their types
-    const sectionMapping: Record<string, {
-      dataKey: keyof ResumeData;
-      type: 'work' | 'education' | 'course' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'skillCategories' | 'summary';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: any[];
-    }> = {
-      'Professional Summary': { dataKey: 'content', type: 'summary', items: data.content.personalInfo.summary ? [data.content.personalInfo] : [] },
-      'Work Experience': { dataKey: 'workExperience', type: 'work', items: data.workExperience || [] },
-      'Education': { dataKey: 'education', type: 'education', items: data.education || [] },
-      'Projects': { dataKey: 'projects', type: 'project', items: data.projects || [] },
-      'Courses': { dataKey: 'courses', type: 'course', items: data.courses || [] },
-      'Languages': { dataKey: 'languages', type: 'language', items: data.languages || [] },
-      'Publications': { dataKey: 'publications', type: 'publication', items: data.publications || [] },
-      'Awards': { dataKey: 'awards', type: 'award', items: data.awards || [] },
-      'Volunteer Experience': { dataKey: 'volunteerExperience', type: 'volunteer', items: data.volunteerExperience || [] },
-      'References': { dataKey: 'references', type: 'reference', items: data.references || [] },
-      'Skills': { dataKey: 'strengths', type: 'skill', items: data.strengths || [] },
-      'Technical Skills': { dataKey: 'skillCategories', type: 'skillCategories', items: data.skillCategories || [] },
-      'Interests': { dataKey: 'interests', type: 'interest', items: data.interests || [] },
-    };
+    const prevStyles = window.getComputedStyle(prevElement);
+    const currentStyles = window.getComputedStyle(currentElement);
+    
+    const prevMarginBottom = parseFloat(prevStyles.marginBottom) || 0;
+    const currentMarginTop = parseFloat(currentStyles.marginTop) || 0;
+    
+    // When margins collapse, the larger margin wins
+    return Math.max(prevMarginBottom, currentMarginTop);
+  };
 
-    // Get the section order from data, or use a default order if not provided
+  // Calculate pages based on actual DOM measurements
+  const calculatePagesFromDOM = (): PageInfo[] => {
+    const targetPageHeight = data.pageHeight || 1100;
+    const paddingBuffer = 20;
+    const headerHeight = data.profilePicture ? 180 : 120; // Header height for first page
+    const maxContentHeight = targetPageHeight - paddingBuffer;
+    const bottomMargin = data.topBottomMargin || 40; // Bottom margin to respect
+    
+    const pages: PageInfo[] = [];
+    let currentPage: PageInfo = { sections: [], totalHeight: headerHeight };
+    let prevSection: HTMLElement | null = null;
+
+    // Get all section elements in order, but only include sections that have data and are not deleted
     const sectionOrder = data.sectionOrder || [
       'Professional Summary',
       'Technical Skills',
@@ -423,366 +245,66 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       'Interests'
     ];
 
+    // Filter out deleted sections
+    const deletedSections = data.deletedSections || [];
+    const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
 
+    for (const sectionName of activeSections) {
+      const sectionId = sectionName.toLowerCase().replace(/\s+/g, '-');
+      const sectionElement = sectionRefs.current.get(sectionId);
+      
+      if (!sectionElement) continue;
 
-    // Filter sections to only include those that have data and are in the sectionOrder
-    const orderedSections: Array<{
-      name: string;
-      type: 'work' | 'education' | 'course' | 'project' | 'language' | 'publication' | 'award' | 'volunteer' | 'reference' | 'skill' | 'interest' | 'skillCategories' | 'summary';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: any[];
-      height: number;
-    }> = [];
+      const sectionHeight = getElementHeight(sectionElement);
+      const collapsedMarginHeight = getCollapsedMarginHeight(prevSection, sectionElement);
+      const totalSectionHeight = sectionHeight + collapsedMarginHeight;
 
-    for (const sectionName of sectionOrder) {
-      const mapping = sectionMapping[sectionName];
-      if (mapping && mapping.items.length > 0) {
-        const sectionHeight = estimateSectionHeaderHeight() + mapping.items.reduce((total, item) => total + estimateContentHeight(item, mapping.type) + itemSpacing, 0);
-        orderedSections.push({
-          name: sectionName,
-          type: mapping.type,
-          items: mapping.items,
-          height: sectionHeight
-        });
+      // Check if this section would overflow the current page
+      // Account for bottom margin to ensure no content goes beyond it
+      const availableHeight = maxContentHeight - bottomMargin - currentPage.totalHeight;
+      
+      if (totalSectionHeight > availableHeight && currentPage.sections.length > 0) {
+        // Start a new page
+        pages.push(currentPage);
+        currentPage = { sections: [], totalHeight: 0 }; // No header on subsequent pages
+        prevSection = null; // Reset prev section for new page
       }
+
+      // Add section to current page
+      currentPage.sections.push({
+        id: sectionId,
+        name: sectionName,
+        element: sectionElement,
+        height: sectionHeight,
+        content: null, // We'll get content from the element
+        type: sectionName
+      });
+      currentPage.totalHeight += totalSectionHeight;
+      prevSection = sectionElement;
     }
 
-    // Initialize current page
-    let currentPage: PageContent = {
-      workExperience: [],
-      education: [],
-      courses: [],
-      projects: [],
-      skills: [],
-      skillCategories: [],
-      interests: [],
-      languages: [],
-      publications: [],
-      awards: [],
-      volunteerExperience: [],
-      references: [],
-      workExperienceStarted: false,
-      coursesStarted: false,
-      educationStarted: false,
-      skillCategoriesStarted: false,
-      projectsStarted: false,
-      languagesStarted: false,
-      publicationsStarted: false,
-      awardsStarted: false,
-      volunteerExperienceStarted: false,
-      referencesStarted: false
-    };
-    
-    let currentPageHeight = headerHeight; // Start with header height for first page
-
-    // Process sections in the order specified by sectionOrder
-    for (const section of orderedSections) {
-      const sectionHeaderHeight = estimateSectionHeaderHeight();
-      
-      // Check if section header plus at least one item fits
-      // This ensures we don't start a section if there's only room for the header
-      const minItemHeight = section.items.length > 0 ? estimateContentHeight(section.items[0], section.type) + itemSpacing : 0;
-      const totalMinHeight = sectionHeaderHeight + minItemHeight;
-      
-      // Debug logging for section space utilization (commented out for production)
-      // console.log(`Section "${section.name}":`, {
-      //   currentPageHeight,
-      //   sectionHeaderHeight,
-      //   minItemHeight,
-      //   totalMinHeight,
-      //   availableHeight: maxContentHeight - bottomMargin - currentPageHeight,
-      //   willStartNewPage: currentPageHeight + totalMinHeight > maxContentHeight - bottomMargin
-      // });
-      
-      if (currentPageHeight + totalMinHeight > maxContentHeight - bottomMargin) {
-        // Start new page
-        if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0 || currentPage.skills.length > 0 || currentPage.interests.length > 0 || currentPage.publications.length > 0 || currentPage.awards.length > 0 || currentPage.volunteerExperience.length > 0 || (currentPage.references?.length || 0) > 0) {
-          pages.push(currentPage);
-        }
-        
-        currentPage = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          projects: [],
-          skills: [],
-          skillCategories: [],
-          interests: [],
-          languages: [],
-          publications: [],
-          awards: [],
-          volunteerExperience: [],
-          references: [],
-          workExperienceStarted: true,
-          coursesStarted: true,
-          educationStarted: true,
-          skillCategoriesStarted: true,
-          projectsStarted: true,
-          languagesStarted: true,
-          publicationsStarted: true,
-          awardsStarted: true,
-          volunteerExperienceStarted: true,
-          referencesStarted: true
-        };
-        currentPageHeight = 0;
-      }
-      
-      // Add section header
-      currentPageHeight += sectionHeaderHeight;
-      
-      // Set the appropriate started flag
-      switch (section.name) {
-        case 'Professional Summary':
-          // Professional Summary doesn't need a started flag since it's always rendered
-          break;
-        case 'Technical Skills':
-          currentPage.skillCategoriesStarted = false;
-          break;
-        case 'Work Experience':
-          currentPage.workExperienceStarted = false;
-          break;
-        case 'Education':
-          currentPage.educationStarted = false;
-          break;
-        case 'Projects':
-          currentPage.projectsStarted = false;
-          break;
-        case 'Courses':
-          currentPage.coursesStarted = false;
-          break;
-        case 'Languages':
-          currentPage.languagesStarted = false;
-          break;
-        case 'Publications':
-          currentPage.publicationsStarted = false;
-          break;
-        case 'Awards':
-          currentPage.awardsStarted = false;
-          break;
-        case 'Volunteer Experience':
-          currentPage.volunteerExperienceStarted = false;
-          break;
-        case 'References':
-          currentPage.referencesStarted = false;
-          break;
-      }
-      
-              // Process items individually for sections that should be kept together
-        // Note: Most sections are now processed individually for better space utilization
-        if (section.type === 'summary') {
-        // These sections should be kept together
-        const totalHeight = section.items.reduce((total, item) => total + estimateContentHeight(item, section.type), 0) + (section.items.length - 1) * itemSpacing;
-        
-                 if (currentPageHeight + totalHeight > maxContentHeight - bottomMargin) {
-           // Start new page for this section
-           if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0 || currentPage.publications.length > 0 || currentPage.awards.length > 0 || currentPage.volunteerExperience.length > 0 || (currentPage.references?.length || 0) > 0) {
-             pages.push(currentPage);
-           }
-          
-          currentPage = {
-            workExperience: [],
-            education: [],
-            courses: [],
-            projects: [],
-            skills: [],
-            skillCategories: [],
-            interests: [],
-            languages: [],
-            publications: [],
-            awards: [],
-            volunteerExperience: [],
-            references: [],
-            workExperienceStarted: true,
-            coursesStarted: true,
-            educationStarted: true,
-            skillCategoriesStarted: false, // Set to false since Technical Skills is starting on this page
-            projectsStarted: true,
-            languagesStarted: false,
-            publicationsStarted: true,
-            awardsStarted: true,
-            volunteerExperienceStarted: true,
-            referencesStarted: true
-          };
-          currentPageHeight = 0;
-          currentPageHeight += sectionHeaderHeight;
-        }
-        
-        // Add all items to current page
-        switch (section.name) {
-          case 'Professional Summary':
-            // Mark this page as having the Professional Summary
-            currentPage.hasProfessionalSummary = true;
-            break;
-        }
-        currentPageHeight += totalHeight;
-        continue;
-      }
-      
-      // For other sections, process items individually to allow splitting
-      // Skip Professional Summary as it's handled in the "kept together" section
-      if (section.name === 'Professional Summary') {
-        continue;
-      }
-      for (let i = 0; i < section.items.length; i++) {
-        const item = section.items[i];
-        const itemHeight = estimateContentHeight(item, section.type) + itemSpacing;
-        
-        // Check if this item fits on the current page
-        const availableHeight = maxContentHeight - bottomMargin - currentPageHeight;
-        
-        // Debug logging for work experience, projects, and technical skills items (commented out for production)
-        // if (section.name === 'Work Experience') {
-        //   console.log(`Work Experience Item ${i + 1}:`, {
-        //     itemHeight,
-        //     availableHeight,
-        //     currentPageHeight,
-        //     maxContentHeight,
-        //     bottomMargin,
-        //     willFit: itemHeight <= availableHeight
-        //   });
-        // }
-        // if (section.name === 'Projects') {
-        //   console.log(`Project ${i + 1}:`, {
-        //     itemHeight,
-        //     availableHeight,
-        //     currentPageHeight,
-        //     maxContentHeight,
-        //     bottomMargin,
-        //     willFit: itemHeight <= availableHeight
-        //   });
-        // }
-        // if (section.name === 'Technical Skills') {
-        //   console.log(`Technical Skills Category ${i + 1}:`, {
-        //     itemHeight,
-        //     availableHeight,
-        //     currentPageHeight,
-        //     maxContentHeight,
-        //     bottomMargin,
-        //     willFit: itemHeight <= availableHeight
-        //   });
-        // }
-        
-        if (itemHeight > availableHeight) {
-           // This item won't fit - start new page
-           if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0 || currentPage.publications.length > 0 || currentPage.awards.length > 0 || currentPage.volunteerExperience.length > 0 || (currentPage.references?.length || 0) > 0) {
-             pages.push(currentPage);
-           }
-          
-          currentPage = {
-            workExperience: [],
-            education: [],
-            courses: [],
-            projects: [],
-            skills: [],
-            skillCategories: [],
-            interests: [],
-            languages: [],
-            publications: [],
-            awards: [],
-            volunteerExperience: [],
-            references: [],
-            workExperienceStarted: section.name === 'Work Experience' ? true : false,
-            coursesStarted: section.name === 'Courses' ? true : false,
-            educationStarted: section.name === 'Education' ? true : false,
-            skillCategoriesStarted: section.name === 'Technical Skills' ? false : true,
-            projectsStarted: section.name === 'Projects' ? true : false,
-            languagesStarted: false,
-            publicationsStarted: section.name === 'Publications' ? true : false,
-            awardsStarted: section.name === 'Awards' ? true : false,
-            volunteerExperienceStarted: section.name === 'Volunteer Experience' ? true : false,
-            referencesStarted: section.name === 'References' ? true : false
-          };
-          currentPageHeight = 0;
-          currentPageHeight += sectionHeaderHeight;
-        }
-        
-        // Add this item to current page
-        switch (section.name) {
-          case 'Professional Summary':
-            // Professional Summary is handled separately in rendering, but we account for its height
-            break;
-          case 'Technical Skills':
-            currentPage.skillCategories.push(item);
-            break;
-          case 'Work Experience':
-            currentPage.workExperience.push(item);
-            break;
-          case 'Education':
-            currentPage.education.push(item);
-            break;
-          case 'Projects':
-            currentPage.projects.push(item);
-            break;
-          case 'Courses':
-            currentPage.courses.push(item);
-            break;
-          case 'Languages':
-            currentPage.languages.push(item);
-            break;
-          case 'Skills':
-            currentPage.skills.push(item);
-            break;
-          case 'Interests':
-            currentPage.interests.push(item);
-            break;
-          case 'Publications':
-            currentPage.publications.push(item);
-            break;
-          case 'Awards':
-            currentPage.awards.push(item);
-            break;
-          case 'Volunteer Experience':
-            currentPage.volunteerExperience.push(item);
-            break;
-          case 'References':
-            if (!currentPage.references) {
-              currentPage.references = [];
-            }
-            currentPage.references.push(item);
-            break;
-        }
-        currentPageHeight += itemHeight;
-      }
-    }
-    
-    // Add the final page
-    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.projects.length > 0 || currentPage.languages.length > 0 || currentPage.skillCategories.length > 0 || currentPage.skills.length > 0 || currentPage.interests.length > 0 || currentPage.publications.length > 0 || currentPage.awards.length > 0 || currentPage.volunteerExperience.length > 0 || (currentPage.references?.length || 0) > 0) {
+    // Add the last page if it has content
+    if (currentPage.sections.length > 0) {
       pages.push(currentPage);
     }
-    
-    // If no pages were created at all, create one
-    if (pages.length === 0) {
-      pages.push({
-        workExperience: [],
-        education: [],
-        courses: [],
-        projects: [],
-        skills: [],
-        skillCategories: [],
-        interests: [],
-        languages: [],
-        publications: [],
-        awards: [],
-        volunteerExperience: [],
-        workExperienceStarted: false,
-        coursesStarted: false,
-        educationStarted: false,
-        skillCategoriesStarted: false,
-        projectsStarted: false,
-        languagesStarted: false,
-        publicationsStarted: false,
-        awardsStarted: false,
-        volunteerExperienceStarted: false
-      });
-    }
-    
 
     return pages;
   };
 
-  // Calculate pages
-  const pages = calculatePages();
-  
+  // Effect to measure sections and calculate pages
+  useEffect(() => {
+    if (!resumeRef.current) return;
+
+    // Wait for next tick to ensure all elements are rendered
+    const timer = setTimeout(() => {
+      const calculatedPages = calculatePagesFromDOM();
+      setPages(calculatedPages);
+      setIsMeasuring(false);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [data]);
+
   // Render header (same for all pages)
   const renderHeader = () => (
     <div style={{ textAlign: 'center', marginBottom: '15px' }}>
@@ -879,11 +401,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     </div>
   );
 
-  // Section render functions
+  // Section render functions with refs for measurement
   const renderProfessionalSummary = () => {
     if (!personalInfo.summary) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('professional-summary', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -906,22 +431,23 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderTechnicalSkills = (pageContent: PageContent) => {
-    if (pageContent.skillCategories.length === 0) return null;
+  const renderTechnicalSkills = () => {
+    if (!data.skillCategories || data.skillCategories.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
-        {!pageContent.skillCategoriesStarted && (
-          <h2 style={{ 
-            fontSize: `${data.sectionHeadersSize || 18}px`, 
-            fontWeight: 'bold', 
-            margin: '0 0 12px 0',
-            textTransform: 'uppercase',
-            borderBottom: '1px solid #000',
-            paddingBottom: '4px'
-          }}>
-            Technical Skills
-          </h2>
-        )}
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('technical-skills', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          borderBottom: '1px solid #000',
+          paddingBottom: '4px'
+        }}>
+          Technical Skills
+        </h2>
         <ul style={{ 
           fontSize: `${data.bodyTextSize || 14}px`, 
           margin: '0', 
@@ -929,7 +455,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           listStyleType: 'disc',
           lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
         }}>
-          {pageContent.skillCategories.map((category, categoryIndex) => (
+          {data.skillCategories.map((category, categoryIndex) => (
             <li key={categoryIndex} style={{ 
               marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '8px',
               fontWeight: 'bold',
@@ -950,23 +476,24 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderWorkExperience = (pageContent: PageContent) => {
-    if (pageContent.workExperience.length === 0) return null;
+  const renderWorkExperience = () => {
+    if (!data.workExperience || data.workExperience.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
-        {!pageContent.workExperienceStarted && (
-          <h2 style={{ 
-            fontSize: `${data.sectionHeadersSize || 18}px`, 
-            fontWeight: 'bold', 
-            margin: '0 0 12px 0',
-            textTransform: 'uppercase',
-            borderBottom: '1px solid #000',
-            paddingBottom: '4px'
-          }}>
-            Work Experience
-          </h2>
-        )}
-        {pageContent.workExperience.map((exp, index) => (
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('work-experience', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          borderBottom: '1px solid #000',
+          paddingBottom: '4px'
+        }}>
+          Work Experience
+        </h2>
+        {data.workExperience.map((exp, index) => (
           <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
@@ -1021,23 +548,78 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderProjects = (pageContent: PageContent) => {
-    if (pageContent.projects.length === 0) return null;
+  const renderEducation = () => {
+    if (!data.education || data.education.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
-        {!pageContent.projectsStarted && (
-          <h2 style={{ 
-            fontSize: `${data.sectionHeadersSize || 18}px`, 
-            fontWeight: 'bold', 
-            margin: '0 0 12px 0',
-            textTransform: 'uppercase',
-            borderBottom: '1px solid #000',
-            paddingBottom: '4px'
-          }}>
-            Projects
-          </h2>
-        )}
-        {pageContent.projects.map((project, index) => (
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('education', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          borderBottom: '1px solid #000',
+          paddingBottom: '4px'
+        }}>
+          Education
+        </h2>
+        {data.education.map((edu, index) => (
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+              <h3 style={{ 
+                fontSize: `${data.subHeadersSize || 16}px`, 
+                fontWeight: 'bold', 
+                margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+                textTransform: 'uppercase'
+              }}>
+                {edu.degree} in {edu.field}
+              </h3>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
+                {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
+              </span>
+            </div>
+            <div style={{ 
+              fontSize: `${data.subHeadersSize || 14}px`, 
+              fontWeight: 'bold', 
+              color: '#333',
+              marginBottom: '3px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+              fontStyle: 'italic'
+            }}>
+              {edu.institution}
+            </div>
+            {edu.gpa && (
+              <div style={{ fontSize: '13px', color: '#666' }}>
+                GPA: {edu.gpa}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderProjects = () => {
+    if (!data.projects || data.projects.length === 0) return null;
+    return (
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('projects', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          borderBottom: '1px solid #000',
+          paddingBottom: '4px'
+        }}>
+          Projects
+        </h2>
+        {data.projects.map((project, index) => (
           <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
@@ -1094,23 +676,24 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderCourses = (pageContent: PageContent) => {
-    if (pageContent.courses.length === 0) return null;
+  const renderCourses = () => {
+    if (!data.courses || data.courses.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
-        {!pageContent.coursesStarted && (
-          <h2 style={{ 
-            fontSize: `${data.sectionHeadersSize || 18}px`, 
-            fontWeight: 'bold', 
-            margin: '0 0 12px 0',
-            textTransform: 'uppercase',
-            borderBottom: '1px solid #000',
-            paddingBottom: '4px'
-          }}>
-            Courses & Certifications
-          </h2>
-        )}
-        {pageContent.courses.map((course, index) => (
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('courses', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          borderBottom: '1px solid #000',
+          paddingBottom: '4px'
+        }}>
+          Courses & Certifications
+        </h2>
+        {data.courses.map((course, index) => (
           <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
@@ -1146,63 +729,44 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderEducation = (pageContent: PageContent) => {
-    if (pageContent.education.length === 0) return null;
+  const renderLanguages = () => {
+    if (!data.languages || data.languages.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
-        {!pageContent.educationStarted && (
-          <h2 style={{ 
-            fontSize: `${data.sectionHeadersSize || 18}px`, 
-            fontWeight: 'bold', 
-            margin: '0 0 12px 0',
-            textTransform: 'uppercase',
-            borderBottom: '1px solid #000',
-            paddingBottom: '4px'
-          }}>
-            Education
-          </h2>
-        )}
-        {pageContent.education.map((edu, index) => (
-          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-              <h3 style={{ 
-                fontSize: `${data.subHeadersSize || 16}px`, 
-                fontWeight: 'bold', 
-                margin: '0',
-                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
-                textTransform: 'uppercase'
-              }}>
-                {edu.degree} in {edu.field}
-              </h3>
-              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
-                {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
-              </span>
-            </div>
-            <div style={{ 
-              fontSize: `${data.subHeadersSize || 14}px`, 
-              fontWeight: 'bold', 
-              color: '#333',
-              marginBottom: '3px',
-              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
-              fontStyle: 'italic'
-            }}>
-              {edu.institution}
-            </div>
-            {edu.gpa && (
-              <div style={{ fontSize: '13px', color: '#666' }}>
-                GPA: {edu.gpa}
-              </div>
-            )}
-          </div>
-        ))}
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('languages', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 8px 0',
+          textTransform: 'uppercase',
+          borderBottom: '1px solid #000',
+          paddingBottom: '4px'
+        }}>
+          Languages
+        </h2>
+        <div style={{ 
+          fontSize: `${data.bodyTextSize || 14}px`, 
+          fontWeight: 'bold',
+          lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+        }}>
+          {data.languages.map((language) => 
+            `${language.name} (${language.proficiency})`
+          ).join(', ')}
+        </div>
       </div>
     );
   };
 
-  const renderSkills = (pageContent: PageContent) => {
-    if (pageContent.skills.length === 0) return null;
+  const renderSkills = () => {
+    if (!data.strengths || data.strengths.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('skills', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -1217,7 +781,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.bodyTextSize || 14}px`,
           lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
         }}>
-          {pageContent.skills.map((strength, index) => (
+          {data.strengths.map((strength, index) => (
             <span key={index} style={{ 
               display: 'inline-block',
               marginRight: '15px',
@@ -1232,10 +796,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderInterests = (pageContent: PageContent) => {
-    if (pageContent.interests.length === 0) return null;
+  const renderInterests = () => {
+    if (!data.interests || data.interests.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('interests', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -1250,7 +817,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.bodyTextSize || 14}px`,
           lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4'
         }}>
-          {pageContent.interests.map((interest, index) => (
+          {data.interests.map((interest, index) => (
             <span key={index} style={{ 
               display: 'inline-block',
               marginRight: '15px',
@@ -1264,40 +831,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderLanguages = (pageContent: PageContent) => {
-    if (pageContent.languages.length === 0) return null;
+  const renderPublications = () => {
+    if (!data.publications || data.publications.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
-        {!pageContent.languagesStarted && (
-          <h2 style={{ 
-            fontSize: `${data.sectionHeadersSize || 18}px`, 
-            fontWeight: 'bold', 
-            margin: '0 0 8px 0',
-            textTransform: 'uppercase',
-            borderBottom: '1px solid #000',
-            paddingBottom: '4px'
-          }}>
-            Languages
-          </h2>
-        )}
-        <div style={{ 
-          fontSize: `${data.bodyTextSize || 14}px`, 
-          fontWeight: 'bold',
-          lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
-          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
-        }}>
-          {pageContent.languages.map((language) => 
-            `${language.name} (${language.proficiency})`
-          ).join(', ')}
-        </div>
-      </div>
-    );
-  };
-
-  const renderPublications = (pageContent: PageContent) => {
-    if (pageContent.publications.length === 0) return null;
-    return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('publications', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -1308,48 +848,51 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Publications
         </h2>
-        {pageContent.publications.map((publication, index) => (
-          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '12px' }}>
+        {data.publications.map((pub, index) => (
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
-                fontSize: '16px', 
+                fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
                 lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
                 textTransform: 'uppercase'
               }}>
-                {publication.title}
+                {pub.title}
               </h3>
               <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
-                {publication.year}
+                {pub.year}
               </span>
             </div>
             <div style={{ 
-              fontSize: '14px', 
+              fontSize: `${data.subHeadersSize || 14}px`, 
               fontWeight: 'bold', 
               color: '#333',
               marginBottom: '3px',
               lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
-              {publication.authors}
+              {pub.authors}
             </div>
             <div style={{ 
-              fontSize: '13px', 
-              color: '#666',
-              marginBottom: '3px'
+              fontSize: `${data.subHeadersSize || 14}px`, 
+              fontWeight: 'bold', 
+              color: '#333',
+              marginBottom: '3px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+              fontStyle: 'italic'
             }}>
-              {publication.journal}
+              {pub.journal}
             </div>
-            {publication.doi && (
+            {pub.doi && (
               <div style={{ fontSize: '12px', color: '#666' }}>
-                DOI: {publication.doi}
+                DOI: {pub.doi}
               </div>
             )}
-            {publication.link && (
+            {pub.link && (
               <div style={{ fontSize: '12px', color: '#666' }}>
-                <a href={publication.link} target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'underline' }}>
-                  {formatUrl(publication.link)}
+                <a href={pub.link} target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'underline' }}>
+                  {formatUrl(pub.link)}
                 </a>
               </div>
             )}
@@ -1359,10 +902,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderAwards = (pageContent: PageContent) => {
-    if (pageContent.awards.length === 0) return null;
+  const renderAwards = () => {
+    if (!data.awards || data.awards.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('awards', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -1371,13 +917,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           borderBottom: '1px solid #000',
           paddingBottom: '4px'
         }}>
-          Awards and Recognition
+          Awards
         </h2>
-        {pageContent.awards.map((award, index) => (
+        {data.awards.map((award, index) => (
           <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
-                fontSize: '16px', 
+                fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
                 lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
@@ -1390,10 +936,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               </span>
             </div>
             <div style={{ 
-              fontSize: '14px', 
+              fontSize: `${data.subHeadersSize || 14}px`, 
               fontWeight: 'bold', 
               color: '#333',
-              marginBottom: '8px',
+              marginBottom: '3px',
               lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
@@ -1423,77 +969,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  const renderReferences = (pageContent: PageContent) => {
-    if (!pageContent.references || pageContent.references.length === 0) return null;
+  const renderVolunteerExperience = () => {
+    if (!data.volunteerExperience || data.volunteerExperience.length === 0) return null;
     return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
-        <h2 style={{ 
-          fontSize: `${data.sectionHeadersSize || 18}px`, 
-          fontWeight: 'bold', 
-          margin: '0 0 12px 0',
-          textTransform: 'uppercase',
-          borderBottom: '1px solid #000',
-          paddingBottom: '4px'
-        }}>
-          References
-        </h2>
-        {pageContent.references!.map((reference, index) => (
-          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
-            <div style={{ 
-              fontSize: '16px', 
-              fontWeight: 'bold', 
-              margin: '0 0 5px 0',
-              textTransform: 'uppercase'
-            }}>
-              {reference.name}
-            </div>
-            <div style={{ 
-              fontSize: '14px', 
-              fontWeight: 'bold', 
-              color: '#333',
-              marginBottom: '4px',
-              fontStyle: 'italic'
-            }}>
-              {reference.title}
-            </div>
-            <div style={{ 
-              fontSize: '13px', 
-              color: '#666',
-              marginBottom: '4px'
-            }}>
-              {reference.company}
-            </div>
-            <div style={{ 
-              fontSize: '13px', 
-              color: '#666',
-              marginBottom: '2px'
-            }}>
-              {reference.email}
-            </div>
-            <div style={{ 
-              fontSize: '13px', 
-              color: '#666',
-              marginBottom: '2px'
-            }}>
-              {reference.phone}
-            </div>
-            <div style={{ 
-              fontSize: '13px', 
-              color: '#666',
-              fontStyle: 'italic'
-            }}>
-              {reference.relationship}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderVolunteerExperience = (pageContent: PageContent) => {
-    if (pageContent.volunteerExperience.length === 0) return null;
-    return (
-      <div style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}>
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('volunteer-experience', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
@@ -1504,11 +986,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         }}>
           Volunteer Experience
         </h2>
-        {pageContent.volunteerExperience.map((volunteer, index) => (
+        {data.volunteerExperience.map((volunteer, index) => (
           <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
               <h3 style={{ 
-                fontSize: '16px', 
+                fontSize: `${data.subHeadersSize || 16}px`, 
                 fontWeight: 'bold', 
                 margin: '0',
                 lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
@@ -1521,27 +1003,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               </span>
             </div>
             <div style={{ 
-              fontSize: '14px', 
+              fontSize: `${data.subHeadersSize || 14}px`, 
               fontWeight: 'bold', 
               color: '#333',
-              marginBottom: '8px',
+              marginBottom: '3px',
               lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
               fontStyle: 'italic'
             }}>
               {volunteer.organization}
-              {volunteer.location && (
-                <span style={{ fontSize: '12px', color: '#666', fontWeight: 'normal' }}>
-                  {' - '}{volunteer.location}
-                </span>
-              )}
             </div>
-            {volunteer.hoursPerWeek && (
-              <div style={{ 
-                fontSize: '13px', 
-                color: '#666',
-                marginBottom: '8px'
-              }}>
-                {volunteer.hoursPerWeek} hours per week
+            {(volunteer.location || volunteer.hoursPerWeek) && (
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                {volunteer.location && `Location: ${volunteer.location}`}
+                {volunteer.location && volunteer.hoursPerWeek && `, `}
+                {volunteer.hoursPerWeek && `Hours per week: ${volunteer.hoursPerWeek}`}
               </div>
             )}
             {volunteer.bulletPoints.length > 0 && (
@@ -1568,28 +1043,120 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     );
   };
 
-  // Render a single page
-  const renderPage = (pageContent: PageContent, pageIndex: number) => {
-    const isFirstPage = pageIndex === 0;
-    
-    // Create a mapping from section names to render functions
-    const sectionRenderers: Record<string, () => React.ReactNode> = {
-      'Professional Summary': () => pageContent.hasProfessionalSummary ? renderProfessionalSummary() : null,
-      'Technical Skills': () => renderTechnicalSkills(pageContent),
-      'Work Experience': () => renderWorkExperience(pageContent),
-      'Projects': () => renderProjects(pageContent),
-      'Courses': () => renderCourses(pageContent),
-      'Education': () => renderEducation(pageContent),
-      'Skills': () => renderSkills(pageContent),
-      'Interests': () => renderInterests(pageContent),
-      'Languages': () => renderLanguages(pageContent),
-      'Publications': () => renderPublications(pageContent),
-      'Awards': () => renderAwards(pageContent),
-      'References': () => renderReferences(pageContent),
-      'Volunteer Experience': () => renderVolunteerExperience(pageContent),
-    };
+  const renderReferences = () => {
+    if (!data.references || data.references.length === 0) return null;
+    return (
+      <div 
+        ref={(el) => { if (el) sectionRefs.current.set('references', el); }}
+        style={{ marginBottom: data.sectionSpacing !== undefined ? `${data.sectionSpacing}px` : '20px' }}
+      >
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          borderBottom: '1px solid #000',
+          paddingBottom: '4px'
+        }}>
+          References
+        </h2>
+        {data.references.map((ref, index) => (
+          <div key={index} style={{ marginBottom: data.entrySpacing !== undefined ? `${data.entrySpacing}px` : '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+              <h3 style={{ 
+                fontSize: `${data.subHeadersSize || 16}px`, 
+                fontWeight: 'bold', 
+                margin: '0',
+                lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+                textTransform: 'uppercase'
+              }}>
+                {ref.name}
+              </h3>
+              <span style={{ fontSize: '14px', color: '#000', fontWeight: 'bold' }}>
+                {ref.title}
+              </span>
+            </div>
+            <div style={{ 
+              fontSize: `${data.subHeadersSize || 14}px`, 
+              fontWeight: 'bold', 
+              color: '#333',
+              marginBottom: '3px',
+              lineHeight: data.lineSpacing !== undefined ? `${data.lineSpacing / 10}` : '1.4',
+              fontStyle: 'italic'
+            }}>
+              {ref.company}
+            </div>
+            {(ref.email || ref.phone) && (
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                {ref.email && `Email: ${ref.email}`}
+                {ref.email && ref.phone && `, `}
+                {ref.phone && `Phone: ${ref.phone}`}
+              </div>
+            )}
+            {ref.relationship && (
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                Relationship: {ref.relationship}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
-    // Get the section order from data, or use a default order if not provided
+  // Render a single page
+  const renderPage = (pageInfo: PageInfo, pageIndex: number) => {
+    const isFirstPage = pageIndex === 0;
+    const bottomMargin = data.topBottomMargin || 40;
+    
+    return (
+      <div
+        key={pageIndex}
+        style={{ 
+          fontFamily: data.fontFamily || 'Times New Roman, serif', 
+          background: '#fff', 
+          color: '#000', 
+          padding: `${data.topBottomMargin !== undefined ? data.topBottomMargin : 40}px ${data.sideMargins !== undefined ? data.sideMargins : 40}px`,
+          width: `${data.pageWidth || 850}px`,
+          height: `${data.pageHeight || 1100}px`,
+          margin: '0 auto',
+          marginBottom: pageIndex < pages.length - 1 ? '20px' : '0',
+          lineHeight: '1.2',
+          position: 'relative',
+          overflow: 'hidden',
+          pageBreakAfter: pageIndex < pages.length - 1 ? 'always' : 'auto',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          borderRadius: '20px',
+          border: '1px solid #e0e0e0'
+        }}
+      >
+        <div style={{ 
+          height: `calc(100% - ${bottomMargin * 2}px)`, // Ensure content area respects top and bottom margins
+          overflow: 'hidden', // Prevent any content from overflowing
+          position: 'relative'
+        }}>
+          {/* Header - only on first page */}
+          {isFirstPage && renderHeader()}
+
+          {/* Render sections for this page */}
+          {pageInfo.sections.map((section) => {
+            // Clone the section element and render it
+            const sectionElement = section.element.cloneNode(true) as HTMLElement;
+            return (
+              <div key={section.id} dangerouslySetInnerHTML={{ __html: sectionElement.outerHTML }} />
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // If still measuring, render a single page with all content for measurement
+  if (isMeasuring) {
+    const bottomMargin = data.topBottomMargin || 40;
+    
+    // Filter out deleted sections
+    const deletedSections = data.deletedSections || [];
     const sectionOrder = data.sectionOrder || [
       'Professional Summary',
       'Technical Skills',
@@ -1605,54 +1172,51 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       'Skills',
       'Interests'
     ];
-
-
-
+    const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
+    
     return (
-      <div
-        key={pageIndex}
+      <div 
+        ref={resumeRef}
         style={{ 
           fontFamily: data.fontFamily || 'Times New Roman, serif', 
           background: '#fff', 
           color: '#000', 
           padding: `${data.topBottomMargin !== undefined ? data.topBottomMargin : 40}px ${data.sideMargins !== undefined ? data.sideMargins : 40}px`,
-          width: `${data.pageWidth || 850}px`, // Use page width from export settings
-          height: `${data.pageHeight || 1100}px`, // Use page height from export settings
+          width: `${data.pageWidth || 850}px`,
           margin: '0 auto',
-          marginBottom: pageIndex < pages.length - 1 ? '20px' : '0',
-          lineHeight: '1.2', // Default line height for the container
+          lineHeight: '1.2',
           position: 'relative',
-          overflow: 'hidden',
-          pageBreakAfter: pageIndex < pages.length - 1 ? 'always' : 'auto',
+          overflow: 'visible', // Allow overflow for measurement
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
           borderRadius: '20px',
           border: '1px solid #e0e0e0'
         }}
       >
-        {/* Content wrapper that respects bottom margin */}
         <div style={{ 
-          paddingBottom: data.topBottomMargin !== undefined ? `${data.topBottomMargin}px` : '80px', // Ensure content doesn't overlap with bottom margin
-          minHeight: data.topBottomMargin !== undefined ? `calc(100% - ${data.topBottomMargin}px)` : 'calc(100% - 80px)' // Ensure content area respects bottom margin
+          height: `calc(100% - ${bottomMargin * 2}px)`, // Use same logic as paginated version
+          position: 'relative'
         }}>
-          {/* Header - only on first page */}
-          {isFirstPage && renderHeader()}
-
-
-
-          {/* Render sections in the specified order */}
-          {sectionOrder.map((sectionName, index) => {
-            const renderer = sectionRenderers[sectionName];
-            return renderer ? (
-              <React.Fragment key={`${sectionName}-${index}`}>
-                {renderer()}
-              </React.Fragment>
-            ) : null;
-          })}
-        </div> {/* Close content wrapper */}
+          {/* Render all sections for measurement */}
+          {renderHeader()}
+          {activeSections.includes('Professional Summary') && renderProfessionalSummary()}
+          {activeSections.includes('Technical Skills') && renderTechnicalSkills()}
+          {activeSections.includes('Work Experience') && renderWorkExperience()}
+          {activeSections.includes('Education') && renderEducation()}
+          {activeSections.includes('Projects') && renderProjects()}
+          {activeSections.includes('Courses') && renderCourses()}
+          {activeSections.includes('Languages') && renderLanguages()}
+          {activeSections.includes('Skills') && renderSkills()}
+          {activeSections.includes('Interests') && renderInterests()}
+          {activeSections.includes('Publications') && renderPublications()}
+          {activeSections.includes('Awards') && renderAwards()}
+          {activeSections.includes('Volunteer Experience') && renderVolunteerExperience()}
+          {activeSections.includes('References') && renderReferences()}
+        </div>
       </div>
     );
-  };
-  
+  }
+
+  // Render paginated content
   return (
     <div style={{ 
       display: 'flex', 
@@ -1660,9 +1224,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       alignItems: 'flex-start',
       width: '100%',
     }}>
-      {pages.map((pageContent, pageIndex) => (
+      {pages.map((pageInfo, pageIndex) => (
         <React.Fragment key={`page-${pageIndex}`}>
-          {renderPage(pageContent, pageIndex)}
+          {renderPage(pageInfo, pageIndex)}
         </React.Fragment>
       ))}
     </div>
