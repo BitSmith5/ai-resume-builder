@@ -169,6 +169,22 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
   };
 
+  // Phone number formatting function
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-digit characters
+    const phoneNumber = value.replace(/\D/g, "");
+
+    // Limit to 10 digits
+    const trimmed = phoneNumber.slice(0, 10);
+
+    // Format as (XXX) XXX-XXXX
+    if (trimmed.length === 0) return "";
+    if (trimmed.length <= 3) return `(${trimmed}`;
+    if (trimmed.length <= 6)
+      return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3)}`;
+    return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3, 6)}-${trimmed.slice(6)}`;
+  };
+
   // Render functions for each section
   const renderHeader = () => (
     <div style={{ textAlign: 'center', marginBottom: `${data.sectionSpacing || 0}px` }}>
@@ -211,7 +227,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       }}>
         {[
           (personalInfo.city || personalInfo.state) && [personalInfo.city, personalInfo.state].filter(Boolean).join(', '),
-          personalInfo.phone,
+          formatPhoneNumber(personalInfo.phone),
           personalInfo.email,
           personalInfo.linkedin && (
             <a 
@@ -922,7 +938,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               marginBottom: '2px',
               textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
-              {ref.email} • {ref.phone}
+              {ref.email} • {formatPhoneNumber(ref.phone)}
               </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
