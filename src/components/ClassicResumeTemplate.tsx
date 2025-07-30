@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 
 interface ResumeData {
   title: string;
@@ -143,7 +143,6 @@ interface ClassicResumeTemplateProps {
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
   const resumeRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
-  const [sectionPages, setSectionPages] = useState<{ [key: string]: number }>({});
 
   const { personalInfo } = data.content;
 
@@ -1050,7 +1049,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     const subHeadersSize = data.subHeadersSize || 16;
     const bodyTextSize = data.bodyTextSize || 14;
     const lineSpacing = data.lineSpacing || 14;
-    const sectionSpacing = data.sectionSpacing || 20;
     const entrySpacing = data.entrySpacing || 12;
     
 
@@ -1281,8 +1279,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       // Add section spacing for the last subsection of each section
       const subsections = getSubsections(sectionName);
       const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
-      const isLastSubsectionOfSection = currentIndex === subsections.length - 1;
-      const sectionSpacing = isLastSubsectionOfSection ? (data.sectionSpacing || 20) : 0;
+      const sectionSpacing = currentIndex === subsections.length - 1 ? (data.sectionSpacing || 20) : 0;
       
       const totalHeight = estimatedHeight + sectionSpacing;
       
