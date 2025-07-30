@@ -144,7 +144,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const resumeRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [sectionPages, setSectionPages] = useState<{ [key: string]: number }>({});
-  const [pages, setPages] = useState<{ sections: string[]; pageNumber: number }[]>([]);
 
   const { personalInfo } = data.content;
 
@@ -171,13 +170,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
   };
 
-
-
-
-
   // Render functions for each section
   const renderHeader = () => (
-    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+    <div style={{ textAlign: 'center', marginBottom: `${data.sectionSpacing || 0}px` }}>
       {data.profilePicture && (
         <div style={{ 
           width: '120px',
@@ -276,48 +271,48 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
 
   const renderProfessionalSummary = () => (
     <div style={{ marginBottom: `${data.sectionSpacing || 20}px` }}>
-      <h2 style={{ 
-        fontSize: `${data.sectionHeadersSize || 18}px`, 
-        fontWeight: 'bold', 
-        margin: '0 0 8px 0',
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+          margin: '0 0 0px 0',
         fontFamily: data.fontFamily || 'Times New Roman, serif',
-        borderBottom: '1px solid #000',
+          borderBottom: '1px solid #000',
         paddingBottom: '2px'
-      }}>
-        Professional Summary
-      </h2>
-      <p style={{ 
-        fontSize: `${data.bodyTextSize || 14}px`, 
-        margin: '0',
+        }}>
+          Professional Summary
+        </h2>
+        <p style={{ 
+          fontSize: `${data.bodyTextSize || 14}px`, 
+          margin: '0', 
         fontFamily: data.fontFamily || 'Times New Roman, serif',
         lineHeight: `${data.lineSpacing || 14}px`,
-        textAlign: data.alignTextLeftRight ? 'justify' : 'left'
-      }}>
-        {personalInfo.summary}
-      </p>
-    </div>
-  );
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+        }}>
+          {personalInfo.summary}
+        </p>
+      </div>
+    );
 
   const renderTechnicalSkills = () => (
     <div style={{ marginBottom: `${data.sectionSpacing || 20}px` }}>
-      <h2 style={{ 
-        fontSize: `${data.sectionHeadersSize || 18}px`, 
-        fontWeight: 'bold', 
-        margin: '0 0 8px 0',
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+        margin: '0 0 0px 0',
         fontFamily: data.fontFamily || 'Times New Roman, serif',
-        borderBottom: '1px solid #000',
-        paddingBottom: '2px'
-      }}>
-        Technical Skills
-      </h2>
+          borderBottom: '1px solid #000',
+        paddingBottom: '0px'
+        }}>
+          Technical Skills
+        </h2>
       
       {/* Render strengths if they exist */}
       {data.strengths && data.strengths.length > 0 && (
         <div style={{ 
-          fontSize: `${data.bodyTextSize || 14}px`,
+          fontSize: `${data.bodyTextSize || 14}px`, 
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           lineHeight: `${data.lineSpacing || 14}px`,
-          marginBottom: '8px'
+          marginBottom: '0px'
         }}>
           {data.strengths.map((skill, index) => (
             <span key={index}>
@@ -335,7 +330,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <div key={index} style={{ marginBottom: '8px' }}>
               <div style={{ 
                 fontSize: `${data.subHeadersSize || 16}px`, 
-                fontWeight: 'bold',
+              fontWeight: 'bold',
                 fontFamily: data.fontFamily || 'Times New Roman, serif',
                 marginBottom: '4px'
               }}>
@@ -350,43 +345,43 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   <span key={skillIndex}>
                     {skill.name}
                     {skillIndex < category.skills.length - 1 && ' • '}
-                  </span>
-                ))}
+                </span>
+              ))}
               </div>
             </div>
           ))}
         </div>
       )}
-    </div>
-  );
+      </div>
+    );
 
   const renderWorkExperience = () => (
     <div style={{ marginBottom: `${data.sectionSpacing || 20}px` }}>
-      <h2 style={{ 
-        fontSize: `${data.sectionHeadersSize || 18}px`, 
-        fontWeight: 'bold', 
-        margin: '0 0 8px 0',
+        <h2 style={{ 
+          fontSize: `${data.sectionHeadersSize || 18}px`, 
+          fontWeight: 'bold', 
+        margin: '0 0 0px 0',
         fontFamily: data.fontFamily || 'Times New Roman, serif',
-        borderBottom: '1px solid #000',
+          borderBottom: '1px solid #000',
         paddingBottom: '2px'
-      }}>
-        Work Experience
-      </h2>
+        }}>
+          Work Experience
+        </h2>
       {data.workExperience.map((work, index) => (
         <div 
           key={index} 
           data-subsection={`work-${index}`}
-          style={{ marginBottom: `${data.entrySpacing || 12}px` }}
+          style={{ paddingBottom: `${data.entrySpacing || 12}px` }}
         >
           <div style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'flex-start',
-            marginBottom: '4px'
+            marginBottom: '2px'
           }}>
             <div style={{ 
-              fontSize: `${data.subHeadersSize || 16}px`, 
-              fontWeight: 'bold',
+                fontSize: `${data.subHeadersSize || 16}px`, 
+                fontWeight: 'bold', 
               fontFamily: data.fontFamily || 'Times New Roman, serif'
             }}>
               {work.company}
@@ -404,13 +399,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             fontSize: `${data.bodyTextSize || 14}px`, 
             fontStyle: 'italic',
             fontFamily: data.fontFamily || 'Times New Roman, serif',
-            marginBottom: '4px'
+            marginBottom: '2px'
           }}>
             {work.position}
           </div>
-          <ul style={{ 
-            margin: '0', 
-            paddingLeft: '20px',
+              <ul style={{ 
+                margin: '0', 
+                paddingLeft: '20px',
             fontSize: `${data.bodyTextSize || 14}px`,
             fontFamily: data.fontFamily || 'Times New Roman, serif',
             lineHeight: `${data.lineSpacing || 14}px`
@@ -418,31 +413,31 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             {work.bulletPoints.map((point, pointIndex) => (
               <li key={pointIndex} style={{ marginBottom: '2px' }}>
                 {point.description}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
+                  </li>
+                ))}
+              </ul>
+          </div>
+        ))}
+      </div>
+    );
 
   const renderEducation = () => (
     <div style={{ marginBottom: `${data.sectionSpacing || 20}px` }}>
-              <h2 style={{ 
+        <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
         }}>
           Education
-      </h2>
-      {data.education.map((edu, index) => (
+        </h2>
+        {data.education.map((edu, index) => (
         <div 
           key={index} 
           data-subsection={`education-${index}`}
-          style={{ marginBottom: `${data.entrySpacing || 12}px` }}
+          style={{ paddingBottom: `${data.entrySpacing || 12}px` }}
         >
           <div style={{ 
             display: 'flex', 
@@ -451,31 +446,31 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             marginBottom: '4px'
           }}>
             <div style={{ 
-              fontSize: `${data.subHeadersSize || 16}px`, 
-              fontWeight: 'bold',
+                fontSize: `${data.subHeadersSize || 16}px`, 
+                fontWeight: 'bold', 
               fontFamily: data.fontFamily || 'Times New Roman, serif'
-            }}>
-              {edu.degree} in {edu.field}
+              }}>
+                {edu.degree} in {edu.field}
             </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               fontWeight: 'bold'
             }}>
-              {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
+                {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
             </div>
-          </div>
-          <div style={{ 
+            </div>
+            <div style={{ 
             fontSize: `${data.bodyTextSize || 14}px`,
             fontFamily: data.fontFamily || 'Times New Roman, serif'
-          }}>
-            {edu.institution}
+            }}>
+              {edu.institution}
             {edu.gpa && ` • GPA: ${edu.gpa}`}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
-  );
+        ))}
+      </div>
+    );
 
   const renderProjects = () => {
     if (!data.projects || data.projects.length === 0) return null;
@@ -485,7 +480,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -493,16 +488,16 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Projects
         </h2>
         {data.projects.map((project, index) => (
-          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+          <div key={index} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'flex-start',
-              marginBottom: '4px'
+              marginBottom: '2px'
             }}>
               <div style={{ 
                 fontSize: `${data.subHeadersSize || 16}px`, 
-                fontWeight: 'bold',
+                fontWeight: 'bold', 
                 fontFamily: data.fontFamily || 'Times New Roman, serif'
               }}>
                 {project.title}
@@ -518,13 +513,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '4px'
+              marginBottom: '2px'
             }}>
               {project.technologies.join(', ')}
             </div>
-            <ul style={{ 
-              margin: '0', 
-              paddingLeft: '20px',
+              <ul style={{ 
+                margin: '0', 
+                paddingLeft: '20px',
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               lineHeight: `${data.lineSpacing || 14}px`
@@ -532,9 +527,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               {project.bulletPoints.map((point, pointIndex) => (
                 <li key={pointIndex} style={{ marginBottom: '2px' }}>
                   {point.description}
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
           </div>
         ))}
       </div>
@@ -549,24 +544,25 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
         }}>
           Courses
         </h2>
-        <div style={{ 
+            <div style={{ 
           fontSize: `${data.bodyTextSize || 14}px`,
           fontFamily: data.fontFamily || 'Times New Roman, serif',
-          lineHeight: `${data.lineSpacing || 14}px`
+          lineHeight: `${data.lineSpacing || 14}px`,
+          marginTop: '4px'
         }}>
           {data.courses.map((course, index) => (
-            <div key={index} style={{ marginBottom: '8px' }}>
+            <div key={index} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
               <div style={{ marginBottom: '2px' }}>
                 <strong>{course.title}</strong> - {course.provider}
-              </div>
-              {course.link && (
+            </div>
+            {course.link && (
                 <div>
                   <a 
                     href={course.link.startsWith('http') ? course.link : `https://${course.link}`}
@@ -580,12 +576,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                       fontFamily: data.fontFamily || 'Times New Roman, serif'
                     }}
                   >
-                    {formatUrl(course.link)}
-                  </a>
-                </div>
-              )}
-            </div>
-          ))}
+                  {formatUrl(course.link)}
+                </a>
+              </div>
+            )}
+          </div>
+        ))}
         </div>
       </div>
     );
@@ -599,7 +595,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -607,9 +603,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Languages
         </h2>
         <div style={{ 
-          fontSize: `${data.bodyTextSize || 14}px`,
+          fontSize: `${data.bodyTextSize || 14}px`, 
           fontFamily: data.fontFamily || 'Times New Roman, serif',
-          lineHeight: `${data.lineSpacing || 14}px`
+          lineHeight: `${data.lineSpacing || 14}px`,
+          marginTop: '4px'
         }}>
           {data.languages.map((lang, index) => (
             <span key={index}>
@@ -630,7 +627,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -638,7 +635,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Skills
         </h2>
         {data.skillCategories.map((category, index) => (
-          <div key={index} style={{ marginBottom: '8px' }}>
+          <div key={index} style={{ marginBottom: '8px', marginTop: index === 0 ? '4px' : '0px' }}>
             <div style={{ 
               fontSize: `${data.subHeadersSize || 16}px`, 
               fontWeight: 'bold',
@@ -647,18 +644,18 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             }}>
               {category.title}
             </div>
-            <div style={{ 
-              fontSize: `${data.bodyTextSize || 14}px`,
+        <div style={{ 
+          fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               lineHeight: `${data.lineSpacing || 14}px`
             }}>
-              {category.skills.map((skill, skillIndex) => (
-                <span key={skillIndex}>
-                  {skill.name}
-                  {skillIndex < category.skills.length - 1 && ' • '}
-                </span>
-              ))}
-            </div>
+                              {category.skills.map((skill, skillIndex) => (
+                  <span key={skillIndex}>
+                    {skill.name}
+                    {skillIndex < category.skills.length - 1 && ' • '}
+                  </span>
+                ))}
+        </div>
           </div>
         ))}
       </div>
@@ -673,7 +670,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -683,7 +680,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <div style={{ 
           fontSize: `${data.bodyTextSize || 14}px`,
           fontFamily: data.fontFamily || 'Times New Roman, serif',
-          lineHeight: `${data.lineSpacing || 14}px`
+          lineHeight: `${data.lineSpacing || 14}px`,
+          marginTop: '4px'
         }}>
           {data.interests.map((interest, index) => (
             <span key={index}>
@@ -705,7 +703,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -713,14 +711,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Publications
         </h2>
         {data.publications.map((pub, index) => (
-          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px`, marginTop: index === 0 ? '4px' : '0px' }}>
             <div style={{ 
-              fontSize: `${data.subHeadersSize || 16}px`, 
-              fontWeight: 'bold',
+                fontSize: `${data.subHeadersSize || 16}px`, 
+                fontWeight: 'bold', 
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               marginBottom: '4px'
-            }}>
-              {pub.title}
+              }}>
+                {pub.title}
             </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
@@ -743,7 +741,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -751,14 +749,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Awards
         </h2>
         {data.awards.map((award, index) => (
-          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px`, marginTop: index === 0 ? '4px' : '0px' }}>
             <div style={{ 
-              fontSize: `${data.subHeadersSize || 16}px`, 
-              fontWeight: 'bold',
+                fontSize: `${data.subHeadersSize || 16}px`, 
+                fontWeight: 'bold', 
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               marginBottom: '4px'
-            }}>
-              {award.title}
+              }}>
+                {award.title}
             </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
@@ -767,9 +765,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             }}>
               {award.organization} • {award.year}
             </div>
-            <ul style={{ 
-              margin: '0', 
-              paddingLeft: '20px',
+              <ul style={{ 
+                margin: '0', 
+                paddingLeft: '20px',
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               lineHeight: `${data.lineSpacing || 14}px`
@@ -777,9 +775,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               {award.bulletPoints.map((point, pointIndex) => (
                 <li key={pointIndex} style={{ marginBottom: '2px' }}>
                   {point.description}
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
           </div>
         ))}
       </div>
@@ -794,7 +792,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -802,7 +800,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           Volunteer Experience
         </h2>
         {data.volunteerExperience.map((volunteer, index) => (
-          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px`, marginTop: index === 0 ? '4px' : '0px' }}>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
@@ -811,7 +809,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             }}>
               <div style={{ 
                 fontSize: `${data.subHeadersSize || 16}px`, 
-                fontWeight: 'bold',
+                fontWeight: 'bold', 
                 fontFamily: data.fontFamily || 'Times New Roman, serif'
               }}>
                 {volunteer.position}
@@ -826,7 +824,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`, 
-              fontWeight: 'bold',
+              fontWeight: 'bold', 
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               marginBottom: '4px'
             }}>
@@ -838,10 +836,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               marginBottom: '4px'
             }}>
               {volunteer.hoursPerWeek} hours per week
-            </div>
-            <ul style={{ 
-              margin: '0', 
-              paddingLeft: '20px',
+              </div>
+              <ul style={{ 
+                margin: '0', 
+                paddingLeft: '20px',
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               lineHeight: `${data.lineSpacing || 14}px`
@@ -849,9 +847,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               {volunteer.bulletPoints.map((point, pointIndex) => (
                 <li key={pointIndex} style={{ marginBottom: '2px' }}>
                   {point.description}
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
           </div>
         ))}
       </div>
@@ -866,7 +864,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-          margin: '0 0 8px 0',
+          margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
           paddingBottom: '2px'
@@ -874,14 +872,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           References
         </h2>
         {data.references.map((ref, index) => (
-          <div key={index} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+          <div key={index} style={{ marginTop: index === 0 ? '4px' : '0px', marginBottom: `${data.entrySpacing || 12}px` }}>
             <div style={{ 
-              fontSize: `${data.subHeadersSize || 16}px`, 
-              fontWeight: 'bold',
+                fontSize: `${data.subHeadersSize || 16}px`, 
+                fontWeight: 'bold', 
               fontFamily: data.fontFamily || 'Times New Roman, serif',
               marginBottom: '4px'
-            }}>
-              {ref.name}
+              }}>
+                {ref.name}
             </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
@@ -896,13 +894,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               marginBottom: '2px'
             }}>
               {ref.email} • {ref.phone}
-            </div>
+              </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif'
             }}>
               {ref.relationship}
-            </div>
+              </div>
           </div>
         ))}
       </div>
@@ -910,31 +908,69 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   };
 
   // Render resume with Intersection Observer collision detection
-  const deletedSections = data.deletedSections || [];
-  const sectionOrder = data.sectionOrder || [
-    'Professional Summary',
-    'Technical Skills',
-    'Work Experience',
-    'Education',
-    'Projects',
-    'Courses',
-    'Languages',
-    'Publications',
-    'Awards',
-    'Volunteer Experience',
-    'References',
-    'Skills',
-    'Interests'
-  ];
-  const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
+    const deletedSections = data.deletedSections || [];
+    const sectionOrder = data.sectionOrder || [
+      'Professional Summary',
+      'Technical Skills',
+      'Work Experience',
+      'Education',
+      'Projects',
+      'Courses',
+      'Languages',
+      'Publications',
+      'Awards',
+      'Volunteer Experience',
+      'References',
+      'Skills',
+      'Interests'
+    ];
+    const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
+    
+  // Filter out sections that shouldn't be in page calculations (like Personal Info)
+  const validSections = activeSections.filter(section => 
+    section !== 'Personal Info' && 
+    section !== 'personalInfo' && 
+    section !== 'Personal Information'
+  );
 
   // Helper function to get subsections for each section
-  const getSubsections = (sectionName: string): Array<{ id: string; name: string; isFirst: boolean }> => {
+  const getSubsections = (sectionName: string) => {
     switch (sectionName) {
       case 'Professional Summary':
         return [{ id: 'professional-summary', name: 'Professional Summary', isFirst: true }];
       case 'Technical Skills':
-        return [{ id: 'technical-skills', name: 'Technical Skills', isFirst: true }];
+        const subsections = [];
+        
+        // Add strengths as first subsection
+        if (data.strengths && data.strengths.length > 0) {
+          subsections.push({ 
+            id: 'technical-skills-strengths', 
+            name: 'Strengths', 
+            isFirst: true 
+          });
+        }
+        
+        // Add skill categories as separate subsections
+        if (data.skillCategories && data.skillCategories.length > 0) {
+          data.skillCategories.forEach((category, index) => {
+            subsections.push({ 
+              id: `technical-skills-category-${index}`, 
+              name: category.title, 
+              isFirst: index === 0 && subsections.length === 0 // First category is first if no strengths
+            });
+          });
+        }
+        
+        // If no strengths or categories, return a default subsection
+        if (subsections.length === 0) {
+          subsections.push({ 
+            id: 'technical-skills', 
+            name: 'Technical Skills', 
+            isFirst: true 
+          });
+        }
+        
+        return subsections;
       case 'Work Experience':
         return (data.workExperience || []).map((work, index) => ({
           id: `work-${index}`,
@@ -972,11 +1008,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           isFirst: index === 0
         }));
       case 'Interests':
-        return (data.interests || []).map((interest, index) => ({
-          id: `interest-${index}`,
-          name: interest.name,
-          isFirst: index === 0
-        }));
+        return [{ id: 'interests', name: 'Interests', isFirst: true }];
       case 'Publications':
         return (data.publications || []).map((pub, index) => ({
           id: `publication-${index}`,
@@ -1005,150 +1037,288 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         return [{ id: sectionName.toLowerCase().replace(/\s+/g, '-'), name: sectionName, isFirst: true }];
     }
   };
+  
+  // Filter out sections that have no data
+  const sectionsWithData = validSections.filter(section => {
+    const subsections = getSubsections(section);
+    return subsections.length > 0;
+  });
 
-  // Helper function to estimate subsection heights (more accurate)
-  const getEstimatedSubsectionHeight = (sectionName: string, subsection: { id: string; name: string; isFirst: boolean }): number => {
-    const baseHeight = 30; // Reduced base height for section header
+  // Helper function to estimate subsection heights (responsive to export settings)
+    const getEstimatedSubsectionHeight = (sectionName: string, subsection: { id: string; name: string; isFirst: boolean }): number => {
+    const sectionHeadersSize = data.sectionHeadersSize || 18;
+    const subHeadersSize = data.subHeadersSize || 16;
+    const bodyTextSize = data.bodyTextSize || 14;
+    const lineSpacing = data.lineSpacing || 14;
     const sectionSpacing = data.sectionSpacing || 20;
     const entrySpacing = data.entrySpacing || 12;
     
+
+    
+    // Calculate dynamic heights based on font sizes and line spacing
+    // More aggressive approach - further reduced from conservative estimates
+    const sectionHeaderHeight = sectionHeadersSize + 6; // Header + padding + margin (reduced from 8)
+    const subHeaderHeight = subHeadersSize + 2; // Sub header + padding + margin (reduced from 4)
+    const bodyLineHeight = Math.max(bodyTextSize + 1, lineSpacing - 1); // Use larger of font size + padding or line spacing (further reduced padding)
+    
     if (subsection.isFirst) {
-      // First subsection includes section header
+      // First subsection includes section header + 1px marginTop
+      const firstSubsectionMargin = 1; // 1px marginTop added to all first subsections (reduced from 2)
       switch (sectionName) {
         case 'Professional Summary':
-          return baseHeight + 30;
+          return sectionHeaderHeight + (bodyLineHeight * 2) + firstSubsectionMargin; // Header + ~2 lines of text + margin
         case 'Technical Skills':
-          return baseHeight + (data.strengths?.length || 0) * 15;
+          // Handle individual technical skills subsections
+          if (subsection.id === 'technical-skills-strengths') {
+            const strengthsCount = data.strengths?.length || 0;
+            const strengthsHeight = strengthsCount * bodyLineHeight * 0.8; // Reduced multiplier for more compact rendering
+            return subsection.isFirst ? sectionHeaderHeight + strengthsHeight + firstSubsectionMargin : strengthsHeight;
+          } else if (subsection.id.startsWith('technical-skills-category-')) {
+            const categoryIndex = parseInt(subsection.id.split('-')[3]) || 0;
+            const category = data.skillCategories?.[categoryIndex];
+            if (category) {
+              // Skills are rendered inline with commas, estimate based on how many lines needed
+              const skillsPerLine = 8; // Even more skills per line (increased from 6)
+              const linesNeeded = Math.ceil(category.skills.length / skillsPerLine);
+              const categoryHeight = subHeaderHeight + (linesNeeded * bodyLineHeight) + 2; // Further reduced padding from 4 to 2
+              // Add section header height if this is the first subsection
+              return subsection.isFirst ? sectionHeaderHeight + categoryHeight + firstSubsectionMargin : categoryHeight;
+            }
+          }
+          // Fallback for default technical skills subsection
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Work Experience':
-          return baseHeight + 100; // Reduced from 120
+          const workExp = data.workExperience || [];
+          if (workExp.length > 0) {
+            // Calculate height based on the first work experience entry (most representative)
+            const firstWork = workExp[0];
+            const bulletPointsCount = firstWork.bulletPoints?.length || 0;
+            // Add entry spacing for each work experience entry (except the last one)
+            const entrySpacingTotal = (workExp.length - 1) * entrySpacing;
+            const calculatedHeight = sectionHeaderHeight + subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + entrySpacingTotal + firstSubsectionMargin;
+            return calculatedHeight;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Education':
-          return baseHeight + 60; // Reduced from 80
+          const education = data.education || [];
+          if (education.length > 0) {
+            // Add entry spacing for each education entry (except the last one)
+            const entrySpacingTotal = (education.length - 1) * entrySpacing;
+            return sectionHeaderHeight + subHeaderHeight + (bodyLineHeight * 2) + entrySpacingTotal + firstSubsectionMargin; // Header + degree/institution + dates + margin
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Projects':
-          return baseHeight + 120; // Reduced from 150
+          const projects = data.projects || [];
+          if (projects.length > 0) {
+            const firstProject = projects[0];
+            const bulletPointsCount = firstProject.bulletPoints?.length || 0;
+            // Add entry spacing for each project entry (except the last one)
+            const entrySpacingTotal = (projects.length - 1) * entrySpacing;
+            return sectionHeaderHeight + subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight * 0.9) + entrySpacingTotal + firstSubsectionMargin; // Reduced bullet points multiplier
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Courses':
-          return baseHeight + 25; // Reduced from 30
+          const courses = data.courses || [];
+          if (courses.length > 0) {
+            // Each course has: title+provider line + optional link line + margin
+            const courseHeight = courses.length * (bodyLineHeight * 2.5) + (courses.length * 4); // Reduced from 3 lines to 2.5 lines per course + 4px margin each
+            // Add entry spacing for each course entry (except the last one)
+            const entrySpacingTotal = (courses.length - 1) * entrySpacing;
+            return sectionHeaderHeight + courseHeight + entrySpacingTotal + firstSubsectionMargin; // Removed extra padding
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Languages':
-          return baseHeight + 20; // Reduced from 25
+          const languages = data.languages || [];
+          if (languages.length > 0) {
+            return sectionHeaderHeight + (languages.length * bodyLineHeight) + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Skills':
-          return baseHeight + 50; // Reduced from 60
+          const skillCategories = data.skillCategories || [];
+          if (skillCategories.length > 0) {
+            return sectionHeaderHeight + (skillCategories.length * (subHeaderHeight + bodyLineHeight * 0.8)) + firstSubsectionMargin; // Reduced body line height multiplier
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Interests':
-          return baseHeight + 20; // Reduced from 25
+          const interests = data.interests || [];
+          if (interests.length > 0) {
+            return sectionHeaderHeight + bodyLineHeight + firstSubsectionMargin; // Single line of interests + margin
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Publications':
-          return baseHeight + 60; // Reduced from 80
+          const publications = data.publications || [];
+          if (publications.length > 0) {
+            return sectionHeaderHeight + subHeaderHeight + (bodyLineHeight * 2) + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Awards':
-          return baseHeight + 80; // Reduced from 100
+          const awards = data.awards || [];
+          if (awards.length > 0) {
+            const firstAward = awards[0];
+            const bulletPointsCount = firstAward.bulletPoints?.length || 0;
+            return sectionHeaderHeight + subHeaderHeight + (bulletPointsCount * bodyLineHeight) + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'Volunteer Experience':
-          return baseHeight + 100; // Reduced from 120
+          const volunteer = data.volunteerExperience || [];
+          if (volunteer.length > 0) {
+            const firstVolunteer = volunteer[0];
+            const bulletPointsCount = firstVolunteer.bulletPoints?.length || 0;
+            return sectionHeaderHeight + subHeaderHeight + (bodyLineHeight * 2) + (bulletPointsCount * bodyLineHeight) + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
         case 'References':
-          return baseHeight + 60; // Reduced from 80
-        default:
-          return baseHeight + 40;
+          const references = data.references || [];
+          if (references.length > 0) {
+            return sectionHeaderHeight + (references.length * (bodyLineHeight * 2)) + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+                  default:
+            return sectionHeaderHeight + (bodyLineHeight * 2) + firstSubsectionMargin;
       }
     } else {
       // Regular subsection (no section header)
       switch (sectionName) {
         case 'Work Experience':
-          return 100; // Reduced from 120
+          const workExp = data.workExperience || [];
+          const workIndex = parseInt(subsection.id.split('-')[1]) || 0;
+          if (workExp[workIndex]) {
+            const work = workExp[workIndex];
+            const bulletPointsCount = work.bulletPoints?.length || 0;
+            return subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + entrySpacing;
+          }
+          return subHeaderHeight + entrySpacing;
         case 'Education':
-          return 60; // Reduced from 80
+          const education = data.education || [];
+          const eduIndex = parseInt(subsection.id.split('-')[1]) || 0;
+          if (education[eduIndex]) {
+            return subHeaderHeight + (bodyLineHeight * 2) + entrySpacing;
+          }
+          return subHeaderHeight + entrySpacing;
         case 'Projects':
-          return 120; // Reduced from 150
+          const projects = data.projects || [];
+          const projIndex = parseInt(subsection.id.split('-')[1]) || 0;
+          if (projects[projIndex]) {
+            const project = projects[projIndex];
+            const bulletPointsCount = project.bulletPoints?.length || 0;
+            return subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + entrySpacing;
+          }
+          return subHeaderHeight + entrySpacing;
         case 'Courses':
-          return 25; // Reduced from 30
+          return bodyLineHeight * 3 + 8 + entrySpacing; // Each course ~3 lines + margin
         case 'Languages':
-          return 20; // Reduced from 25
+          return bodyLineHeight + entrySpacing;
         case 'Skills':
-          return 50; // Reduced from 60
+          return subHeaderHeight + bodyLineHeight + entrySpacing;
         case 'Interests':
-          return 20; // Reduced from 25
+          return bodyLineHeight + entrySpacing;
         case 'Publications':
-          return 60; // Reduced from 80
+          return subHeaderHeight + (bodyLineHeight * 2) + entrySpacing;
         case 'Awards':
-          return 80; // Reduced from 100
+          const awards = data.awards || [];
+          const awardIndex = parseInt(subsection.id.split('-')[1]) || 0;
+          if (awards[awardIndex]) {
+            const award = awards[awardIndex];
+            const bulletPointsCount = award.bulletPoints?.length || 0;
+            return subHeaderHeight + (bulletPointsCount * bodyLineHeight) + entrySpacing;
+          }
+          return subHeaderHeight + entrySpacing;
         case 'Volunteer Experience':
-          return 100; // Reduced from 120
+          const volunteer = data.volunteerExperience || [];
+          const volIndex = parseInt(subsection.id.split('-')[1]) || 0;
+          if (volunteer[volIndex]) {
+            const vol = volunteer[volIndex];
+            const bulletPointsCount = vol.bulletPoints?.length || 0;
+            return subHeaderHeight + (bodyLineHeight * 2) + (bulletPointsCount * bodyLineHeight) + entrySpacing;
+          }
+          return subHeaderHeight + entrySpacing;
         case 'References':
-          return 60; // Reduced from 80
+          return bodyLineHeight * 2 + entrySpacing;
         default:
-          return 40;
+          return subHeaderHeight + (bodyLineHeight * 2) + entrySpacing;
       }
     }
   };
 
-  // Subsection-based page calculation
-  useEffect(() => {
-    const calculatePages = () => {
-      const pageHeight = data.pageHeight || 1100;
-      const topBottomMargin = data.topBottomMargin || 40;
-      const contentHeight = pageHeight - (topBottomMargin * 2);
-      const headerHeight = data.profilePicture ? 180 : 120;
-      
-      const pages: { sections: string[]; pageNumber: number }[] = [];
-      let currentPage = { sections: [] as string[], pageNumber: 0 };
-      let currentHeight = headerHeight; // Start with header height for first page
-      
-      // Add first page
-      pages.push(currentPage);
-      
-      // Get all subsections from all sections
-      const allSubsections: Array<{ sectionName: string; subsection: { id: string; name: string; isFirst: boolean } }> = [];
-      
-      for (const sectionName of activeSections) {
-        const subsections = getSubsections(sectionName);
-        subsections.forEach(subsection => {
-          allSubsections.push({ sectionName, subsection });
-        });
+  // Test version with improved pagination logic
+  const calculatePagesTest = () => {
+    const pageHeight = data.pageHeight || 1100;
+    const topBottomMargin = data.topBottomMargin || 40;
+    const contentHeight = pageHeight - (topBottomMargin * 2);
+    const headerHeight = data.profilePicture ? 180 : 120;
+    
+    const pages: { sections: string[]; pageNumber: number; subsections: Array<{ sectionName: string; subsectionId: string }> }[] = [];
+    let currentPage = { sections: [] as string[], pageNumber: 0, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
+    let currentHeight = headerHeight; // Start with header height for first page
+    
+    // Add first page
+    pages.push(currentPage);
+    
+    // Get all subsections from all sections
+    const allSubsections: Array<{ sectionName: string; subsection: { id: string; name: string; isFirst: boolean } }> = [];
+    
+    for (const sectionName of sectionsWithData) {
+      const subsections = getSubsections(sectionName);
+      subsections.forEach(subsection => {
+        allSubsections.push({ sectionName, subsection });
+      });
+    }
+    
+    // Process each subsection individually
+    const processedSubsections = new Set<string>(); // Track processed subsections globally
+    const sectionsStartedOnPages = new Map<string, number>(); // Track which page each section started on
+    
+    for (const { sectionName, subsection } of allSubsections) {
+      // Skip if this subsection has already been processed
+      const subsectionKey = `${sectionName}-${subsection.id}`;
+      if (processedSubsections.has(subsectionKey)) {
+        continue;
       }
       
-      // Process each subsection
-      for (const { sectionName, subsection } of allSubsections) {
-        // Estimate subsection height
-        const estimatedHeight = getEstimatedSubsectionHeight(sectionName, subsection);
-        
-        // Debug information
-        const debugInfo = {
-          sectionName,
-          subsectionName: subsection.name,
-          isFirst: subsection.isFirst,
-          estimatedHeight,
-          currentHeight,
-          contentHeight,
-          willFit: currentHeight + estimatedHeight <= contentHeight,
-          remainingSpace: contentHeight - currentHeight
-        };
-        
-        console.log('📊 Subsection calculation:', debugInfo);
-        
-        // Check if subsection fits on current page
-        if (currentHeight + estimatedHeight > contentHeight && currentPage.sections.length > 0) {
-          console.log(`🚨 Creating new page for "${subsection.name}" - doesn't fit!`, {
-            currentHeight,
-            estimatedHeight,
-            total: currentHeight + estimatedHeight,
-            contentHeight,
-            overflow: (currentHeight + estimatedHeight) - contentHeight
-          });
-          
-          // Create new page
-          currentPage = { sections: [], pageNumber: pages.length };
-          pages.push(currentPage);
-          currentHeight = 0; // Reset height for new page
-        }
-        
-        // Add section to current page (we still track by section for rendering)
-        if (!currentPage.sections.includes(sectionName)) {
-          currentPage.sections.push(sectionName);
-        }
-        currentHeight += estimatedHeight;
+      // Estimate subsection height
+      const estimatedHeight = getEstimatedSubsectionHeight(sectionName, subsection);
+      
+      // Add section spacing for the last subsection of each section
+      const subsections = getSubsections(sectionName);
+      const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
+      const isLastSubsectionOfSection = currentIndex === subsections.length - 1;
+      const sectionSpacing = isLastSubsectionOfSection ? (data.sectionSpacing || 20) : 0;
+      
+      const totalHeight = estimatedHeight + sectionSpacing;
+      
+      // Check if adding this would exceed the content height with a very flexible buffer
+      const safetyBuffer = 10; // Further reduced buffer to be very aggressive about fitting content
+      const wouldExceedContent = (currentHeight + totalHeight) > (contentHeight - safetyBuffer);
+      
+      // Create new page if we would exceed content height
+      if (wouldExceedContent && (currentPage.pageNumber > 0 || currentPage.subsections.length > 0)) {
+        // Create new page
+        currentPage = { sections: [] as string[], pageNumber: pages.length, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
+        pages.push(currentPage);
+        currentHeight = 0; // Reset height for new page
       }
       
-      setPages(pages);
-    };
+      // Add section to current page if it hasn't been started on any page yet
+      if (!sectionsStartedOnPages.has(sectionName)) {
+        currentPage.sections.push(sectionName);
+        sectionsStartedOnPages.set(sectionName, currentPage.pageNumber);
+      }
+      
+      // Add this specific subsection to the current page
+      currentPage.subsections.push({ sectionName, subsectionId: subsection.id });
+      
+      // Mark this subsection as processed
+      processedSubsections.add(subsectionKey);
+      currentHeight += totalHeight;
+    }
+    
+    return pages;
+  };
 
-    // Debounce the calculation by 1 second (1000ms) to prevent jumpy updates
-    const timer = setTimeout(calculatePages, 1000);
-    return () => clearTimeout(timer);
-  }, [activeSections, data.topBottomMargin, data.pageHeight, data.profilePicture, data.sectionSpacing, data.entrySpacing, data.lineSpacing, data.sectionHeadersSize, data.subHeadersSize, data.bodyTextSize, data.sideMargins]);
+  // Use the test version instead of the original
+  const pages = calculatePagesTest();
+
+
 
 
 
@@ -1186,94 +1356,754 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
   };
 
-  // If we have pages from collision detection, render multiple pages
-  if (pages.length > 0) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-        {pages.map((page, pageIndex) => (
+  // Helper function to render a specific subsection
+  const renderSubsection = (sectionName: string, subsection: { id: string; name: string; isFirst: boolean }) => {
+    const itemIndex = parseInt(subsection.id.split('-')[1]) || 0;
+    
+    // Check if this is the last subsection of the section
+    const subsections = getSubsections(sectionName);
+    const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
+    const isLastSubsectionOfSection = currentIndex === subsections.length - 1;
+    
+    if (subsection.isFirst) {
+      // For first subsection, render section header + first item
+      switch (sectionName) {
+        case 'Professional Summary':
+          return (
+            <div>
+              <h2 style={{ 
+                fontSize: `${data.sectionHeadersSize || 18}px`, 
+                fontWeight: 'bold', 
+                marginBottom: '0px',
+                borderBottom: '1px solid #000',
+                paddingBottom: '5px'
+              }}>
+                Professional Summary
+              </h2>
+              <p style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px`, marginTop: '4px' }}>
+                {data.content.personalInfo.summary}
+              </p>
+            </div>
+          );
+        case 'Technical Skills':
+          // Handle individual technical skills subsections
+          if (subsection.id === 'technical-skills-strengths') {
+            return (
+              <div>
+                {subsection.isFirst && (
+                  <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '0px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '0px'
+                  }}>
+                    Technical Skills
+                  </h2>
+                )}
+                <div style={{ marginBottom: '10px', marginTop: '4px' }}>
+                  <strong style={{ fontSize: `${data.subHeadersSize || 16}px` }}>Strengths:</strong>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                    {data.strengths.map((strength, index) => (
+                      <span key={index}>
+                        {strength.skillName}{index < data.strengths.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          } else if (subsection.id.startsWith('technical-skills-category-')) {
+            const categoryIndex = parseInt(subsection.id.split('-')[3]) || 0;
+            const category = data.skillCategories?.[categoryIndex];
+            
+            if (category) {
+              return (
+                <div style={{ marginBottom: '10px' }}>
+                  {subsection.isFirst && (
+                    <h2 style={{ 
+                      fontSize: `${data.sectionHeadersSize || 18}px`, 
+                      fontWeight: 'bold', 
+                      marginBottom: '0px',
+                      borderBottom: '1px solid #000',
+                      paddingBottom: '0px'
+                    }}>
+                      Technical Skills
+                    </h2>
+                  )}
+                  <strong style={{ fontSize: `${data.subHeadersSize || 16}px` }}>{category.title}:</strong>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                    {category.skills.map((skill, skillIndex) => (
+                      <span key={skill.id}>
+                        {skill.name}{skillIndex < category.skills.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+          }
+          
+          // Fallback for default technical skills subsection
+          return (
+            <div>
+              <h2 style={{ 
+                fontSize: `${data.sectionHeadersSize || 18}px`, 
+                fontWeight: 'bold', 
+                marginBottom: '0px',
+                borderBottom: '1px solid #000',
+                paddingBottom: '0px'
+              }}>
+                Technical Skills
+              </h2>
+                              <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px`, marginTop: '4px' }}>
+                  No technical skills specified.
+                </div>
+            </div>
+          );
+        case 'Work Experience':
+          const workExp = data.workExperience || [];
+          if (workExp[itemIndex]) {
+            const work = workExp[itemIndex];
+            return (
+              <div>
+                <h2 style={{ 
+                  fontSize: `${data.sectionHeadersSize || 18}px`, 
+                  fontWeight: 'bold', 
+                  marginBottom: '0px',
+                  borderBottom: '1px solid #000',
+                  paddingBottom: '5px'
+                }}>
+                  Work Experience
+                </h2>
+                <div style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                      {work.company}{work.city && work.state ? `, ${work.city}, ${work.state}` : ''}
+                    </div>
+                    <div style={{ fontSize: `${data.bodyTextSize || 14}px`, fontWeight: 'bold' }}>
+                      {formatDate(work.startDate)} - {work.current ? 'Present' : formatDate(work.endDate)}
+                    </div>
+                  </div>
+                  <div style={{ fontStyle: 'italic', fontSize: `${data.bodyTextSize || 14}px` }}>
+                    {work.position}
+                  </div>
+                  {work.bulletPoints && work.bulletPoints.length > 0 && (
+                    <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
+                      {work.bulletPoints.map((bullet, bulletIndex) => (
+                        <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                          {bullet.description}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          break;
+        case 'Education':
+          const education = data.education || [];
+          if (education[itemIndex]) {
+            const edu = education[itemIndex];
+            return (
+              <div>
+                <h2 style={{ 
+                  fontSize: `${data.sectionHeadersSize || 18}px`, 
+                  fontWeight: 'bold', 
+                  marginBottom: '0px',
+                  borderBottom: '1px solid #000',
+                  paddingBottom: '5px'
+                }}>
+                  Education
+                </h2>
+                <div style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'flex-start',
+                    marginBottom: '4px'
+                  }}>
+                    <div style={{ 
+                      fontSize: `${data.subHeadersSize || 16}px`, 
+                      fontWeight: 'bold',
+                      fontFamily: data.fontFamily || 'Times New Roman, serif'
+                    }}>
+                      {edu.degree} in {edu.field}
+                    </div>
+                    <div style={{ 
+                      fontSize: `${data.bodyTextSize || 14}px`,
+                      fontFamily: data.fontFamily || 'Times New Roman, serif',
+                      fontWeight: 'bold'
+                    }}>
+                      {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
+                    </div>
+                  </div>
+                  <div style={{ 
+                    fontSize: `${data.bodyTextSize || 14}px`,
+                    fontFamily: data.fontFamily || 'Times New Roman, serif'
+                  }}>
+                    {edu.institution}
+                    {edu.gpa && ` • GPA: ${edu.gpa}`}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          break;
+        case 'Projects':
+          const projects = data.projects || [];
+          if (projects[itemIndex]) {
+            const project = projects[itemIndex];
+            return (
+              <div>
+                <h2 style={{ 
+                  fontSize: `${data.sectionHeadersSize || 18}px`, 
+                  fontWeight: 'bold', 
+                  marginBottom: '0px',
+                  borderBottom: '1px solid #000',
+                  paddingBottom: '5px'
+                }}>
+                  Projects
+                </h2>
+                <div key={project.id} style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'flex-start',
+                    marginBottom: '2px'
+                  }}>
+                    <div style={{ 
+                      fontSize: `${data.subHeadersSize || 16}px`, 
+                      fontWeight: 'bold',
+                      fontFamily: data.fontFamily || 'Times New Roman, serif'
+                    }}>
+                      {project.title}
+                    </div>
+                    <div style={{ 
+                      fontSize: `${data.bodyTextSize || 14}px`,
+                      fontFamily: data.fontFamily || 'Times New Roman, serif',
+                      fontWeight: 'bold'
+                    }}>
+                      {formatDate(project.startDate)} - {project.current ? 'Present' : formatDate(project.endDate)}
+                    </div>
+                  </div>
+                  {project.bulletPoints && project.bulletPoints.length > 0 && (
+                    <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
+                      {project.bulletPoints.map((bullet, bulletIndex) => (
+                        <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                          {bullet.description}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          break;
+        case 'Awards':
+          const awards = data.awards || [];
+          if (awards[itemIndex]) {
+            const award = awards[itemIndex];
+            return (
+              <div>
+                <h2 style={{ 
+                  fontSize: `${data.sectionHeadersSize || 18}px`, 
+                  fontWeight: 'bold', 
+                  marginBottom: '0px',
+                  borderBottom: '1px solid #000',
+                  paddingBottom: '5px'
+                }}>
+                  Awards
+                </h2>
+                <div key={award.id} style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                    {award.title}
+                  </div>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                    {award.organization} • {award.year}
+                  </div>
+                  {award.bulletPoints && award.bulletPoints.length > 0 && (
+                    <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
+                      {award.bulletPoints.map((bullet, bulletIndex) => (
+                        <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                          {bullet.description}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          break;
+        default:
+          return getRenderFunction(sectionName)();
+      }
+    } else {
+      // For subsequent subsections, render only the specific item
+      
+      switch (sectionName) {
+        case 'Work Experience':
+          const workExp = data.workExperience || [];
+          if (workExp[itemIndex]) {
+            const work = workExp[itemIndex];
+            return (
+              <div key={work.company} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                    {work.company}{work.city && work.state ? `, ${work.city}, ${work.state}` : ''}
+                  </div>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, fontWeight: 'bold' }}>
+                    {formatDate(work.startDate)} - {work.current ? 'Present' : formatDate(work.endDate)}
+                  </div>
+                </div>
+                <div style={{ fontStyle: 'italic', fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {work.position}
+                </div>
+                {work.bulletPoints && work.bulletPoints.length > 0 && (
+                  <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
+                    {work.bulletPoints.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                        {bullet.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          }
+          break;
+        case 'Education':
+          const education = data.education || [];
+          if (education[itemIndex]) {
+            const edu = education[itemIndex];
+            return (
+              <div key={edu.institution} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'flex-start',
+                  marginBottom: '4px'
+                }}>
+                  <div style={{ 
+                    fontSize: `${data.subHeadersSize || 16}px`, 
+                    fontWeight: 'bold',
+                    fontFamily: data.fontFamily || 'Times New Roman, serif'
+                  }}>
+                    {edu.degree} in {edu.field}
+                  </div>
+                  <div style={{ 
+                    fontSize: `${data.bodyTextSize || 14}px`,
+                    fontFamily: data.fontFamily || 'Times New Roman, serif',
+                    fontWeight: 'bold'
+                  }}>
+                    {formatDate(edu.startDate)} - {edu.current ? 'Present' : formatDate(edu.endDate)}
+                  </div>
+                </div>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  fontFamily: data.fontFamily || 'Times New Roman, serif'
+                }}>
+                  {edu.institution}
+                  {edu.gpa && ` • GPA: ${edu.gpa}`}
+                </div>
+              </div>
+            );
+          }
+          break;
+        case 'Projects':
+          const projects = data.projects || [];
+          if (projects[itemIndex]) {
+            const project = projects[itemIndex];
+            return (
+              <div key={project.id} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'flex-start',
+                  marginBottom: '2px'
+                }}>
+                  <div style={{ 
+                    fontSize: `${data.subHeadersSize || 16}px`, 
+                    fontWeight: 'bold',
+                    fontFamily: data.fontFamily || 'Times New Roman, serif'
+                  }}>
+                    {project.title}
+                  </div>
+                  <div style={{ 
+                    fontSize: `${data.bodyTextSize || 14}px`,
+                    fontFamily: data.fontFamily || 'Times New Roman, serif',
+                    fontWeight: 'bold'
+                  }}>
+                    {formatDate(project.startDate)} - {project.current ? 'Present' : formatDate(project.endDate)}
+                  </div>
+                </div>
+                {project.bulletPoints && project.bulletPoints.length > 0 && (
+                  <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
+                    {project.bulletPoints.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                        {bullet.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          }
+          break;
+        case 'Awards':
+          const awards = data.awards || [];
+          if (awards[itemIndex]) {
+            const award = awards[itemIndex];
+            return (
+              <div key={award.id} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                  {award.title}
+                </div>
+                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {award.organization} • {award.year}
+                </div>
+                {award.bulletPoints && award.bulletPoints.length > 0 && (
+                  <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
+                    {award.bulletPoints.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                        {bullet.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          }
+          break;
+        case 'Volunteer Experience':
+          const volunteerExp = data.volunteerExperience || [];
+          if (volunteerExp[itemIndex]) {
+            const volunteer = volunteerExp[itemIndex];
+            return (
+              <div key={volunteer.id} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                    {volunteer.position}
+                  </div>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, fontWeight: 'bold' }}>
+                    {formatDate(volunteer.startDate)} - {volunteer.current ? 'Present' : formatDate(volunteer.endDate)}
+                  </div>
+                </div>
+                <div style={{ fontWeight: 'bold', fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {volunteer.organization}, {volunteer.location}
+                </div>
+                {volunteer.bulletPoints && volunteer.bulletPoints.length > 0 && (
+                  <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
+                    {volunteer.bulletPoints.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                        {bullet.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          }
+          break;
+        case 'Publications':
+          const publications = data.publications || [];
+          if (publications[itemIndex]) {
+            const pub = publications[itemIndex];
+            return (
+              <div key={pub.id} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                  {pub.title}
+                </div>
+                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {pub.authors} • {pub.journal} • {pub.year}
+                </div>
+                {pub.doi && (
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                    DOI: {pub.doi}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          break;
+        case 'Languages':
+          const languages = data.languages || [];
+          if (languages[itemIndex]) {
+            const lang = languages[itemIndex];
+            return (
+              <div key={lang.id} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                  {lang.name}
+                </div>
+                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {lang.proficiency}
+                </div>
+              </div>
+            );
+          }
+          break;
+        case 'Skills':
+          const skillCategories = data.skillCategories || [];
+          if (skillCategories[itemIndex]) {
+            const category = skillCategories[itemIndex];
+            return (
+              <div key={category.id} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                  {category.title}
+                </div>
+                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {category.skills.map((skill, skillIndex) => (
+                    <span key={skillIndex}>
+                      {skill.name}{skillIndex < category.skills.length - 1 ? ', ' : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          break;
+        case 'Interests':
+          return (
+            <div>
+              <h2 style={{ 
+                fontSize: `${data.sectionHeadersSize || 18}px`, 
+                fontWeight: 'bold', 
+                marginBottom: '10px',
+                borderBottom: '1px solid #000',
+                paddingBottom: '5px'
+              }}>
+                Interests
+              </h2>
+              <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                {data.interests?.map((interest, index) => (
+                  <span key={index}>
+                    {interest.icon} {interest.name}{index < (data.interests?.length || 0) - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        case 'Courses':
+          const courses = data.courses || [];
+          if (courses[itemIndex]) {
+            const course = courses[itemIndex];
+            return (
+              <div>
+                {subsection.isFirst && (
+                  <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '10px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '5px'
+                  }}>
+                    Courses
+                  </h2>
+                )}
+                <div key={course.title} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
+                  <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                    {course.title}
+                  </div>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                    {course.provider}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          break;
+        case 'Technical Skills':
+          // Handle individual technical skills subsections
+          if (subsection.id === 'technical-skills-strengths') {
+            return (
+              <div>
+                {subsection.isFirst && (
+                  <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '0px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '0px'
+                  }}>
+                    Technical Skills
+                  </h2>
+                )}
+                <div style={{ marginBottom: '0px', marginTop: '-8px' }}>
+                  <strong style={{ fontSize: `${data.subHeadersSize || 16}px` }}>Strengths:</strong>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                    {data.strengths.map((strength, index) => (
+                      <span key={index}>
+                        {strength.skillName}{index < data.strengths.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          } else if (subsection.id.startsWith('technical-skills-category-')) {
+            const categoryIndex = parseInt(subsection.id.split('-')[3]) || 0;
+            const category = data.skillCategories?.[categoryIndex];
+            
+            if (category) {
+              return (
+                <div style={{ marginBottom: '10px' }}>
+                  {subsection.isFirst && (
+                    <h2 style={{ 
+                      fontSize: `${data.sectionHeadersSize || 18}px`, 
+                      fontWeight: 'bold', 
+                      marginBottom: '10px',
+                      borderBottom: '1px solid #000',
+                      paddingBottom: '5px'
+                    }}>
+                      Technical Skills
+                    </h2>
+                  )}
+                  <strong style={{ fontSize: `${data.subHeadersSize || 16}px` }}>{category.title}:</strong>
+                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                    {category.skills.map((skill, skillIndex) => (
+                      <span key={skillIndex}>
+                        {skill.name}{skillIndex < category.skills.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+          }
+          
+          // Fallback for default technical skills subsection
+          return (
+            <div>
+              <h2 style={{ 
+                fontSize: `${data.sectionHeadersSize || 18}px`, 
+                fontWeight: 'bold', 
+                marginBottom: '0px',
+                borderBottom: '1px solid #000',
+                paddingBottom: '5px'
+              }}>
+                Technical Skills
+              </h2>
+              <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                No technical skills specified.
+              </div>
+            </div>
+          );
+        case 'References':
+          const references = data.references || [];
+          if (references[itemIndex]) {
+            const ref = references[itemIndex];
+            return (
+              <div key={ref.id} style={{ marginBottom: `${data.entrySpacing || 12}px` }}>
+                <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
+                  {ref.name}
+                </div>
+                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {ref.title} at {ref.company}
+                </div>
+                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                  {ref.email} • {ref.phone}
+                </div>
+              </div>
+            );
+          }
+          break;
+        default:
+          return null;
+      }
+    }
+    
+    return null;
+  };
+
+  // Render with calculated pages
+  const sectionsToRender = pages;
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+      {sectionsToRender.map((page, pageIndex) => {
+        return (
           <div
             key={page.pageNumber}
             ref={pageIndex === 0 ? resumeRef : undefined}
-            style={{ 
-              fontFamily: data.fontFamily || 'Times New Roman, serif', 
-              background: '#fff', 
-              color: '#000', 
-              padding: `${data.topBottomMargin !== undefined ? data.topBottomMargin : 40}px ${data.sideMargins !== undefined ? data.sideMargins : 40}px`,
-              width: `${data.pageWidth || 850}px`,
-              height: `${data.pageHeight || 1100}px`,
-              margin: '0 auto',
-              lineHeight: '1.2',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              borderRadius: '20px',
-              border: '1px solid #e0e0e0'
-            }}
-          >
-            
+        style={{ 
+          fontFamily: data.fontFamily || 'Times New Roman, serif', 
+          background: '#fff', 
+          color: '#000', 
+          padding: `${data.topBottomMargin !== undefined ? data.topBottomMargin : 40}px ${data.sideMargins !== undefined ? data.sideMargins : 40}px`,
+          width: `${data.pageWidth || 850}px`,
+            height: `${data.pageHeight || 1100}px`,
+          margin: '0 auto',
+          lineHeight: '1.2',
+          position: 'relative',
+            overflow: 'hidden',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          borderRadius: '20px',
+          border: '1px solid #e0e0e0'
+        }}
+      >
+          {/* Header only on first page */}
+          {pageIndex === 0 && (
+            <div 
+              key="header"
+              data-subsection="header"
+              ref={(el) => {
+                if (el) {
+                  sectionRefs.current.set('header', el);
+                }
+              }}
+            >
+              {renderHeader()}
+            </div>
+          )}
 
-            {/* Header only on first page */}
-            {pageIndex === 0 && renderHeader()}
+                        {/* Render subsections for this page */}
+              {page.subsections.map(({ sectionName, subsectionId }) => {
+                const subsections = getSubsections(sectionName);
+                const subsection = subsections.find(sub => sub.id === subsectionId);
+                
+                if (!subsection) {
+                  return null;
+                }
+                
+                const estimatedHeight = getEstimatedSubsectionHeight(sectionName, subsection);
+                if (estimatedHeight <= 0) {
+                  return null;
+                }
+                
+                return (
+                  <div 
+                    key={`${sectionName}-${subsection.id}`}
+                    data-subsection={subsection.id}
+                    ref={(el) => {
+                      if (el) {
+                        sectionRefs.current.set(subsection.id, el);
+                      }
+                    }}
+                    style={{
+                      paddingBottom: (() => {
+                        // Include section spacing as padding for the last subsection
+                        const subsections = getSubsections(sectionName);
+                        const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
+                        const isLastSubsectionOfSection = currentIndex === subsections.length - 1;
+                        return isLastSubsectionOfSection ? `${data.sectionSpacing || 20}px` : '0px';
+                      })()
+                    }}
+                  >
+                    {/* Render this specific subsection */}
+                    {renderSubsection(sectionName, subsection)}
+                  </div>
+                );
+              })}
+          
 
-            {/* Render sections for this page */}
-            {page.sections.map((sectionName) => (
-              <div 
-                key={sectionName}
-                data-section={sectionName}
-                ref={(el) => {
-                  if (el) {
-                    sectionRefs.current.set(sectionName.toLowerCase().replace(/\s+/g, '-'), el);
-                  }
-                }}
-              >
-                {getRenderFunction(sectionName)()}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // Initial render - single page for collision detection
-  return (
-    <div 
-      ref={resumeRef}
-      style={{ 
-        fontFamily: data.fontFamily || 'Times New Roman, serif', 
-        background: '#fff', 
-        color: '#000', 
-        padding: `${data.topBottomMargin !== undefined ? data.topBottomMargin : 40}px ${data.sideMargins !== undefined ? data.sideMargins : 40}px`,
-        width: `${data.pageWidth || 850}px`,
-        height: `${data.pageHeight || 1100}px`,
-        margin: '0 auto',
-        lineHeight: '1.2',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        borderRadius: '20px',
-        border: '1px solid #e0e0e0'
-      }}
-    >
+        </div>
+      );
+      })}
       
 
-      {/* Header */}
-      {renderHeader()}
-
-      {/* Render sections with subsection collision detection */}
-      {activeSections.map((sectionName) => (
-        <div 
-          key={sectionName}
-          data-section={sectionName}
-          ref={(el) => {
-            if (el) {
-              sectionRefs.current.set(sectionName.toLowerCase().replace(/\s+/g, '-'), el);
-            }
-          }}
-        >
-          {getRenderFunction(sectionName)()}
-        </div>
-      ))}
     </div>
   );
 };

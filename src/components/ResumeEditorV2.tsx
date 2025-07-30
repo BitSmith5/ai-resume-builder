@@ -343,6 +343,7 @@ export default function ResumeEditorV2({
   // Export panel state
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -626,12 +627,12 @@ export default function ResumeEditorV2({
   useEffect(() => {
     const loadProfileData = async () => {
       try {
-        console.log('Loading profile data...');
+    
         const response = await fetch('/api/profile');
-        console.log('Profile response status:', response.status);
+        
         if (response.ok) {
           const userData = await response.json();
-          console.log('Profile data received:', userData);
+          
           setProfileData({
             name: userData.name || session?.user?.name || "",
             email: userData.email || session?.user?.email || "",
@@ -685,8 +686,7 @@ export default function ResumeEditorV2({
         const response = await fetch(`/api/resumes/${resumeId}`);
         if (response.ok) {
           const resume = await response.json();
-          console.log('Loaded resume data:', resume);
-          console.log('deletedSections from API:', resume.deletedSections);
+          
           
           setResumeData({
             title: resume.title || "",
@@ -828,11 +828,11 @@ export default function ResumeEditorV2({
           
           // Load sectionOrder from database
           if (resume.sectionOrder && Array.isArray(resume.sectionOrder)) {
-            console.log('Loading sectionOrder from database:', resume.sectionOrder);
+    
             // Filter out deleted sections from the loaded section order
             const deletedSections = resume.deletedSections || [];
             const filteredSectionOrder = resume.sectionOrder.filter((section: string) => !deletedSections.includes(section));
-            console.log('Filtered sectionOrder after loading:', filteredSectionOrder);
+            
             setSectionOrder(filteredSectionOrder);
             
             // Also set sectionOrder in resumeData
@@ -844,7 +844,7 @@ export default function ResumeEditorV2({
 
           // Load exportSettings from database
           if (resume.exportSettings) {
-            console.log('Loading exportSettings from database:', resume.exportSettings);
+    
             setExportSettings(prev => ({
               ...prev,
               ...resume.exportSettings
@@ -900,9 +900,7 @@ export default function ResumeEditorV2({
   }, currentSectionOrder: string[]) => {
     if (!session?.user) return;
     
-    console.log('Autosave triggered with data:', data);
-    console.log('deletedSections in autosave:', data.deletedSections);
-    console.log('sectionOrder in autosave:', currentSectionOrder);
+
     
 
     try {
@@ -926,7 +924,7 @@ export default function ResumeEditorV2({
 
       // Filter out data for deleted sections
       const deletedSections = data.deletedSections || [];
-      console.log('Filtering data for deleted sections:', deletedSections);
+  
       
       // Sync profileData with resumeData.content.personalInfo
       const updatedContent = {
@@ -989,8 +987,7 @@ export default function ResumeEditorV2({
         references: filteredData.references || [],
       };
       
-      console.log('Saving resume with payload:', savePayload);
-      console.log('Save URL:', url, 'Method:', method);
+      
       
       const response = await fetch(url, {
         method,
@@ -998,11 +995,11 @@ export default function ResumeEditorV2({
         body: JSON.stringify(savePayload),
       });
 
-      console.log('Save response status:', response.status, response.statusText);
+      
       
       if (response.ok) {
         const savedResume = await response.json();
-        console.log('Save successful, saved resume:', savedResume);
+        
         
         // If this was a new resume, update the URL with the new ID
         if (!resumeId && savedResume.id) {
@@ -1025,7 +1022,7 @@ export default function ResumeEditorV2({
     // Don't save if we're still loading initial data
     if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
     
-    console.log('Autosave triggered - sectionOrder:', sectionOrder);
+
     debouncedSave(resumeData, profileData, sectionOrder);
   }, [resumeData, profileData, sectionOrder, exportSettings, loading, session?.user, resumeId, debouncedSave]);
 
@@ -1096,14 +1093,13 @@ export default function ResumeEditorV2({
     }
     
     if (!result.destination) return;
-    console.log('Section drag end - source:', result.source.index, 'destination:', result.destination.index);
-    console.log('Current sectionOrder:', sectionOrder);
+
     
     const newOrder = Array.from(sectionOrder);
     const [removed] = newOrder.splice(result.source.index, 1);
     newOrder.splice(result.destination.index, 0, removed);
     
-    console.log('New sectionOrder:', newOrder);
+
     setSectionOrder(newOrder);
   };
 
@@ -1122,21 +1118,19 @@ export default function ResumeEditorV2({
   };
 
   const handleDeleteSection = (sectionName: string) => {
-    console.log('Deleting section:', sectionName);
-    console.log('Current sectionOrder before deletion:', sectionOrder);
-    console.log('Current deletedSections before deletion:', resumeData.deletedSections);
+
     
     // Remove from section order
     setSectionOrder(prev => {
       const newOrder = prev.filter(section => section !== sectionName);
-      console.log('New sectionOrder after deletion:', newOrder);
+
       return newOrder;
     });
     
     // Add to deleted sections and clear the data for that section
     setResumeData(prev => {
       const newDeletedSections = [...(prev.deletedSections || []), sectionName];
-      console.log('New deletedSections after deletion:', newDeletedSections);
+
       
       const updatedData = {
         ...prev,
@@ -1156,7 +1150,7 @@ export default function ResumeEditorV2({
         references: sectionName === 'References' ? [] : prev.references,
       };
       
-      console.log('Updated resumeData after deletion:', updatedData);
+
       return updatedData;
     });
   };
@@ -1182,8 +1176,7 @@ export default function ResumeEditorV2({
   // Helper: map section titles to render functions
   const SECTION_COMPONENTS: Record<string, (resumeData: ResumeData, setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>) => JSX.Element> = {
     "Personal Info": () => {
-      console.log('Rendering Personal Info with profileData:', profileData);
-      console.log('Session data:', session?.user);
+
       const hasProfileData = profileData.name || profileData.email || profileData.phone || profileData.location || profileData.linkedinUrl || profileData.githubUrl || profileData.portfolioUrl;
       
       if (!hasProfileData) {
@@ -1371,7 +1364,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Professional Summary');
+
                 handleDeleteSection('Professional Summary');
               }}
               sx={{ 
@@ -2109,7 +2102,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Work Experience');
+
                 handleDeleteSection('Work Experience');
               }}
               sx={{ 
@@ -2209,7 +2202,7 @@ export default function ResumeEditorV2({
                                   });
                                   datePickerCallbackRef.current = (date: string) => {
                                     if (date) {
-                                      console.log('Updating start date:', date);
+                          
                                       updateWorkExperience(work.id, { startDate: date });
                                     }
                                   };
@@ -2260,7 +2253,7 @@ export default function ResumeEditorV2({
                                   });
                                   datePickerCallbackRef.current = (date: string) => {
                                     if (date) {
-                                      console.log('Updating end date:', date);
+                          
                                       updateWorkExperience(work.id, { endDate: date });
                                     }
                                   };
@@ -2527,7 +2520,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Education');
+
                 handleDeleteSection('Education');
               }}
               sx={{ 
@@ -2922,7 +2915,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Courses');
+
                 handleDeleteSection('Courses');
               }}
               sx={{ 
@@ -3215,7 +3208,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Interests');
+
                 handleDeleteSection('Interests');
               }}
               sx={{ 
@@ -3792,7 +3785,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Projects');
+
                 handleDeleteSection('Projects');
               }}
               sx={{ 
@@ -4231,7 +4224,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Languages');
+
                 handleDeleteSection('Languages');
               }}
               sx={{ 
@@ -4465,7 +4458,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Publications');
+
                 handleDeleteSection('Publications');
               }}
               sx={{ 
@@ -4996,7 +4989,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Awards');
+
                 handleDeleteSection('Awards');
               }}
               sx={{ 
@@ -5505,7 +5498,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: Volunteer Experience');
+
                 handleDeleteSection('Volunteer Experience');
               }}
               sx={{ 
@@ -5948,7 +5941,7 @@ export default function ResumeEditorV2({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Delete button clicked for section: References');
+
                 handleDeleteSection('References');
               }}
               sx={{ 
@@ -6240,14 +6233,14 @@ export default function ResumeEditorV2({
 
   const handleDownloadPDF = async () => {
     // TODO: Implement PDF download with export settings
-    console.log('Downloading PDF with settings:', exportSettings);
+
     // For now, just close the panel
     setExportPanelOpen(false);
   };
 
   const handleDownloadWord = async () => {
     // TODO: Implement Word download with export settings
-    console.log('Downloading Word with settings:', exportSettings);
+
     // For now, just close the panel
     setExportPanelOpen(false);
   };
@@ -6788,10 +6781,7 @@ export default function ResumeEditorV2({
                 const filteredSections = availableSections.filter(section => 
                   !sectionOrder.includes(section)
                 );
-                console.log('Available sections:', availableSections);
-                console.log('Current sectionOrder:', sectionOrder);
-                console.log('Deleted sections:', resumeData.deletedSections);
-                console.log('Filtered sections:', filteredSections);
+                
                 return filteredSections;
               })().map((section) => (
                 <ListItem
@@ -6832,20 +6822,19 @@ export default function ResumeEditorV2({
       <DatePicker
         isOpen={datePickerOpen}
         onClose={() => {
-          console.log('DatePicker onClose called');
+      
           setDatePickerOpen(false);
           // Don't clear the callback at all - let onSelect handle it
         }}
         onSelect={(date: string) => {
-          console.log('Date selected:', date);
-          console.log('datePickerCallbackRef exists:', !!datePickerCallbackRef.current);
+          
           
           if (datePickerCallbackRef.current) {
-            console.log('Calling datePickerCallbackRef with date:', date);
+            
             datePickerCallbackRef.current(date);
-            console.log('datePickerCallbackRef completed');
+            
           } else {
-            console.log('No callback available, date picker will not update the field');
+            
           }
           setDatePickerOpen(false);
         }}
@@ -7022,7 +7011,7 @@ export default function ResumeEditorV2({
         }}
         sx={{
           '& .MuiDrawer-paper': {
-            width: 1150,
+            width: 1200,
             backgroundColor: 'white',
             borderLeft: '1px solid #e0e0e0',
             boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
@@ -7044,9 +7033,23 @@ export default function ResumeEditorV2({
             <Typography variant="h6" fontWeight={600}>
               Export Resume
             </Typography>
-            <IconButton onClick={handleExportClose} size="small">
-              <CloseIcon />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                variant={showPdfPreview ? "contained" : "outlined"}
+                size="small"
+                onClick={() => setShowPdfPreview(!showPdfPreview)}
+                sx={{ 
+                  fontSize: '12px',
+                  height: '32px',
+                  minWidth: '100px'
+                }}
+              >
+                {showPdfPreview ? 'Hide PDF' : 'PDF Preview'}
+              </Button>
+              <IconButton onClick={handleExportClose} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
           </Box>
 
           {/* Content - Two Column Layout */}
@@ -7090,28 +7093,24 @@ export default function ResumeEditorV2({
               }}>
                 {/* Transform data for ClassicResumeTemplate */}
                 {(() => {
-                  // Debug: Log the section order being passed to template
-                  console.log('🎯 ResumeEditorV2 - Current sectionOrder:', sectionOrder);
-                  console.log('🎯 ResumeEditorV2 - ResumeData sectionOrder:', resumeData.sectionOrder);
-                  
                   const transformedData = {
                     title: resumeData.title,
                     jobTitle: resumeData.jobTitle,
                     profilePicture: resumeData.profilePicture,
-                    fontFamily: exportSettings.fontFamily, // Add fontFamily from export settings
-                    nameSize: exportSettings.nameSize, // Add nameSize from export settings
-                    sectionHeadersSize: exportSettings.sectionHeadersSize, // Add sectionHeadersSize from export settings
-                    subHeadersSize: exportSettings.subHeadersSize, // Add subHeadersSize from export settings
-                    bodyTextSize: exportSettings.bodyTextSize, // Add bodyTextSize from export settings
-                    sectionSpacing: exportSettings.sectionSpacing, // Add sectionSpacing from export settings
-                    entrySpacing: exportSettings.entrySpacing, // Add entrySpacing from export settings
-                    lineSpacing: exportSettings.lineSpacing, // Add lineSpacing from export settings
-                    topBottomMargin: exportSettings.topBottomMargin, // Add topBottomMargin from export settings
-                    sideMargins: exportSettings.sideMargins, // Add sideMargins from export settings
-                    alignTextLeftRight: exportSettings.alignTextLeftRight, // Add alignTextLeftRight from export settings
-                    pageWidth: exportSettings.pageWidth, // Add pageWidth from export settings
-                    pageHeight: exportSettings.pageHeight, // Add pageHeight from export settings
-                    sectionOrder: sectionOrder, // Add sectionOrder to transformed data
+                    fontFamily: exportSettings.fontFamily,
+                    nameSize: exportSettings.nameSize,
+                    sectionHeadersSize: exportSettings.sectionHeadersSize,
+                    subHeadersSize: exportSettings.subHeadersSize,
+                    bodyTextSize: exportSettings.bodyTextSize,
+                    sectionSpacing: exportSettings.sectionSpacing,
+                    entrySpacing: exportSettings.entrySpacing,
+                    lineSpacing: exportSettings.lineSpacing,
+                    topBottomMargin: exportSettings.topBottomMargin,
+                    sideMargins: exportSettings.sideMargins,
+                    alignTextLeftRight: exportSettings.alignTextLeftRight,
+                    pageWidth: exportSettings.pageWidth,
+                    pageHeight: exportSettings.pageHeight,
+                    sectionOrder: sectionOrder,
                     content: resumeData.content,
                     strengths: resumeData.strengths,
                     skillCategories: resumeData.skillCategories,
@@ -7142,10 +7141,18 @@ export default function ResumeEditorV2({
                       width: '125%', // 100% / 0.80 = 125%
                       height: '125%',
                     }}>
-                      <ClassicResumeTemplate 
-                        key={`${exportSettings.sectionHeadersSize}-${exportSettings.subHeadersSize}-${exportSettings.bodyTextSize}-${exportSettings.sectionSpacing}-${exportSettings.entrySpacing}-${exportSettings.lineSpacing}-${exportSettings.topBottomMargin}-${exportSettings.sideMargins}`}
-                        data={transformedData} 
-                      />
+                                            {/* Word-style multi-page preview */}
+                      <Box sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px',
+                        alignItems: 'center'
+                      }}>
+                        <ClassicResumeTemplate 
+                          key={`${exportSettings.sectionHeadersSize}-${exportSettings.subHeadersSize}-${exportSettings.bodyTextSize}-${exportSettings.sectionSpacing}-${exportSettings.entrySpacing}-${exportSettings.lineSpacing}-${exportSettings.topBottomMargin}-${exportSettings.sideMargins}`}
+                          data={transformedData} 
+                        />
+                      </Box>
                     </Box>
                   );
                 })()}
