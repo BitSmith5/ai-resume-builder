@@ -343,7 +343,7 @@ export default function ResumeEditorV2({
   // Export panel state
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
-  const [showPdfPreview, setShowPdfPreview] = useState(false);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -7049,23 +7049,9 @@ export default function ResumeEditorV2({
             <Typography variant="h6" fontWeight={600}>
               Export Resume
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Button
-                variant={showPdfPreview ? "contained" : "outlined"}
-                size="small"
-                onClick={() => setShowPdfPreview(!showPdfPreview)}
-                sx={{ 
-                  fontSize: '12px',
-                  height: '32px',
-                  minWidth: '100px'
-                }}
-              >
-                {showPdfPreview ? 'Hide PDF' : 'PDF Preview'}
-              </Button>
-              <IconButton onClick={handleExportClose} size="small">
-                <CloseIcon />
-              </IconButton>
-            </Box>
+            <IconButton onClick={handleExportClose} size="small">
+              <CloseIcon />
+            </IconButton>
           </Box>
 
           {/* Content - Two Column Layout */}
