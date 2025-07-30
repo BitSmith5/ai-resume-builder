@@ -1357,9 +1357,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const renderSubsection = (sectionName: string, subsection: { id: string; name: string; isFirst: boolean }) => {
     const itemIndex = parseInt(subsection.id.split('-')[1]) || 0;
     
-    // Check if this is the last subsection of the section
+    // Get subsections for this section
     const subsections = getSubsections(sectionName);
-    const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
     
     if (subsection.isFirst) {
       // For first subsection, render section header + first item
