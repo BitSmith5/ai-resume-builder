@@ -7027,7 +7027,7 @@ export default function ResumeEditorV2({
         }}
         sx={{
           '& .MuiDrawer-paper': {
-            width: 1200,
+            width: 1170,
             backgroundColor: 'white',
             borderLeft: '1px solid #e0e0e0',
             boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
