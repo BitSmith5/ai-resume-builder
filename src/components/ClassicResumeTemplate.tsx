@@ -2084,8 +2084,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                         // Include section spacing as padding for the last subsection
                         const subsections = getSubsections(sectionName);
                         const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
-                        const isLastSubsectionOfSection = currentIndex === subsections.length - 1;
-                        return isLastSubsectionOfSection ? `${data.sectionSpacing || 20}px` : '0px';
+                  
+                        return currentIndex === subsections.length - 1 ? `${data.sectionSpacing || 20}px` : '0px';
                       })()
                     }}
                   >
