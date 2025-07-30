@@ -7165,7 +7165,7 @@ export default function ResumeEditorV2({
                         alignItems: 'center'
                       }}>
                         <ClassicResumeTemplate 
-                          key={`${exportSettings.sectionHeadersSize}-${exportSettings.subHeadersSize}-${exportSettings.bodyTextSize}-${exportSettings.sectionSpacing}-${exportSettings.entrySpacing}-${exportSettings.lineSpacing}-${exportSettings.topBottomMargin}-${exportSettings.sideMargins}`}
+                          key={`${exportSettings.sectionHeadersSize}-${exportSettings.subHeadersSize}-${exportSettings.bodyTextSize}-${exportSettings.sectionSpacing}-${exportSettings.entrySpacing}-${exportSettings.lineSpacing}-${exportSettings.topBottomMargin}-${exportSettings.sideMargins}-${exportSettings.pageWidth}-${exportSettings.pageHeight}`}
                           data={transformedData} 
                         />
                       </Box>
