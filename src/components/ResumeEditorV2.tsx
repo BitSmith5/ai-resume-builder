@@ -31,6 +31,7 @@ import {
   Slider,
   FormControlLabel,
   Stack,
+  Tooltip,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -7346,7 +7347,9 @@ export default function ResumeEditorV2({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                   <StarIcon sx={{ color: '#ffd700', fontSize: 14 }} />
                   <Typography variant="caption" color="text.secondary">Recommended</Typography>
-                  <InfoIcon sx={{ color: '#666', fontSize: 14 }} />
+                  <Tooltip title="This template is optimized for ATS (Applicant Tracking Systems) and follows professional resume standards" arrow>
+                    <InfoIcon sx={{ color: '#666', fontSize: 14 }} />
+                  </Tooltip>
                 </Box>
               </Box>
 
@@ -7544,7 +7547,9 @@ export default function ResumeEditorV2({
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Sub-Headers</Typography>
-                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      <Tooltip title="Font size for job titles, company names, and other sub-headers in your resume" arrow>
+                        <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      </Tooltip>
                     </Box>
                                                                                     <Select
                         value={exportSettings.subHeadersSize}
@@ -7680,7 +7685,9 @@ export default function ResumeEditorV2({
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Section Spacing</Typography>
-                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      <Tooltip title="Space between major sections like Work Experience, Education, Skills, etc." arrow>
+                        <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      </Tooltip>
                     </Box>
                     <Slider
                       value={exportSettings.sectionSpacing}
@@ -7738,7 +7745,9 @@ export default function ResumeEditorV2({
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Entry Spacing</Typography>
-                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      <Tooltip title="Space between individual entries within a section (e.g., between different jobs in Work Experience)" arrow>
+                        <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      </Tooltip>
                     </Box>
                     <Slider
                       value={exportSettings.entrySpacing}
@@ -7796,7 +7805,9 @@ export default function ResumeEditorV2({
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Line Spacing</Typography>
-                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      <Tooltip title="Space between lines of text within bullet points and descriptions" arrow>
+                        <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      </Tooltip>
                     </Box>
                     <Slider
                       value={exportSettings.lineSpacing}
@@ -7854,7 +7865,9 @@ export default function ResumeEditorV2({
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Top & Bottom Margin</Typography>
-                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      <Tooltip title="Space from the top and bottom edges of each page" arrow>
+                        <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      </Tooltip>
                     </Box>
                     <Slider
                       value={exportSettings.topBottomMargin}
@@ -7912,7 +7925,9 @@ export default function ResumeEditorV2({
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Side Margins</Typography>
-                      <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      <Tooltip title="Space from the left and right edges of each page" arrow>
+                        <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
+                      </Tooltip>
                     </Box>
                     <Slider
                       value={exportSettings.sideMargins}
