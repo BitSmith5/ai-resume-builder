@@ -274,9 +274,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
           margin: '0 0 0px 0',
-        fontFamily: data.fontFamily || 'Times New Roman, serif',
+          fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-        paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Professional Summary
         </h2>
@@ -297,10 +297,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-        margin: '0 0 0px 0',
-        fontFamily: data.fontFamily || 'Times New Roman, serif',
+          margin: '0 0 0px 0',
+          fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-        paddingBottom: '0px'
+          paddingBottom: '1px'
         }}>
           Technical Skills
         </h2>
@@ -311,7 +311,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.bodyTextSize || 14}px`, 
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           lineHeight: `${data.lineSpacing || 14}px`,
-          marginBottom: '0px'
+          marginBottom: '0px',
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
         }}>
           {data.strengths.map((skill, index) => (
             <span key={index}>
@@ -338,7 +339,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               <div style={{ 
                 fontSize: `${data.bodyTextSize || 14}px`,
                 fontFamily: data.fontFamily || 'Times New Roman, serif',
-                lineHeight: `${data.lineSpacing || 14}px`
+                lineHeight: `${data.lineSpacing || 14}px`,
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
               }}>
                 {category.skills.map((skill, skillIndex) => (
                   <span key={skillIndex}>
@@ -359,10 +361,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <h2 style={{ 
           fontSize: `${data.sectionHeadersSize || 18}px`, 
           fontWeight: 'bold', 
-        margin: '0 0 0px 0',
-        fontFamily: data.fontFamily || 'Times New Roman, serif',
+          margin: '0 0 0px 0',
+          fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-        paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Work Experience
         </h2>
@@ -410,7 +412,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             lineHeight: `${data.lineSpacing || 14}px`
           }}>
             {work.bulletPoints.map((point, pointIndex) => (
-              <li key={pointIndex} style={{ marginBottom: '2px' }}>
+              <li key={pointIndex} style={{ 
+                marginBottom: '2px',
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+              }}>
                 {point.description}
                   </li>
                 ))}
@@ -428,7 +433,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Education
         </h2>
@@ -461,7 +466,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             </div>
             <div style={{ 
             fontSize: `${data.bodyTextSize || 14}px`,
-            fontFamily: data.fontFamily || 'Times New Roman, serif'
+            fontFamily: data.fontFamily || 'Times New Roman, serif',
+            textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {edu.institution}
             {edu.gpa && ` • GPA: ${edu.gpa}`}
@@ -482,7 +488,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Projects
         </h2>
@@ -512,7 +518,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '2px'
+              marginBottom: '2px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {project.technologies.join(', ')}
             </div>
@@ -524,7 +531,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               lineHeight: `${data.lineSpacing || 14}px`
             }}>
               {project.bulletPoints.map((point, pointIndex) => (
-                <li key={pointIndex} style={{ marginBottom: '2px' }}>
+                <li key={pointIndex} style={{ 
+                  marginBottom: '2px',
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {point.description}
                   </li>
                 ))}
@@ -546,7 +556,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Courses
         </h2>
@@ -554,11 +564,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.bodyTextSize || 14}px`,
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           lineHeight: `${data.lineSpacing || 14}px`,
-          marginTop: '4px'
+          marginTop: '4px',
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
         }}>
           {data.courses.map((course, index) => (
             <div key={index} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
-              <div style={{ marginBottom: '2px' }}>
+              <div style={{ 
+              marginBottom: '2px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+            }}>
                 <strong>{course.title}</strong> - {course.provider}
             </div>
             {course.link && (
@@ -572,7 +586,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                       textDecoration: 'underline',
                       cursor: 'pointer',
                       fontSize: `${data.bodyTextSize || 14}px`,
-                      fontFamily: data.fontFamily || 'Times New Roman, serif'
+                      fontFamily: data.fontFamily || 'Times New Roman, serif',
+                      textAlign: data.alignTextLeftRight ? 'justify' : 'left'
                     }}
                   >
                   {formatUrl(course.link)}
@@ -597,7 +612,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Languages
         </h2>
@@ -605,7 +620,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.bodyTextSize || 14}px`, 
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           lineHeight: `${data.lineSpacing || 14}px`,
-          marginTop: '4px'
+          marginTop: '4px',
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
         }}>
           {data.languages.map((lang, index) => (
             <span key={index}>
@@ -629,7 +645,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Skills
         </h2>
@@ -646,7 +662,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         <div style={{ 
           fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              lineHeight: `${data.lineSpacing || 14}px`
+              lineHeight: `${data.lineSpacing || 14}px`,
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
                               {category.skills.map((skill, skillIndex) => (
                   <span key={skillIndex}>
@@ -672,7 +689,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Interests
         </h2>
@@ -680,7 +697,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           fontSize: `${data.bodyTextSize || 14}px`,
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           lineHeight: `${data.lineSpacing || 14}px`,
-          marginTop: '4px'
+          marginTop: '4px',
+          textAlign: data.alignTextLeftRight ? 'justify' : 'left'
         }}>
           {data.interests.map((interest, index) => (
             <span key={index}>
@@ -705,7 +723,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Publications
         </h2>
@@ -722,7 +740,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '2px'
+              marginBottom: '2px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {pub.authors} • {pub.journal} • {pub.year}
             </div>
@@ -743,7 +762,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Awards
         </h2>
@@ -760,7 +779,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '4px'
+              marginBottom: '4px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {award.organization} • {award.year}
             </div>
@@ -772,7 +792,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               lineHeight: `${data.lineSpacing || 14}px`
             }}>
               {award.bulletPoints.map((point, pointIndex) => (
-                <li key={pointIndex} style={{ marginBottom: '2px' }}>
+                <li key={pointIndex} style={{ 
+                  marginBottom: '2px',
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {point.description}
                   </li>
                 ))}
@@ -794,7 +817,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           Volunteer Experience
         </h2>
@@ -825,14 +848,16 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               fontSize: `${data.bodyTextSize || 14}px`, 
               fontWeight: 'bold', 
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '4px'
+              marginBottom: '4px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {volunteer.organization}, {volunteer.location}
             </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '4px'
+              marginBottom: '4px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {volunteer.hoursPerWeek} hours per week
               </div>
@@ -844,7 +869,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               lineHeight: `${data.lineSpacing || 14}px`
             }}>
               {volunteer.bulletPoints.map((point, pointIndex) => (
-                <li key={pointIndex} style={{ marginBottom: '2px' }}>
+                <li key={pointIndex} style={{ 
+                  marginBottom: '2px',
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {point.description}
                   </li>
                 ))}
@@ -866,7 +894,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           margin: '0 0 0px 0',
           fontFamily: data.fontFamily || 'Times New Roman, serif',
           borderBottom: '1px solid #000',
-          paddingBottom: '2px'
+          paddingBottom: '1px'
         }}>
           References
         </h2>
@@ -883,20 +911,23 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '2px'
+              marginBottom: '2px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {ref.title} at {ref.company}
             </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
               fontFamily: data.fontFamily || 'Times New Roman, serif',
-              marginBottom: '2px'
+              marginBottom: '2px',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {ref.email} • {ref.phone}
               </div>
             <div style={{ 
               fontSize: `${data.bodyTextSize || 14}px`,
-              fontFamily: data.fontFamily || 'Times New Roman, serif'
+              fontFamily: data.fontFamily || 'Times New Roman, serif',
+              textAlign: data.alignTextLeftRight ? 'justify' : 'left'
             }}>
               {ref.relationship}
               </div>
@@ -1365,16 +1396,21 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         case 'Professional Summary':
           return (
             <div>
-              <h2 style={{ 
-                fontSize: `${data.sectionHeadersSize || 18}px`, 
-                fontWeight: 'bold', 
-                marginBottom: '0px',
-                borderBottom: '1px solid #000',
-                paddingBottom: '5px'
+                              <h2 style={{ 
+                  fontSize: `${data.sectionHeadersSize || 18}px`, 
+                  fontWeight: 'bold', 
+                  marginBottom: '0px',
+                  borderBottom: '1px solid #000',
+                  paddingBottom: '1px'
+                }}>
+                  Professional Summary
+                </h2>
+              <p style={{ 
+                fontSize: `${data.bodyTextSize || 14}px`, 
+                lineHeight: `${data.lineSpacing || 14}px`, 
+                marginTop: '4px',
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
               }}>
-                Professional Summary
-              </h2>
-              <p style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px`, marginTop: '4px' }}>
                 {data.content.personalInfo.summary}
               </p>
             </div>
@@ -1461,15 +1497,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             const work = workExp[itemIndex];
             return (
               <div>
-                <h2 style={{ 
-                  fontSize: `${data.sectionHeadersSize || 18}px`, 
-                  fontWeight: 'bold', 
-                  marginBottom: '0px',
-                  borderBottom: '1px solid #000',
-                  paddingBottom: '5px'
-                }}>
-                  Work Experience
-                </h2>
+                                  <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '0px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '1px'
+                  }}>
+                    Work Experience
+                  </h2>
                 <div style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
@@ -1507,7 +1543,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   fontWeight: 'bold', 
                   marginBottom: '0px',
                   borderBottom: '1px solid #000',
-                  paddingBottom: '5px'
+                  paddingBottom: '1px'
                 }}>
                   Education
                 </h2>
@@ -1535,7 +1571,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   </div>
                   <div style={{ 
                     fontSize: `${data.bodyTextSize || 14}px`,
-                    fontFamily: data.fontFamily || 'Times New Roman, serif'
+                    fontFamily: data.fontFamily || 'Times New Roman, serif',
+                    textAlign: data.alignTextLeftRight ? 'justify' : 'left'
                   }}>
                     {edu.institution}
                     {edu.gpa && ` • GPA: ${edu.gpa}`}
@@ -1556,7 +1593,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   fontWeight: 'bold', 
                   marginBottom: '0px',
                   borderBottom: '1px solid #000',
-                  paddingBottom: '5px'
+                  paddingBottom: '1px'
                 }}>
                   Projects
                 </h2>
@@ -1607,7 +1644,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   fontWeight: 'bold', 
                   marginBottom: '0px',
                   borderBottom: '1px solid #000',
-                  paddingBottom: '5px'
+                  paddingBottom: '1px'
                 }}>
                   Awards
                 </h2>
@@ -1659,7 +1696,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 {work.bulletPoints && work.bulletPoints.length > 0 && (
                   <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
                     {work.bulletPoints.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                      <li key={bulletIndex} style={{ 
+                        fontSize: `${data.bodyTextSize || 14}px`, 
+                        lineHeight: `${data.lineSpacing || 14}px`,
+                        textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                      }}>
                         {bullet.description}
                       </li>
                     ))}
@@ -1698,7 +1739,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 </div>
                 <div style={{ 
                   fontSize: `${data.bodyTextSize || 14}px`,
-                  fontFamily: data.fontFamily || 'Times New Roman, serif'
+                  fontFamily: data.fontFamily || 'Times New Roman, serif',
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
                 }}>
                   {edu.institution}
                   {edu.gpa && ` • GPA: ${edu.gpa}`}
@@ -1737,7 +1779,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 {project.bulletPoints && project.bulletPoints.length > 0 && (
                   <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
                     {project.bulletPoints.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                      <li key={bulletIndex} style={{ 
+                        fontSize: `${data.bodyTextSize || 14}px`, 
+                        lineHeight: `${data.lineSpacing || 14}px`,
+                        textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                      }}>
                         {bullet.description}
                       </li>
                     ))}
@@ -1756,13 +1802,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
                   {award.title}
                 </div>
-                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {award.organization} • {award.year}
                 </div>
                 {award.bulletPoints && award.bulletPoints.length > 0 && (
                   <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
                     {award.bulletPoints.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                      <li key={bulletIndex} style={{ 
+                        fontSize: `${data.bodyTextSize || 14}px`, 
+                        lineHeight: `${data.lineSpacing || 14}px`,
+                        textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                      }}>
                         {bullet.description}
                       </li>
                     ))}
@@ -1792,7 +1845,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 {volunteer.bulletPoints && volunteer.bulletPoints.length > 0 && (
                   <ul style={{ margin: '2px 0', paddingLeft: '20px' }}>
                     {volunteer.bulletPoints.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                      <li key={bulletIndex} style={{ 
+                        fontSize: `${data.bodyTextSize || 14}px`, 
+                        lineHeight: `${data.lineSpacing || 14}px`,
+                        textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                      }}>
                         {bullet.description}
                       </li>
                     ))}
@@ -1811,7 +1868,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
                   {pub.title}
                 </div>
-                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {pub.authors} • {pub.journal} • {pub.year}
                 </div>
                 {pub.doi && (
@@ -1832,7 +1892,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
                   {lang.name}
                 </div>
-                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {lang.proficiency}
                 </div>
               </div>
@@ -1848,7 +1911,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
                   {category.title}
                 </div>
-                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {category.skills.map((skill, skillIndex) => (
                     <span key={skillIndex}>
                       {skill.name}{skillIndex < category.skills.length - 1 ? ', ' : ''}
@@ -1862,16 +1928,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         case 'Interests':
           return (
             <div>
-              <h2 style={{ 
-                fontSize: `${data.sectionHeadersSize || 18}px`, 
-                fontWeight: 'bold', 
-                marginBottom: '10px',
-                borderBottom: '1px solid #000',
-                paddingBottom: '5px'
+                                <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '10px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '1px'
+                  }}>
+                    Interests
+                  </h2>
+              <div style={{ 
+                fontSize: `${data.bodyTextSize || 14}px`, 
+                lineHeight: `${data.lineSpacing || 14}px`,
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
               }}>
-                Interests
-              </h2>
-              <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
                 {data.interests?.map((interest, index) => (
                   <span key={index}>
                     {interest.icon} {interest.name}{index < (data.interests?.length || 0) - 1 ? ', ' : ''}
@@ -1892,18 +1962,25 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                     fontWeight: 'bold', 
                     marginBottom: '10px',
                     borderBottom: '1px solid #000',
-                    paddingBottom: '5px'
+                    paddingBottom: '1px'
                   }}>
                     Courses
                   </h2>
                 )}
                 <div key={course.title} style={{ paddingBottom: `${data.entrySpacing || 12}px` }}>
-                  <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
-                    {course.title}
-                  </div>
-                  <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
-                    {course.provider}
-                  </div>
+                                  <div style={{ 
+                  fontWeight: 'bold', 
+                  fontSize: `${data.subHeadersSize || 16}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
+                  {course.title}
+                </div>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
+                  {course.provider}
+                </div>
                 </div>
               </div>
             );
@@ -1927,7 +2004,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 )}
                 <div style={{ marginBottom: '0px', marginTop: '-8px' }}>
                   <strong style={{ fontSize: `${data.subHeadersSize || 16}px` }}>Strengths:</strong>
-                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                  <div style={{ 
+                    fontSize: `${data.bodyTextSize || 14}px`, 
+                    lineHeight: `${data.lineSpacing || 14}px`,
+                    textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                  }}>
                     {data.strengths.map((strength, index) => (
                       <span key={index}>
                         {strength.skillName}{index < data.strengths.length - 1 ? ', ' : ''}
@@ -1956,7 +2037,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                     </h2>
                   )}
                   <strong style={{ fontSize: `${data.subHeadersSize || 16}px` }}>{category.title}:</strong>
-                  <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+                  <div style={{ 
+                    fontSize: `${data.bodyTextSize || 14}px`, 
+                    lineHeight: `${data.lineSpacing || 14}px`,
+                    textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                  }}>
                     {category.skills.map((skill, skillIndex) => (
                       <span key={skillIndex}>
                         {skill.name}{skillIndex < category.skills.length - 1 ? ', ' : ''}
@@ -1976,11 +2061,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 fontWeight: 'bold', 
                 marginBottom: '0px',
                 borderBottom: '1px solid #000',
-                paddingBottom: '5px'
+                paddingBottom: '1px'
               }}>
                 Technical Skills
               </h2>
-              <div style={{ fontSize: `${data.bodyTextSize || 14}px`, lineHeight: `${data.lineSpacing || 14}px` }}>
+              <div style={{ 
+                fontSize: `${data.bodyTextSize || 14}px`, 
+                lineHeight: `${data.lineSpacing || 14}px`,
+                textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+              }}>
                 No technical skills specified.
               </div>
             </div>
@@ -1994,10 +2083,16 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
                   {ref.name}
                 </div>
-                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {ref.title} at {ref.company}
                 </div>
-                <div style={{ fontSize: `${data.bodyTextSize || 14}px` }}>
+                <div style={{ 
+                  fontSize: `${data.bodyTextSize || 14}px`,
+                  textAlign: data.alignTextLeftRight ? 'justify' : 'left'
+                }}>
                   {ref.email} • {ref.phone}
                 </div>
               </div>

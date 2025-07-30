@@ -352,13 +352,13 @@ export default function ResumeEditorV2({
     pageSize: 'letter',
     fontFamily: 'Times New Roman',
     nameSize: 40,
-    sectionHeadersSize: 11,
+    sectionHeadersSize: 14,
     subHeadersSize: 10.5,
-    bodyTextSize: 10,
-    sectionSpacing: 20,
-    entrySpacing: 12,
-    lineSpacing: 10,
-    topBottomMargin: 20,
+    bodyTextSize: 11,
+    sectionSpacing: 12,
+    entrySpacing: 9,
+    lineSpacing: 12,
+    topBottomMargin: 33,
     sideMargins: 33,
     alignTextLeftRight: false,
     pageWidth: 850,
@@ -6246,23 +6246,39 @@ export default function ResumeEditorV2({
   };
 
   const handleResetFormatting = () => {
-    setExportSettings({
-      template: 'standard',
-      pageSize: 'letter',
-      fontFamily: 'Times New Roman',
-      nameSize: 40,
-      sectionHeadersSize: 11,
-      subHeadersSize: 10.5,
-      bodyTextSize: 10,
-      sectionSpacing: 20,
-      entrySpacing: 12,
-      lineSpacing: 10,
-      topBottomMargin: 20,
-      sideMargins: 33,
-      alignTextLeftRight: false,
-      pageWidth: 850,
-      pageHeight: 1100,
-    });
+    const currentTemplate = exportSettings.template;
+    
+    if (currentTemplate === 'standard') {
+      setExportSettings(prev => ({
+        ...prev,
+        fontFamily: 'Times New Roman',
+        nameSize: 40,
+        sectionHeadersSize: 14,
+        subHeadersSize: 10.5,
+        bodyTextSize: 11,
+        sectionSpacing: 12,
+        entrySpacing: 9,
+        lineSpacing: 12,
+        topBottomMargin: 33,
+        sideMargins: 33,
+        alignTextLeftRight: false,
+      }));
+    } else if (currentTemplate === 'compact') {
+      setExportSettings(prev => ({
+        ...prev,
+        fontFamily: 'Times New Roman',
+        nameSize: 36,
+        sectionHeadersSize: 12,
+        subHeadersSize: 10,
+        bodyTextSize: 10,
+        sectionSpacing: 10,
+        entrySpacing: 6,
+        lineSpacing: 10,
+        topBottomMargin: 25,
+        sideMargins: 25,
+        alignTextLeftRight: false,
+      }));
+    }
   };
 
   return (
@@ -7275,8 +7291,17 @@ export default function ResumeEditorV2({
                   onClick={() => setExportSettings(prev => ({ 
                     ...prev, 
                     template: 'standard',
-                    sectionSpacing: 20,
-                    entrySpacing: 12
+                    fontFamily: 'Times New Roman',
+                    nameSize: 40,
+                    sectionHeadersSize: 14,
+                    subHeadersSize: 10.5,
+                    bodyTextSize: 11,
+                    sectionSpacing: 12,
+                    entrySpacing: 9,
+                    lineSpacing: 12,
+                    topBottomMargin: 33,
+                    sideMargins: 33,
+                    alignTextLeftRight: false
                   }))}
                   >
                     <Typography variant="body2" fontWeight={500}>Standard</Typography>
@@ -7310,8 +7335,17 @@ export default function ResumeEditorV2({
                   onClick={() => setExportSettings(prev => ({ 
                     ...prev, 
                     template: 'compact',
+                    fontFamily: 'Times New Roman',
+                    nameSize: 36,
+                    sectionHeadersSize: 12,
+                    subHeadersSize: 10,
+                    bodyTextSize: 10,
                     sectionSpacing: 10,
-                    entrySpacing: 6
+                    entrySpacing: 6,
+                    lineSpacing: 10,
+                    topBottomMargin: 25,
+                    sideMargins: 25,
+                    alignTextLeftRight: false
                   }))}
                   >
                     <Typography variant="body2" fontWeight={500}>Compact</Typography>
