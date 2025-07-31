@@ -11,7 +11,7 @@ interface ResumeWithTemplate {
 
 interface ExportSettings {
   template: string;
-  pageSize: string;
+  pageSize: 'letter' | 'a4';
   fontFamily: string;
   nameSize: number;
   sectionHeadersSize: number;

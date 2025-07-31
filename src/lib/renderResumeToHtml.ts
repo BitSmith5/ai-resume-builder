@@ -138,6 +138,22 @@ interface ClassicPageContent {
   educationStarted: boolean;
 }
 
+interface ExportSettings {
+  template?: string;
+  pageSize?: 'letter' | 'a4';
+  fontFamily?: string;
+  nameSize?: number;
+  sectionHeadersSize?: number;
+  subHeadersSize?: number;
+  bodyTextSize?: number;
+  sectionSpacing?: number;
+  entrySpacing?: number;
+  lineSpacing?: number;
+  topBottomMargin?: number;
+  sideMargins?: number;
+  alignTextLeftRight?: boolean;
+}
+
 interface ClassicSection {
   type: 'work' | 'courses' | 'education';
   items: Array<{
@@ -162,7 +178,7 @@ interface ClassicSection {
   height: number;
 }
 
-export function renderResumeToHtml(data: ResumeData, template: string, exportSettings?: any): string {
+export function renderResumeToHtml(data: ResumeData, template: string, exportSettings?: ExportSettings): string {
   if (template === 'classic') {
     return renderClassicTemplate(data, exportSettings);
   } else {
@@ -648,7 +664,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
   `;
 }
 
-function renderClassicTemplate(data: ResumeData, exportSettings?: any): string {
+function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings): string {
   const { personalInfo } = data.content;
 
   // Function to format dates as MM/YYYY
