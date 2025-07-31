@@ -327,8 +327,8 @@ export default function ResumeEditorV2({
   const router = useRouter();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
-  const [error] = useState("");
-  const [success] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
   const [addSectionPopupOpen, setAddSectionPopupOpen] = useState(false);
   const [editResumeInfoOpen, setEditResumeInfoOpen] = useState(false);
@@ -6233,10 +6233,101 @@ export default function ResumeEditorV2({
   };
 
   const handleDownloadPDF = async () => {
-    // TODO: Implement PDF download with export settings
+    if (!resumeId) {
+      console.error('No resume ID available for PDF download');
+      return;
+    }
 
-    // For now, just close the panel
-    setExportPanelOpen(false);
+    try {
+      console.log('🎯 Starting PDF download with export settings for resume:', resumeId);
+      console.log('🎯 Export settings:', exportSettings);
+
+      // Show loading state
+      setSuccess('');
+      setError('');
+
+      // Scale down font sizes for PDF generation (points-based scaling)
+      const pdfExportSettings = {
+        ...exportSettings,
+        nameSize: Math.max(16, (exportSettings.nameSize || 40) * 0.6),
+        sectionHeadersSize: Math.max(12, (exportSettings.sectionHeadersSize || 14) * 0.6),
+        subHeadersSize: Math.max(10, (exportSettings.subHeadersSize || 10.5) * 0.6),
+        bodyTextSize: Math.max(8, (exportSettings.bodyTextSize || 11) * 0.6),
+        lineSpacing: Math.max(1.2, (exportSettings.lineSpacing || 12) * 0.1),
+        // Reduce margins to give more space for content
+        sideMargins: Math.max(20, (exportSettings.sideMargins || 33) * 0.8),
+        topBottomMargin: Math.max(20, (exportSettings.topBottomMargin || 33) * 0.8),
+      };
+
+      console.log('🎯 PDF export settings (scaled):', pdfExportSettings);
+
+      // Call the HTML generation API
+      const response = await fetch(`/api/resumes/${resumeId}/pdf-html`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          exportSettings: pdfExportSettings
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('🎯 HTML generation error response:', errorData);
+        throw new Error(errorData.error || errorData.details || 'Failed to generate HTML');
+      }
+
+      // Get the HTML content
+      const html = await response.text();
+      
+      // Create a temporary div to hold the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      document.body.appendChild(tempDiv);
+      
+      // Import html2pdf dynamically
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      // Configure html2pdf options
+      const opt = {
+        margin: 0,
+        filename: `${resumeData.title || 'resume'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 3, // Increased scale for better text quality
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          imageTimeout: 0,
+          removeContainer: true
+        },
+        jsPDF: { 
+          unit: 'pt', 
+          format: exportSettings.pageSize === 'letter' ? 'letter' : 'a4',
+          orientation: 'portrait'
+        }
+      };
+      
+      // Generate PDF from the HTML
+      await html2pdf().set(opt).from(tempDiv).save();
+      
+      // Clean up
+      document.body.removeChild(tempDiv);
+
+      // Show success message
+      setSuccess('PDF downloaded successfully!');
+      
+      // Close the export panel
+      setExportPanelOpen(false);
+
+      console.log('🎯 PDF download completed successfully');
+
+    } catch (error) {
+      console.error('🎯 PDF download error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to download PDF');
+    }
   };
 
   const handleDownloadWord = async () => {

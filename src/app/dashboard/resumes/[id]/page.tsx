@@ -101,12 +101,11 @@ export default function ViewResumePage() {
     try {
       console.log('🎯 Starting PDF download for resume:', resumeId);
       
-      // Use the PDF generation route - SIMPLIFIED
-      const url = `/api/resumes/${resumeId}/pdf-generate?template=${selectedTemplate}`;
-      console.log('🎯 PDF URL:', url);
+      // Use the new client-side PDF generation approach
+      console.log('🎯 Redirecting to resume editor for PDF generation');
       
-      // Just open the URL directly in a new tab
-      window.open(url, '_blank');
+      // Redirect to the resume editor which has the working PDF download functionality
+      router.push(`/dashboard/resumes/${resumeId}/edit`);
       
     } catch (error) {
       console.error('Failed to generate PDF:', error);

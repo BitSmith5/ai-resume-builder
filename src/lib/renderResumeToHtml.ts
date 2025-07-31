@@ -162,9 +162,9 @@ interface ClassicSection {
   height: number;
 }
 
-export function renderResumeToHtml(data: ResumeData, template: string): string {
+export function renderResumeToHtml(data: ResumeData, template: string, exportSettings?: any): string {
   if (template === 'classic') {
-    return renderClassicTemplate(data);
+    return renderClassicTemplate(data, exportSettings);
   } else {
     return renderModernTemplateWithPageBreaks(data);
   }
@@ -546,8 +546,8 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
       font-family: sans-serif;
       background: #fff;
       color: #333;
-      width: 850px;
-      height: 1100px; // Letter size aspect ratio: 8.5:11 = 0.773, 850/1100 = 0.773 ✓
+      width: 100%; /* Use full available width from parent container */
+      min-height: 1100px; /* Minimum height for Letter size, but allow content to expand */
       position: relative;
       margin: 0 auto;
       margin-bottom: ${pageIndex > 0 ? '20px' : '0'};
@@ -648,7 +648,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
   `;
 }
 
-function renderClassicTemplate(data: ResumeData): string {
+function renderClassicTemplate(data: ResumeData, exportSettings?: any): string {
   const { personalInfo } = data.content;
 
   // Function to format dates as MM/YYYY
@@ -945,28 +945,28 @@ function renderClassicTemplate(data: ResumeData): string {
         "></div>
       ` : ''}
       <h1 style="
-        font-size: 32px; 
+                        font-size: ${exportSettings?.nameSize || 32}pt; 
         font-weight: bold; 
         margin: 0 0 10px 0;
         text-transform: uppercase;
         letter-spacing: 2px;
-        font-family: 'Times New Roman', serif;
+        font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
       ">
         ${personalInfo.name}
       </h1>
       ${data.jobTitle ? `
         <div style="
-          font-size: 18px; 
+                          font-size: ${exportSettings?.subHeadersSize || 18}pt; 
           font-weight: bold; 
           margin: 0 0 10px 0;
           font-style: italic;
           color: #333;
-          font-family: 'Times New Roman', serif;
+          font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
         ">
           ${data.jobTitle}
         </div>
       ` : ''}
-      <div style="font-size: 14px; color: #333; font-family: 'Times New Roman', serif;">
+                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
         ${personalInfo.email ? `<span style="margin-right: 20px;">${personalInfo.email}</span>` : ''}
         ${personalInfo.phone ? `<span style="margin-right: 20px;">${personalInfo.phone}</span>` : ''}
         ${(personalInfo.city || personalInfo.state) ? 
@@ -974,7 +974,7 @@ function renderClassicTemplate(data: ResumeData): string {
         }
       </div>
       ${(personalInfo.website || personalInfo.linkedin || personalInfo.github) ? `
-        <div style="font-size: 12px; color: #666; margin-top: 5px; font-family: 'Times New Roman', serif;">
+        <div style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; margin-top: 5px; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
           ${personalInfo.website ? `<span style="margin-right: 15px;">${formatUrl(personalInfo.website)}</span>` : ''}
           ${personalInfo.linkedin ? `<span style="margin-right: 15px;">${formatUrl(personalInfo.linkedin)}</span>` : ''}
           ${personalInfo.github ? `<span>${formatUrl(personalInfo.github)}</span>` : ''}
@@ -991,17 +991,17 @@ function renderClassicTemplate(data: ResumeData): string {
     
     return `
       <div style="
-        font-family: 'Times New Roman', serif; 
+        font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; 
         background: transparent; 
         color: #000; 
-        padding: 40px;
-        width: 850px; /* Match modern template width */
-        height: 1056px; /* Letter size: 8.5" x 11" = 816 x 1056 points */
+        padding: 0; /* Remove hardcoded padding - let parent container handle margins */
+        width: 100%; /* Use full available width from parent container */
+        min-height: 1056px; /* Minimum height for Letter size, but allow content to expand */
         margin: 0 auto;
         margin-bottom: ${pageIndex < filteredPages.length - 1 ? '20px' : '0'};
-        line-height: 1.6;
+        line-height: ${exportSettings?.lineSpacing || 1.6};
         position: relative;
-        overflow: hidden;
+        overflow: visible; /* Allow content to be visible even if it extends beyond container */
         page-break-after: ${pageIndex < filteredPages.length - 1 ? 'always' : 'avoid'};
         box-sizing: border-box;
       ">
@@ -1021,7 +1021,7 @@ function renderClassicTemplate(data: ResumeData): string {
           ${isFirstPage && personalInfo.summary ? `
             <div style="margin-bottom: 20px;">
               <h2 style="
-                font-size: 18px; 
+                font-size: ${exportSettings?.sectionHeadersSize || 18}pt; 
                 font-weight: bold; 
                 margin: 0 0 8px 0;
                 text-transform: uppercase;
@@ -1031,7 +1031,7 @@ function renderClassicTemplate(data: ResumeData): string {
               ">
                 Professional Summary
               </h2>
-              <p style="font-size: 14px; margin: 0; text-align: justify; font-family: 'Times New Roman', serif; line-height: 1.6;">
+              <p style="font-size: ${exportSettings?.bodyTextSize || 14}pt; margin: 0; text-align: ${exportSettings?.alignTextLeftRight ? 'justify' : 'left'}; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; line-height: ${exportSettings?.lineSpacing || 1.6};">
                 ${personalInfo.summary}
               </p>
             </div>
@@ -1042,13 +1042,13 @@ function renderClassicTemplate(data: ResumeData): string {
             <div style="margin-bottom: 20px;">
               ${!pageContent.workExperienceStarted ? `
                 <h2 style="
-                  font-size: 18px; 
+                  font-size: ${exportSettings?.sectionHeadersSize || 18}pt; 
                   font-weight: bold; 
                   margin: 0 0 12px 0;
                   text-transform: uppercase;
                   border-bottom: 1px solid #000;
                   padding-bottom: 4px;
-                  font-family: 'Times New Roman', serif;
+                  font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
                 ">
                   Work Experience
                 </h2>
@@ -1057,44 +1057,44 @@ function renderClassicTemplate(data: ResumeData): string {
                 <div style="margin-bottom: 16px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <h3 style="
-                      font-size: 16px; 
+                      font-size: ${exportSettings?.subHeadersSize || 16}pt; 
                       font-weight: bold; 
                       margin: 0;
                       text-transform: uppercase;
-                      font-family: 'Times New Roman', serif;
+                      font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
                     ">
                       ${exp.position}
                     </h3>
-                    <span style="font-size: 12px; color: #666; font-family: 'Times New Roman', serif;">
+                    <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
                       ${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate)}
                     </span>
                   </div>
                   <div style="
-                    font-size: 14px; 
+                    font-size: ${exportSettings?.bodyTextSize || 14}pt; 
                     font-weight: bold; 
                     color: #333;
                     margin-bottom: 8px;
                     font-style: italic;
-                    font-family: 'Times New Roman', serif;
+                    font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
                   ">
                     ${exp.company}
                     ${(exp.city || exp.state) ? `
-                      <span style="font-size: 12px; color: #666; font-weight: normal; font-family: 'Times New Roman', serif;">
+                      <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-weight: normal; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
                         {' - '}${[exp.city, exp.state].filter(Boolean).join(', ')}
                       </span>
                     ` : ''}
                   </div>
                   ${exp.bulletPoints.length > 0 ? `
                     <ul style="
-                      font-size: 13px; 
+                      font-size: ${Math.max(10, (exportSettings?.bodyTextSize || 14) * 0.9)}pt; 
                       margin: 0; 
                       padding-left: 20px;
-                      text-align: justify;
-                      font-family: 'Times New Roman', serif;
-                      line-height: 1.6;
+                      text-align: ${exportSettings?.alignTextLeftRight ? 'justify' : 'left'};
+                      font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
+                      line-height: ${exportSettings?.lineSpacing || 1.6};
                     ">
                       ${exp.bulletPoints.map((bullet) => `
-                        <li style="margin-bottom: 2px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+                        <li style="margin-bottom: 2px; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; line-height: ${exportSettings?.lineSpacing || 1.6};">
                           ${bullet.description}
                         </li>
                       `).join('')}

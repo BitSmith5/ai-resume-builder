@@ -21,7 +21,29 @@ export default function PDFViewPage() {
     const loadResumeHTML = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/resumes/${resumeId}/pdf-test-modern-fixed?template=${template}`);
+        const response = await fetch(`/api/resumes/${resumeId}/pdf-html`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            exportSettings: {
+              template: template,
+              pageSize: 'letter',
+              fontFamily: 'Times New Roman',
+              nameSize: 40,
+              sectionHeadersSize: 14,
+              subHeadersSize: 10.5,
+              bodyTextSize: 11,
+              sectionSpacing: 12,
+              entrySpacing: 9,
+              lineSpacing: 12,
+              topBottomMargin: 33,
+              sideMargins: 33,
+              alignTextLeftRight: false,
+            }
+          }),
+        });
         
         if (!response.ok) {
           throw new Error('Failed to load resume');
