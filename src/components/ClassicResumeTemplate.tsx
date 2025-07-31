@@ -150,15 +150,48 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString);
+      let date: Date;
+      
+      console.log('ClassicTemplate formatDate input:', dateString);
+      
+      // Handle YYYY-MM-DD format (from API) to avoid timezone issues
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        date = new Date(year, month - 1, day); // month is 0-indexed
+        console.log('ClassicTemplate parsed YYYY-MM-DD:', { year, month, day, result: date });
+      } else if (/^[A-Za-z]{3} \d{4}$/.test(dateString)) { // Handle "MMM YYYY" format
+        const [monthStr, yearStr] = dateString.split(' ');
+        const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthStr);
+        const year = parseInt(yearStr);
+        if (monthIndex !== -1 && !isNaN(year)) {
+          date = new Date(year, monthIndex, 1); // Set to 1st day of the month to avoid timezone issues with month end
+          console.log('ClassicTemplate parsed MMM YYYY:', { monthStr, year, result: date });
+        } else {
+          date = new Date(dateString); // Fallback if parsing fails
+          console.log('ClassicTemplate parsed other format (fallback):', date);
+        }
+      } else {
+        date = new Date(dateString);
+        console.log('ClassicTemplate parsed other format:', date);
+      }
+      
+      // Check if date is valid before formatting
+      if (isNaN(date.getTime())) {
+        console.log('ClassicTemplate Invalid Date, returning original string:', dateString);
+        return dateString;
+      }
+
       const monthNames = [
         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
       ];
       const month = monthNames[date.getMonth()];
       const year = date.getFullYear();
-      return `${month} ${year}`;
-    } catch {
+      const result = `${month} ${year}`;
+      console.log('ClassicTemplate formatDate result:', result);
+      return result;
+    } catch (e) {
+      console.error('ClassicTemplate formatDate error:', e);
       return dateString;
     }
   };

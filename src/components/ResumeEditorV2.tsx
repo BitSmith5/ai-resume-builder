@@ -726,7 +726,17 @@ export default function ResumeEditorV2({
                 // Convert Date objects back to "MMM YYYY" format
                 const formatDate = (date: Date | string): string => {
                   if (!date) return '';
-                  const d = new Date(date);
+                  
+                  let d: Date;
+                  
+                  // Handle YYYY-MM-DD format (from API) to avoid timezone issues
+                  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                    const [year, month, day] = date.split('-').map(Number);
+                    d = new Date(year, month - 1, day); // month is 0-indexed
+                  } else {
+                    d = new Date(date);
+                  }
+                  
                   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                   return `${months[d.getMonth()]} ${d.getFullYear()}`;
                 };
@@ -748,7 +758,17 @@ export default function ResumeEditorV2({
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
-                const d = new Date(date);
+                
+                let d: Date;
+                
+                // Handle YYYY-MM-DD format (from API) to avoid timezone issues
+                if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                  const [year, month, day] = date.split('-').map(Number);
+                  d = new Date(year, month - 1, day); // month is 0-indexed
+                } else {
+                  d = new Date(date);
+                }
+                
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 return `${months[d.getMonth()]} ${d.getFullYear()}`;
               };
@@ -769,7 +789,17 @@ export default function ResumeEditorV2({
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
-                const d = new Date(date);
+                
+                let d: Date;
+                
+                // Handle YYYY-MM-DD format (from API) to avoid timezone issues
+                if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                  const [year, month, day] = date.split('-').map(Number);
+                  d = new Date(year, month - 1, day); // month is 0-indexed
+                } else {
+                  d = new Date(date);
+                }
+                
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 return `${months[d.getMonth()]} ${d.getFullYear()}`;
               };
@@ -805,7 +835,17 @@ export default function ResumeEditorV2({
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
-                const d = new Date(date);
+                
+                let d: Date;
+                
+                // Handle YYYY-MM-DD format (from API) to avoid timezone issues
+                if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                  const [year, month, day] = date.split('-').map(Number);
+                  d = new Date(year, month - 1, day); // month is 0-indexed
+                } else {
+                  d = new Date(date);
+                }
+                
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 return `${months[d.getMonth()]} ${d.getFullYear()}`;
               };
@@ -988,7 +1028,7 @@ export default function ResumeEditorV2({
         references: filteredData.references || [],
       };
       
-      
+
       
       const response = await fetch(url, {
         method,
@@ -1000,7 +1040,6 @@ export default function ResumeEditorV2({
       
       if (response.ok) {
         const savedResume = await response.json();
-        
         
         // If this was a new resume, update the URL with the new ID
         if (!resumeId && savedResume.id) {
@@ -1023,7 +1062,6 @@ export default function ResumeEditorV2({
     // Don't save if we're still loading initial data
     if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
     
-
     debouncedSave(resumeData, profileData, sectionOrder);
   }, [resumeData, profileData, sectionOrder, exportSettings, loading, session?.user, resumeId, debouncedSave]);
 
