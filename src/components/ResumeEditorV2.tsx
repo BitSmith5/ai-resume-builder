@@ -756,7 +756,7 @@ export default function ResumeEditorV2({
 
               // Deduplicate work experience entries based on company and position
               const seen = new Set();
-              const deduplicatedWorkExperience = mergedWorkExperience.filter((work: any) => {
+              const deduplicatedWorkExperience = mergedWorkExperience.filter((work: Record<string, unknown>) => {
                 const key = `${work.company}-${work.position}`;
                 if (seen.has(key)) {
                   return false; // Remove duplicate
