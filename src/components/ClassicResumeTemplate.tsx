@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from "react";
 
 interface ResumeData {
   title: string;
@@ -142,7 +142,7 @@ interface ClassicResumeTemplateProps {
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) => {
   const resumeRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const { personalInfo } = data.content;
 
@@ -152,32 +152,25 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     try {
       let date: Date;
       
-      console.log('ClassicTemplate formatDate input:', dateString);
-      
       // Handle YYYY-MM-DD format (from API) to avoid timezone issues
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
         const [year, month, day] = dateString.split('-').map(Number);
         date = new Date(year, month - 1, day); // month is 0-indexed
-        console.log('ClassicTemplate parsed YYYY-MM-DD:', { year, month, day, result: date });
       } else if (/^[A-Za-z]{3} \d{4}$/.test(dateString)) { // Handle "MMM YYYY" format
         const [monthStr, yearStr] = dateString.split(' ');
         const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthStr);
         const year = parseInt(yearStr);
         if (monthIndex !== -1 && !isNaN(year)) {
           date = new Date(year, monthIndex, 1); // Set to 1st day of the month to avoid timezone issues with month end
-          console.log('ClassicTemplate parsed MMM YYYY:', { monthStr, year, result: date });
         } else {
           date = new Date(dateString); // Fallback if parsing fails
-          console.log('ClassicTemplate parsed other format (fallback):', date);
         }
       } else {
         date = new Date(dateString);
-        console.log('ClassicTemplate parsed other format:', date);
       }
       
       // Check if date is valid before formatting
       if (isNaN(date.getTime())) {
-        console.log('ClassicTemplate Invalid Date, returning original string:', dateString);
         return dateString;
       }
 
@@ -188,10 +181,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       const month = monthNames[date.getMonth()];
       const year = date.getFullYear();
       const result = `${month} ${year}`;
-      console.log('ClassicTemplate formatDate result:', result);
       return result;
     } catch (e) {
-      console.error('ClassicTemplate formatDate error:', e);
       return dateString;
     }
   };
@@ -717,7 +708,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                               {category.skills.map((skill, skillIndex) => (
                   <span key={skillIndex}>
                     {skill.name}
-                    {skillIndex < category.skills.length - 1 && ' • '}
+                    {skillIndex < category.skills.length - 1 ? ', ' : ''}
                   </span>
                 ))}
         </div>
@@ -1168,12 +1159,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         case 'Work Experience':
           const workExp = data.workExperience || [];
           if (workExp.length > 0) {
-            // Calculate height based on the first work experience entry (most representative)
+            // Calculate height based on the first work experience entry only
             const firstWork = workExp[0];
             const bulletPointsCount = firstWork.bulletPoints?.length || 0;
-            // Add entry spacing for each work experience entry (except the last one)
-            const entrySpacingTotal = (workExp.length - 1) * entrySpacing;
-            const calculatedHeight = sectionHeaderHeight + subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + entrySpacingTotal + firstSubsectionMargin;
+            const calculatedHeight = sectionHeaderHeight + subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + firstSubsectionMargin;
             return calculatedHeight;
           }
           return sectionHeaderHeight + firstSubsectionMargin;
@@ -1392,12 +1381,27 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     return pages;
   };
 
-  // Use the test version instead of the original
-  const pages = calculatePagesTest();
-
-
-
-
+  // Use the test version instead of the original, wrapped in useMemo to prevent unnecessary re-renders
+  const pages = useMemo(() => calculatePagesTest(), [
+    data.pageHeight,
+    data.topBottomMargin,
+    data.profilePicture,
+    data.sectionSpacing,
+    sectionsWithData,
+    // Use JSON.stringify to create stable dependencies for arrays
+    JSON.stringify(data.workExperience),
+    JSON.stringify(data.education),
+    JSON.stringify(data.projects),
+    JSON.stringify(data.courses),
+    JSON.stringify(data.languages),
+    JSON.stringify(data.publications),
+    JSON.stringify(data.awards),
+    JSON.stringify(data.volunteerExperience),
+    JSON.stringify(data.references),
+    JSON.stringify(data.strengths),
+    JSON.stringify(data.skillCategories),
+    JSON.stringify(data.interests)
+  ]);
 
   // Helper function to get render function for a section
   const getRenderFunction = (sectionName: string) => {
@@ -1445,7 +1449,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         case 'Professional Summary':
           return (
             <div>
-                              <h2 style={{ 
+              {subsection.isFirst && (
+                <h2 style={{ 
                   fontSize: `${data.sectionHeadersSize || 18}px`, 
                   fontWeight: 'bold', 
                   marginBottom: '0px',
@@ -1454,6 +1459,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                 }}>
                   Professional Summary
                 </h2>
+              )}
               <p style={{ 
                 fontSize: `${data.bodyTextSize || 14}px`, 
                 lineHeight: `${data.lineSpacing || 14}px`, 
@@ -1546,7 +1552,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             const work = workExp[itemIndex];
             return (
               <div>
-                                  <h2 style={{ 
+                {subsection.isFirst && (
+                  <h2 style={{ 
                     fontSize: `${data.sectionHeadersSize || 18}px`, 
                     fontWeight: 'bold', 
                     marginBottom: '0px',
@@ -1555,6 +1562,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   }}>
                     Work Experience
                   </h2>
+                )}
                 <div style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
@@ -1587,15 +1595,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             const edu = education[itemIndex];
             return (
               <div>
-                <h2 style={{ 
-                  fontSize: `${data.sectionHeadersSize || 18}px`, 
-                  fontWeight: 'bold', 
-                  marginBottom: '0px',
-                  borderBottom: '1px solid #000',
-                  paddingBottom: '1px'
-                }}>
-                  Education
-                </h2>
+                {subsection.isFirst && (
+                  <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '0px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '1px'
+                  }}>
+                    Education
+                  </h2>
+                )}
                 <div style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
                   <div style={{ 
                     display: 'flex', 
@@ -1637,15 +1647,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             const project = projects[itemIndex];
             return (
               <div>
-                <h2 style={{ 
-                  fontSize: `${data.sectionHeadersSize || 18}px`, 
-                  fontWeight: 'bold', 
-                  marginBottom: '0px',
-                  borderBottom: '1px solid #000',
-                  paddingBottom: '1px'
-                }}>
-                  Projects
-                </h2>
+                {subsection.isFirst && (
+                  <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '0px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '1px'
+                  }}>
+                    Projects
+                  </h2>
+                )}
                 <div key={project.id} style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
                   <div style={{ 
                     display: 'flex', 
@@ -1688,15 +1700,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             const award = awards[itemIndex];
             return (
               <div>
-                <h2 style={{ 
-                  fontSize: `${data.sectionHeadersSize || 18}px`, 
-                  fontWeight: 'bold', 
-                  marginBottom: '0px',
-                  borderBottom: '1px solid #000',
-                  paddingBottom: '1px'
-                }}>
-                  Awards
-                </h2>
+                {subsection.isFirst && (
+                  <h2 style={{ 
+                    fontSize: `${data.sectionHeadersSize || 18}px`, 
+                    fontWeight: 'bold', 
+                    marginBottom: '0px',
+                    borderBottom: '1px solid #000',
+                    paddingBottom: '1px'
+                  }}>
+                    Awards
+                  </h2>
+                )}
                 <div key={award.id} style={{ paddingBottom: `${data.entrySpacing || 12}px`, marginTop: '4px' }}>
                   <div style={{ fontWeight: 'bold', fontSize: `${data.subHeadersSize || 16}px` }}>
                     {award.title}
@@ -1977,15 +1991,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         case 'Interests':
           return (
             <div>
-                                <h2 style={{ 
-                    fontSize: `${data.sectionHeadersSize || 18}px`, 
-                    fontWeight: 'bold', 
-                    marginBottom: '10px',
-                    borderBottom: '1px solid #000',
-                    paddingBottom: '1px'
-                  }}>
-                    Interests
-                  </h2>
+              {subsection.isFirst && (
+                <h2 style={{ 
+                  fontSize: `${data.sectionHeadersSize || 18}px`, 
+                  fontWeight: 'bold', 
+                  marginBottom: '10px',
+                  borderBottom: '1px solid #000',
+                  paddingBottom: '1px'
+                }}>
+                  Interests
+                </h2>
+              )}
               <div style={{ 
                 fontSize: `${data.bodyTextSize || 14}px`, 
                 lineHeight: `${data.lineSpacing || 14}px`,
@@ -2160,7 +2176,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   const sectionsToRender = pages;
   
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+    <div 
+      key={`classic-resume-${JSON.stringify(data.workExperience?.length || 0)}-${JSON.stringify(data.education?.length || 0)}`}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}
+    >
       {sectionsToRender.map((page, pageIndex) => {
         return (
           <div

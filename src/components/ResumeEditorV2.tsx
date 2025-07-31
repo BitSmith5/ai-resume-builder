@@ -720,7 +720,7 @@ export default function ResumeEditorV2({
               const contentWorkExperience = (resume.content as Record<string, unknown>)?.workExperience as Array<Record<string, unknown>> || [];
               
               // Merge the data, prioritizing content data for location
-              return dbWorkExperience.map((dbWork: Record<string, unknown>, index: number) => {
+              const mergedWorkExperience = dbWorkExperience.map((dbWork: Record<string, unknown>, index: number) => {
                 const contentWork = contentWorkExperience[index] || {};
                 
                 // Convert Date objects back to "MMM YYYY" format
@@ -753,6 +753,22 @@ export default function ResumeEditorV2({
                   }))
                 };
               });
+
+              // Deduplicate work experience entries based on company and position
+              const seen = new Set();
+              const deduplicatedWorkExperience = mergedWorkExperience.filter((work: any) => {
+                const key = `${work.company}-${work.position}`;
+                if (seen.has(key)) {
+                  return false; // Remove duplicate
+                }
+                seen.add(key);
+                return true; // Keep first occurrence
+              });
+
+              console.log('Original work experience count:', mergedWorkExperience.length);
+              console.log('Deduplicated work experience count:', deduplicatedWorkExperience.length);
+              
+              return deduplicatedWorkExperience;
             })(),
             education: (resume.education || []).map((edu: Record<string, unknown>) => {
               // Convert Date objects back to "MMM YYYY" format
