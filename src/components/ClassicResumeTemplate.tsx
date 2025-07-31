@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useRef, useMemo, useCallback } from "react";
 
 interface ResumeData {
   title: string;
@@ -182,7 +182,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       const year = date.getFullYear();
       const result = `${month} ${year}`;
       return result;
-    } catch (e) {
+    } catch {
       return dateString;
     }
   };
@@ -1307,8 +1307,22 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
   };
 
+  // Use the test version instead of the original, wrapped in useMemo to prevent unnecessary re-renders
+  const workExperienceString = JSON.stringify(data.workExperience);
+  const educationString = JSON.stringify(data.education);
+  const projectsString = JSON.stringify(data.projects);
+  const coursesString = JSON.stringify(data.courses);
+  const languagesString = JSON.stringify(data.languages);
+  const publicationsString = JSON.stringify(data.publications);
+  const awardsString = JSON.stringify(data.awards);
+  const volunteerExperienceString = JSON.stringify(data.volunteerExperience);
+  const referencesString = JSON.stringify(data.references);
+  const strengthsString = JSON.stringify(data.strengths);
+  const skillCategoriesString = JSON.stringify(data.skillCategories);
+  const interestsString = JSON.stringify(data.interests);
+
   // Test version with improved pagination logic
-  const calculatePagesTest = () => {
+  const calculatePagesTest = useCallback(() => {
     const pageHeight = data.pageHeight || 1100;
     const topBottomMargin = data.topBottomMargin || 40;
     const contentHeight = pageHeight - (topBottomMargin * 2);
@@ -1379,29 +1393,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
     
     return pages;
-  };
+  }, [data.pageHeight, data.topBottomMargin, data.profilePicture, data.sectionSpacing, sectionsWithData, workExperienceString, educationString, projectsString, coursesString, languagesString, publicationsString, awardsString, volunteerExperienceString, referencesString, strengthsString, skillCategoriesString, interestsString, getEstimatedSubsectionHeight, getSubsections]);
 
-  // Use the test version instead of the original, wrapped in useMemo to prevent unnecessary re-renders
-  const pages = useMemo(() => calculatePagesTest(), [
-    data.pageHeight,
-    data.topBottomMargin,
-    data.profilePicture,
-    data.sectionSpacing,
-    sectionsWithData,
-    // Use JSON.stringify to create stable dependencies for arrays
-    JSON.stringify(data.workExperience),
-    JSON.stringify(data.education),
-    JSON.stringify(data.projects),
-    JSON.stringify(data.courses),
-    JSON.stringify(data.languages),
-    JSON.stringify(data.publications),
-    JSON.stringify(data.awards),
-    JSON.stringify(data.volunteerExperience),
-    JSON.stringify(data.references),
-    JSON.stringify(data.strengths),
-    JSON.stringify(data.skillCategories),
-    JSON.stringify(data.interests)
-  ]);
+  const pages = useMemo(() => calculatePagesTest(), [calculatePagesTest]);
 
   // Helper function to get render function for a section
   const getRenderFunction = (sectionName: string) => {
