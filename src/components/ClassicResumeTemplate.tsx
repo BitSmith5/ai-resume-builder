@@ -247,7 +247,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
         fontSize: '12px', 
         color: '#333',
         fontFamily: data.fontFamily || 'Times New Roman, serif',
-        lineHeight: '1.4'
+        lineHeight: '1.2'
       }}>
         {[
           (personalInfo.city || personalInfo.state) && [personalInfo.city, personalInfo.state].filter(Boolean).join(', '),

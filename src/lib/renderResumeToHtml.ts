@@ -982,20 +982,18 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
           ${data.jobTitle}
         </div>
       ` : ''}
-                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
-        ${personalInfo.email ? `<span style="margin-right: 20px;">${personalInfo.email}</span>` : ''}
-        ${personalInfo.phone ? `<span style="margin-right: 20px;">${personalInfo.phone}</span>` : ''}
-        ${(personalInfo.city || personalInfo.state) ? 
-          `<span>${[personalInfo.city, personalInfo.state].filter(Boolean).join(', ')}</span>` : ''
-        }
+                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; line-height: 1.2;">
+        ${[
+          (personalInfo.city || personalInfo.state) ? [personalInfo.city, personalInfo.state].filter(Boolean).join(', ') : null,
+          personalInfo.phone ? personalInfo.phone : null,
+          personalInfo.email ? personalInfo.email : null,
+          personalInfo.linkedin ? `<a href="${personalInfo.linkedin.startsWith('http') ? personalInfo.linkedin : `https://${personalInfo.linkedin}`}" target="_blank" style="color: #333; text-decoration: underline;">LinkedIn</a>` : null,
+          personalInfo.github ? `<a href="${personalInfo.github.startsWith('http') ? personalInfo.github : `https://${personalInfo.github}`}" target="_blank" style="color: #333; text-decoration: underline;">GitHub</a>` : null,
+          personalInfo.website ? `<a href="${personalInfo.website.startsWith('http') ? personalInfo.website : `https://${personalInfo.website}`}" target="_blank" style="color: #333; text-decoration: underline;">${formatUrl(personalInfo.website)}</a>` : null
+        ].filter(Boolean).map((item, index, array) => 
+          `<span>${item}${index < array.length - 1 ? ' • ' : ''}</span>`
+        ).join('')}
       </div>
-      ${(personalInfo.website || personalInfo.linkedin || personalInfo.github) ? `
-        <div style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; margin-top: 5px; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
-          ${personalInfo.website ? `<span style="margin-right: 15px;">${formatUrl(personalInfo.website)}</span>` : ''}
-          ${personalInfo.linkedin ? `<span style="margin-right: 15px;">${formatUrl(personalInfo.linkedin)}</span>` : ''}
-          ${personalInfo.github ? `<span>${formatUrl(personalInfo.github)}</span>` : ''}
-        </div>
-      ` : ''}
     </div>
   `;
 
