@@ -336,26 +336,26 @@ export async function POST(
           .section {
             margin-bottom: ${exportSettings.sectionSpacing}pt;
           }
-          .section-header {
-            font-size: ${exportSettings.sectionHeadersSize}pt;
-            font-weight: bold;
-            margin-bottom: 10pt;
-            border-bottom: 1pt solid #000;
-          }
-          .sub-header {
-            font-size: ${exportSettings.subHeadersSize}pt;
-            font-weight: bold;
-            margin-bottom: 5pt;
-          }
+                                           .section-header {
+              font-size: ${exportSettings.sectionHeadersSize}pt;
+              font-weight: bold;
+              margin-bottom: 2.5pt;
+              border-bottom: 1pt solid #000;
+            }
+                                           .sub-header {
+              font-size: ${exportSettings.subHeadersSize}pt;
+              font-weight: bold;
+              margin-bottom: 1.5pt;
+            }
                      .entry {
              margin-bottom: ${exportSettings.entrySpacing}pt;
            }
-           .entry-header {
-             display: flex;
-             justify-content: space-between;
-             align-items: baseline;
-             margin-bottom: 5pt;
-           }
+                                               .entry-header {
+               display: flex;
+               justify-content: space-between;
+               align-items: baseline;
+               margin-bottom: 1.5pt;
+             }
                        .entry-title {
               font-weight: bold;
             }
@@ -482,17 +482,17 @@ export async function POST(
         </div>
         ` : ''}
 
-        ${resumeData.courses && resumeData.courses.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Courses</div>
-          ${resumeData.courses.map(course => `
-            <div class="entry">
-              <div class="sub-header">${course.title}</div>
-              <div>${course.provider}</div>
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
+                 ${resumeData.courses && resumeData.courses.length > 0 ? `
+         <div class="section">
+           <div class="section-header">Courses</div>
+           ${resumeData.courses.map(course => `
+             <div class="entry">
+               <div class="entry-title">${course.title}</div>
+               <div>${course.provider}</div>
+             </div>
+           `).join('')}
+         </div>
+         ` : ''}
 
         ${resumeData.languages && resumeData.languages.length > 0 ? `
         <div class="section">
@@ -501,37 +501,37 @@ export async function POST(
         </div>
         ` : ''}
 
-        ${resumeData.publications && resumeData.publications.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Publications</div>
-          ${resumeData.publications.map(pub => `
-            <div class="entry">
-              <div class="sub-header">${pub.title}</div>
-              <div>${pub.authors}</div>
-              <div>${pub.journal}, ${pub.year}</div>
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
+                 ${resumeData.publications && resumeData.publications.length > 0 ? `
+         <div class="section">
+           <div class="section-header">Publications</div>
+           ${resumeData.publications.map(pub => `
+             <div class="entry">
+               <div class="entry-title">${pub.title}</div>
+               <div>${pub.authors}</div>
+               <div>${pub.journal}, ${pub.year}</div>
+             </div>
+           `).join('')}
+         </div>
+         ` : ''}
 
-        ${resumeData.awards && resumeData.awards.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Awards</div>
-          ${resumeData.awards.map(award => `
-            <div class="entry">
-              <div class="sub-header">${award.title}</div>
-              <div>${award.organization}, ${award.year}</div>
-              ${award.bulletPoints && award.bulletPoints.length > 0 ? `
-                <div class="bullet-points">
-                  ${award.bulletPoints.map(bullet => `
-                    <div class="bullet-point">• ${bullet.description}</div>
-                  `).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
+                 ${resumeData.awards && resumeData.awards.length > 0 ? `
+         <div class="section">
+           <div class="section-header">Awards</div>
+           ${resumeData.awards.map(award => `
+             <div class="entry">
+               <div class="entry-title">${award.title}</div>
+               <div>${award.organization}, ${award.year}</div>
+               ${award.bulletPoints && award.bulletPoints.length > 0 ? `
+                 <div class="bullet-points">
+                   ${award.bulletPoints.map(bullet => `
+                     <div class="bullet-point">• ${bullet.description}</div>
+                   `).join('')}
+                 </div>
+               ` : ''}
+             </div>
+           `).join('')}
+         </div>
+         ` : ''}
 
                  ${resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
          <div class="section">
