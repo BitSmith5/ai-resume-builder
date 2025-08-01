@@ -35,7 +35,7 @@ export async function GET(
         publications: true,
         awards: true,
         volunteerExperience: true,
-        // references: true,
+        references: true,
       },
     });
 
@@ -66,8 +66,8 @@ export async function GET(
       languages: resume.languages || [],
       publications: resume.publications || [],
       awards: (resume.content as Record<string, unknown>)?.awards || [],
-      volunteerExperience: (resume.content as Record<string, unknown>)?.volunteerExperience || [],
-      references: (resume.content as Record<string, unknown>)?.references || [],
+      volunteerExperience: resume.volunteerExperience || [],
+      references: resume.references || [],
     };
 
     // Add deletedSections, sectionOrder, and exportSettings to the response
@@ -237,6 +237,10 @@ export async function PUT(
         };
       });
 
+    console.log('🔍 PUT DEBUG - Received strengths:', strengths);
+    console.log('🔍 PUT DEBUG - Received volunteerExperience:', volunteerExperience);
+    console.log('🔍 PUT DEBUG - Received references:', references);
+    
     // Filter out id and resumeId fields from strengths
     const processedStrengths = (strengths || [])
       .filter((strength: { skillName: string; rating: number; [key: string]: unknown }) => {
@@ -248,6 +252,8 @@ export async function PUT(
         const { id, resumeId, ...rest } = strength;
         return rest;
       });
+    
+    console.log('🔍 PUT DEBUG - Processed strengths:', processedStrengths);
 
     // Filter out id and resumeId fields from courses
     const processedCourses = (courses || [])
@@ -396,6 +402,22 @@ export async function PUT(
           endDate: volunteer.endDate ? parseDate(volunteer.endDate) : null,
         };
       });
+    
+    console.log('🔍 PUT DEBUG - Processed volunteerExperience:', processedVolunteerExperience);
+
+    // Process references data
+    const processedReferences = (references || [])
+      .filter((reference: { name: string; title: string; company: string; [key: string]: unknown }) => {
+        // Filter out empty entries
+        return reference.name && reference.title && reference.company;
+      })
+      .map((reference: { id?: string; resumeId?: number; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = reference;
+        return rest;
+      });
+    
+    console.log('🔍 PUT DEBUG - Processed references:', processedReferences);
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
@@ -408,6 +430,8 @@ export async function PUT(
       volunteerExperience: volunteerExperience || [],
       references: references || [],
     };
+    
+    console.log('🔍 PUT DEBUG - Skill Categories:', additionalData.skillCategories);
 
     // Get the current resume to check for profile picture changes
     const currentResume = await prisma.resume.findFirst({
@@ -457,6 +481,9 @@ export async function PUT(
         where: { resumeId: parseInt(resolvedParams.id) },
       });
       await tx.volunteerExperience.deleteMany({
+        where: { resumeId: parseInt(resolvedParams.id) },
+      });
+      await tx.reference.deleteMany({
         where: { resumeId: parseInt(resolvedParams.id) },
       });
 
@@ -514,6 +541,9 @@ export async function PUT(
           volunteerExperience: {
             create: processedVolunteerExperience,
           },
+          references: {
+            create: processedReferences,
+          },
         } as Prisma.ResumeUpdateInput,
         include: {
           strengths: true,
@@ -526,6 +556,7 @@ export async function PUT(
           publications: true,
           awards: true,
           volunteerExperience: true,
+          references: true,
         },
       });
     });
@@ -552,7 +583,7 @@ export async function PUT(
       publications: resume.publications || [],
       awards: resume.awards || [],
       volunteerExperience: resume.volunteerExperience || [],
-      references: (resume.content as { references?: unknown[] })?.references || [],
+      references: resume.references || [],
     };
 
     // Add deletedSections to the response

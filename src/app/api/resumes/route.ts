@@ -29,7 +29,7 @@ export async function GET() {
         publications: true,
         awards: true,
         volunteerExperience: true,
-        // references: true,
+        references: true,
       },
       orderBy: {
         id: "desc",

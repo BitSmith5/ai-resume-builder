@@ -57,27 +57,40 @@ export async function POST(
     const body = await request.json();
     const exportSettings: ExportSettings = body.exportSettings;
 
-    const resume = await prisma.resume.findFirst({
-      where: {
-        id: parseInt(id),
-        user: {
-          email: session.user.email
+         
+     
+           console.log('🔍 PDF DEBUG - Starting database query for resume ID:', id);
+      
+      const resume = await prisma.resume.findFirst({
+        where: {
+          id: parseInt(id),
+          user: {
+            email: session.user.email
+          }
+        },
+        include: {
+          user: true,
+          strengths: true,
+          workExperience: true,
+          education: true,
+          courses: true,
+          interests: true,
+          projects: true,
+          languages: true,
+          publications: true,
+          awards: true,
+          volunteerExperience: true,
+          references: true
         }
-      },
-      include: {
-        user: true,
-        strengths: true,
-        workExperience: true,
-        education: true,
-        courses: true,
-        interests: true,
-        projects: true,
-        languages: true,
-        publications: true,
-        awards: true,
-        volunteerExperience: true
-      }
-    });
+      });
+      
+      console.log('🔍 PDF DEBUG - Resume found:', !!resume);
+      console.log('🔍 PDF DEBUG - Resume title:', resume?.title);
+      console.log('🔍 PDF DEBUG - Raw strengths count:', resume?.strengths?.length || 0);
+      console.log('🔍 PDF DEBUG - Raw volunteerExperience count:', resume?.volunteerExperience?.length || 0);
+      console.log('🔍 PDF DEBUG - Raw references count:', resume?.references?.length || 0);
+     
+     
 
     if (!resume) {
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
@@ -229,9 +242,31 @@ export async function POST(
       };
     });
 
-    // Parse the resume content JSON to get the actual personal info
-    const resumeContent = resume.content as { personalInfo?: { name?: string; email?: string; phone?: string; city?: string; state?: string; summary?: string; website?: string; linkedin?: string; github?: string } };
-    const personalInfo = resumeContent?.personalInfo || {};
+         // Parse the resume content JSON to get the actual personal info
+     const resumeContent = resume.content as { personalInfo?: { name?: string; email?: string; phone?: string; city?: string; state?: string; summary?: string; website?: string; linkedin?: string; github?: string } };
+     const personalInfo = resumeContent?.personalInfo || {};
+
+     // Get the section order from the resume, with fallback to default order
+     const sectionOrder = (resume.sectionOrder as string[]) || [
+       'Professional Summary',
+       'Work Experience',
+       'Projects',
+       'Education',
+       'Technical Skills',
+       'Courses',
+       'Interests',
+       'Languages',
+       'Publications',
+       'Awards',
+       'Volunteer Experience',
+       'References'
+     ];
+
+     // Get deleted sections
+     const deletedSections = (resume.deletedSections as string[]) || [];
+
+     // Filter out deleted sections
+     const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
 
                // Phone number formatting function
       const formatPhoneNumber = (phone: string): string => {
@@ -265,6 +300,7 @@ export async function POST(
         skillName: strength.skillName || '',
         rating: strength.rating || 0
       })),
+      skillCategories: (resumeContent as any)?.skillCategories || [],
       workExperience,
       education,
       courses,
@@ -276,8 +312,237 @@ export async function POST(
       languages,
       publications,
       awards,
-      volunteerExperience
-    };
+             volunteerExperience,
+               references: resume.references.map(ref => ({
+          id: ref.id.toString(),
+          name: ref.name || '',
+          title: ref.title || '',
+          company: ref.company || '',
+          email: ref.email || '',
+          phone: ref.phone || '',
+          relationship: ref.relationship || ''
+        }))
+      };
+
+      // Debug logging to see what data we have
+      console.log('🔍 PDF DEBUG - Data Summary:');
+      console.log('🔍 Strengths count:', resumeData.strengths?.length || 0);
+      console.log('🔍 Skill Categories count:', resumeData.skillCategories?.length || 0);
+      console.log('🔍 Volunteer Experience count:', resumeData.volunteerExperience?.length || 0);
+      console.log('🔍 References count:', resumeData.references?.length || 0);
+      console.log('🔍 Section Order:', sectionOrder);
+      console.log('🔍 Active Sections:', activeSections);
+
+
+      
+
+
+      // Function to render sections based on the active sections order
+      const renderSection = (sectionName: string): string => {
+        switch (sectionName) {
+          case 'Professional Summary':
+            return resumeData.content.personalInfo.summary ? `
+              <div class="section">
+                <div class="section-header">Professional Summary</div>
+                <div class="body-text">${resumeData.content.personalInfo.summary}</div>
+              </div>
+            ` : '';
+          
+          case 'Work Experience':
+            return resumeData.workExperience && resumeData.workExperience.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Work Experience</div>
+                ${resumeData.workExperience.map(work => `
+                  <div class="entry">
+                    <div class="entry-header">
+                      <div class="entry-company">${work.company}</div>
+                      <div class="entry-date">${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
+                    </div>
+                    <div class="entry-position body-text">${work.position}</div>
+                    ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+                      <div class="bullet-points">
+                        ${work.bulletPoints.map(bullet => `
+                          <div class="bullet-point">• ${bullet.description}</div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          case 'Projects':
+            return resumeData.projects && resumeData.projects.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Projects</div>
+                ${resumeData.projects.map(project => `
+                  <div class="entry">
+                    <div class="entry-header">
+                      <div class="entry-title">
+                        ${project.link ? `<a href="${project.link}" class="project-link">${project.title}</a>` : project.title}
+                      </div>
+                      <div class="entry-date">${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
+                    </div>
+                    <div class="body-text">${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
+                    ${project.bulletPoints && project.bulletPoints.length > 0 ? `
+                      <div class="bullet-points">
+                        ${project.bulletPoints.map(bullet => `
+                          <div class="bullet-point">• ${bullet.description}</div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          case 'Education':
+            return resumeData.education && resumeData.education.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Education</div>
+                ${resumeData.education.map(edu => `
+                  <div class="entry">
+                    <div class="entry-header">
+                      <div class="entry-title">${edu.degree} in ${edu.field}</div>
+                      <div class="entry-date">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
+                    </div>
+                    <div class="body-text">${edu.institution}</div>
+                    ${edu.gpa ? `<div class="body-text">GPA: ${edu.gpa}</div>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          case 'Technical Skills':
+            // Check for skillCategories first (structured format), then fall back to strengths
+            if (resumeData.skillCategories && resumeData.skillCategories.length > 0) {
+              return `
+                <div class="section">
+                  <div class="section-header">Technical Skills</div>
+                  ${resumeData.skillCategories.map((category: any) => `
+                    <div class="entry">
+                      <div class="entry-title">${category.title}</div>
+                      <div class="body-text">${category.skills.map((skill: any) => skill.name).join(', ')}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            } else if (resumeData.strengths && resumeData.strengths.length > 0) {
+              return `
+                <div class="section">
+                  <div class="section-header">Technical Skills</div>
+                  <div class="body-text">${resumeData.strengths.map(skill => skill.skillName).join(', ')}</div>
+                </div>
+              `;
+            }
+            return '';
+          
+          case 'Courses':
+            return resumeData.courses && resumeData.courses.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Courses</div>
+                ${resumeData.courses.map(course => `
+                  <div class="entry">
+                    <div class="entry-title">${course.title}</div>
+                    <div class="body-text">${course.provider}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          case 'Interests':
+            return resumeData.interests && resumeData.interests.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Interests</div>
+                <div class="body-text">${resumeData.interests.map(interest => interest.name).join(', ')}</div>
+              </div>
+            ` : '';
+          
+          case 'Languages':
+            return resumeData.languages && resumeData.languages.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Languages</div>
+                <div class="body-text">${resumeData.languages.map(lang => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
+              </div>
+            ` : '';
+          
+          case 'Publications':
+            return resumeData.publications && resumeData.publications.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Publications</div>
+                ${resumeData.publications.map(pub => `
+                  <div class="entry">
+                    <div class="entry-title">${pub.title}</div>
+                    <div class="body-text">${pub.authors}</div>
+                    <div class="body-text">${pub.journal}, ${pub.year}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          case 'Awards':
+            return resumeData.awards && resumeData.awards.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Awards</div>
+                ${resumeData.awards.map(award => `
+                  <div class="entry">
+                    <div class="entry-title">${award.title}</div>
+                    <div class="body-text">${award.organization}, ${award.year}</div>
+                    ${award.bulletPoints && award.bulletPoints.length > 0 ? `
+                      <div class="bullet-points">
+                        ${award.bulletPoints.map(bullet => `
+                          <div class="bullet-point">• ${bullet.description}</div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          case 'Volunteer Experience':
+            return resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
+              <div class="section">
+                <div class="section-header">Volunteer Experience</div>
+                ${resumeData.volunteerExperience.map(vol => `
+                  <div class="entry">
+                    <div class="entry-header">
+                      <div class="entry-title">${vol.position}</div>
+                      <div class="entry-date">${vol.startDate} - ${vol.current ? 'Present' : vol.endDate}</div>
+                    </div>
+                    <div class="body-text">${vol.organization}</div>
+                    <div class="body-text">${vol.location}</div>
+                    ${vol.hoursPerWeek ? `<div class="body-text">${vol.hoursPerWeek} hours/week</div>` : ''}
+                    ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
+                      <div class="bullet-points">
+                        ${vol.bulletPoints.map(bullet => `
+                          <div class="bullet-point">• ${bullet.description}</div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          case 'References':
+            return resumeData.references && resumeData.references.length > 0 ? `
+              <div class="section">
+                <div class="section-header">References</div>
+                ${resumeData.references.map(ref => `
+                  <div class="entry">
+                    <div class="entry-title">${ref.name}</div>
+                    <div class="body-text">${ref.title} at ${ref.company}</div>
+                    <div class="body-text">${ref.email}${ref.phone ? ` • ${ref.phone}` : ''}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '';
+          
+          default:
+            return '';
+        }
+      };
 
     // Create clean HTML template with export settings applied
     const html = `
@@ -412,163 +677,7 @@ export async function POST(
               `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin || resumeData.content.personalInfo.github) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.website}" class="contact-link">${resumeData.content.personalInfo.website.replace(/^https?:\/\//, '')}</a></span>` : ''}
          </div>
 
-                                   ${resumeData.content.personalInfo.summary ? `
-          <div class="section">
-            <div class="section-header">Summary</div>
-            <div class="body-text">${resumeData.content.personalInfo.summary}</div>
-          </div>
-          ` : ''}
-
-                 ${resumeData.workExperience && resumeData.workExperience.length > 0 ? `
-         <div class="section">
-           <div class="section-header">Work Experience</div>
-           ${resumeData.workExperience.map(work => `
-             <div class="entry">
-               <div class="entry-header">
-                 <div class="entry-company">${work.company}</div>
-                 <div class="entry-date">${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
-               </div>
-                               <div class="entry-position body-text">${work.position}</div>
-               ${work.bulletPoints && work.bulletPoints.length > 0 ? `
-                 <div class="bullet-points">
-                                                                               ${work.bulletPoints.map(bullet => `
-                       <div class="bullet-point">• ${bullet.description}</div>
-                     `).join('')}
-                 </div>
-               ` : ''}
-             </div>
-           `).join('')}
-         </div>
-         ` : ''}
-
-                 ${resumeData.education && resumeData.education.length > 0 ? `
-         <div class="section">
-           <div class="section-header">Education</div>
-           ${resumeData.education.map(edu => `
-             <div class="entry">
-               <div class="entry-header">
-                 <div class="entry-title">${edu.degree} in ${edu.field}</div>
-                 <div class="entry-date">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
-               </div>
-                               <div class="body-text">${edu.institution}</div>
-                               ${edu.gpa ? `<div class="body-text">GPA: ${edu.gpa}</div>` : ''}
-             </div>
-           `).join('')}
-         </div>
-         ` : ''}
-
-                 ${resumeData.projects && resumeData.projects.length > 0 ? `
-         <div class="section">
-           <div class="section-header">Projects</div>
-           ${resumeData.projects.map(project => `
-             <div class="entry">
-               <div class="entry-header">
-                 <div class="entry-title">
-                   ${project.link ? `<a href="${project.link}" class="project-link">${project.title}</a>` : project.title}
-                 </div>
-                 <div class="entry-date">${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
-               </div>
-                               <div class="body-text">${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
-               ${project.bulletPoints && project.bulletPoints.length > 0 ? `
-                 <div class="bullet-points">
-                                                                               ${project.bulletPoints.map(bullet => `
-                       <div class="bullet-point">• ${bullet.description}</div>
-                     `).join('')}
-                 </div>
-               ` : ''}
-             </div>
-           `).join('')}
-         </div>
-         ` : ''}
-
-        ${resumeData.strengths && resumeData.strengths.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Skills</div>
-                     <div class="body-text">${resumeData.strengths.map(skill => skill.skillName).join(', ')}</div>
-        </div>
-        ` : ''}
-
-                 ${resumeData.courses && resumeData.courses.length > 0 ? `
-         <div class="section">
-           <div class="section-header">Courses</div>
-           ${resumeData.courses.map(course => `
-             <div class="entry">
-                               <div class="entry-title">${course.title}</div>
-                <div class="body-text">${course.provider}</div>
-             </div>
-           `).join('')}
-         </div>
-         ` : ''}
-
-        ${resumeData.languages && resumeData.languages.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Languages</div>
-                     <div class="body-text">${resumeData.languages.map(lang => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
-        </div>
-        ` : ''}
-
-                 ${resumeData.publications && resumeData.publications.length > 0 ? `
-         <div class="section">
-           <div class="section-header">Publications</div>
-           ${resumeData.publications.map(pub => `
-             <div class="entry">
-                               <div class="entry-title">${pub.title}</div>
-                <div class="body-text">${pub.authors}</div>
-                <div class="body-text">${pub.journal}, ${pub.year}</div>
-             </div>
-           `).join('')}
-         </div>
-         ` : ''}
-
-                 ${resumeData.awards && resumeData.awards.length > 0 ? `
-         <div class="section">
-           <div class="section-header">Awards</div>
-           ${resumeData.awards.map(award => `
-             <div class="entry">
-                               <div class="entry-title">${award.title}</div>
-                <div class="body-text">${award.organization}, ${award.year}</div>
-               ${award.bulletPoints && award.bulletPoints.length > 0 ? `
-                 <div class="bullet-points">
-                                                                           ${award.bulletPoints.map(bullet => `
-                       <div class="bullet-point">• ${bullet.description}</div>
-                     `).join('')}
-                 </div>
-               ` : ''}
-             </div>
-           `).join('')}
-         </div>
-         ` : ''}
-
-                 ${resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
-         <div class="section">
-           <div class="section-header">Volunteer Experience</div>
-           ${resumeData.volunteerExperience.map(vol => `
-             <div class="entry">
-               <div class="entry-header">
-                 <div class="entry-title">${vol.position}</div>
-                 <div class="entry-date">${vol.startDate} - ${vol.current ? 'Present' : vol.endDate}</div>
-               </div>
-                               <div class="body-text">${vol.organization}</div>
-                <div class="body-text">${vol.location}</div>
-                ${vol.hoursPerWeek ? `<div class="body-text">${vol.hoursPerWeek} hours/week</div>` : ''}
-               ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
-                 <div class="bullet-points">
-                                                                           ${vol.bulletPoints.map(bullet => `
-                       <div class="bullet-point">• ${bullet.description}</div>
-                     `).join('')}
-                 </div>
-               ` : ''}
-             </div>
-           `).join('')}
-         </div>
-         ` : ''}
-
-        ${resumeData.interests && resumeData.interests.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Interests</div>
-                     <div class="body-text">${resumeData.interests.map(interest => interest.name).join(', ')}</div>
-        </div>
-        ` : ''}
+                                                                                           ${activeSections.map(section => renderSection(section)).join('')}
       </body>
       </html>
     `;
