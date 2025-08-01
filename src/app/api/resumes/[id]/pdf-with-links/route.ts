@@ -86,7 +86,10 @@ export async function POST(
        const formatDate = (date: Date | null): string => {
          if (!date || isNaN(date.getTime())) return '';
          try {
-           return date.toISOString().split('T')[0];
+           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+           const month = months[date.getMonth()];
+           const year = date.getFullYear();
+           return `${month} ${year}`;
          } catch {
            return '';
          }
@@ -111,7 +114,10 @@ export async function POST(
        const formatDate = (date: Date | null): string => {
          if (!date || isNaN(date.getTime())) return '';
          try {
-           return date.toISOString().split('T')[0];
+           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+           const month = months[date.getMonth()];
+           const year = date.getFullYear();
+           return `${month} ${year}`;
          } catch {
            return '';
          }
@@ -140,7 +146,10 @@ export async function POST(
        const formatDate = (date: Date | null): string => {
          if (!date || isNaN(date.getTime())) return '';
          try {
-           return date.toISOString().split('T')[0];
+           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+           const month = months[date.getMonth()];
+           const year = date.getFullYear();
+           return `${month} ${year}`;
          } catch {
            return '';
          }
@@ -194,7 +203,10 @@ export async function POST(
        const formatDate = (date: Date | null): string => {
          if (!date || isNaN(date.getTime())) return '';
          try {
-           return date.toISOString().split('T')[0];
+           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+           const month = months[date.getMonth()];
+           const year = date.getFullYear();
+           return `${month} ${year}`;
          } catch {
            return '';
          }
@@ -335,9 +347,28 @@ export async function POST(
             font-weight: bold;
             margin-bottom: 5pt;
           }
-          .entry {
-            margin-bottom: ${exportSettings.entrySpacing}pt;
-          }
+                     .entry {
+             margin-bottom: ${exportSettings.entrySpacing}pt;
+           }
+           .entry-header {
+             display: flex;
+             justify-content: space-between;
+             align-items: baseline;
+             margin-bottom: 5pt;
+           }
+                       .entry-title {
+              font-weight: bold;
+            }
+            .entry-company {
+              font-weight: bold;
+            }
+            .entry-position {
+              font-style: italic;
+            }
+           .entry-date {
+             font-weight: bold;
+             text-align: right;
+           }
           .bullet-points {
             margin-left: 20pt;
           }
@@ -382,61 +413,67 @@ export async function POST(
         </div>
         ` : ''}
 
-        ${resumeData.workExperience && resumeData.workExperience.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Work Experience</div>
-          ${resumeData.workExperience.map(work => `
-            <div class="entry">
-              <div class="sub-header">${work.position}</div>
-              <div>${work.company}</div>
-              <div>${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
-              ${work.bulletPoints && work.bulletPoints.length > 0 ? `
-                <div class="bullet-points">
-                  ${work.bulletPoints.map(bullet => `
-                    <div class="bullet-point">• ${bullet.description}</div>
-                  `).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
+                 ${resumeData.workExperience && resumeData.workExperience.length > 0 ? `
+         <div class="section">
+           <div class="section-header">Work Experience</div>
+           ${resumeData.workExperience.map(work => `
+             <div class="entry">
+               <div class="entry-header">
+                 <div class="entry-company">${work.company}</div>
+                 <div class="entry-date">${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
+               </div>
+               <div class="entry-position">${work.position}</div>
+               ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+                 <div class="bullet-points">
+                   ${work.bulletPoints.map(bullet => `
+                     <div class="bullet-point">• ${bullet.description}</div>
+                   `).join('')}
+                 </div>
+               ` : ''}
+             </div>
+           `).join('')}
+         </div>
+         ` : ''}
 
-        ${resumeData.education && resumeData.education.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Education</div>
-          ${resumeData.education.map(edu => `
-            <div class="entry">
-              <div class="sub-header">${edu.degree} in ${edu.field}</div>
-              <div>${edu.institution}</div>
-              <div>${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
-              ${edu.gpa ? `<div>GPA: ${edu.gpa}</div>` : ''}
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
+                 ${resumeData.education && resumeData.education.length > 0 ? `
+         <div class="section">
+           <div class="section-header">Education</div>
+           ${resumeData.education.map(edu => `
+             <div class="entry">
+               <div class="entry-header">
+                 <div class="entry-title">${edu.degree} in ${edu.field}</div>
+                 <div class="entry-date">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
+               </div>
+               <div>${edu.institution}</div>
+               ${edu.gpa ? `<div>GPA: ${edu.gpa}</div>` : ''}
+             </div>
+           `).join('')}
+         </div>
+         ` : ''}
 
-        ${resumeData.projects && resumeData.projects.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Projects</div>
-          ${resumeData.projects.map(project => `
-            <div class="entry">
-              <div class="sub-header">
-                ${project.link ? `<a href="${project.link}" class="project-link">${project.title}</a>` : project.title}
-              </div>
-              <div>${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
-              <div>${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
-              ${project.bulletPoints && project.bulletPoints.length > 0 ? `
-                <div class="bullet-points">
-                  ${project.bulletPoints.map(bullet => `
-                    <div class="bullet-point">• ${bullet.description}</div>
-                  `).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
+                 ${resumeData.projects && resumeData.projects.length > 0 ? `
+         <div class="section">
+           <div class="section-header">Projects</div>
+           ${resumeData.projects.map(project => `
+             <div class="entry">
+               <div class="entry-header">
+                 <div class="entry-title">
+                   ${project.link ? `<a href="${project.link}" class="project-link">${project.title}</a>` : project.title}
+                 </div>
+                 <div class="entry-date">${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
+               </div>
+               <div>${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
+               ${project.bulletPoints && project.bulletPoints.length > 0 ? `
+                 <div class="bullet-points">
+                   ${project.bulletPoints.map(bullet => `
+                     <div class="bullet-point">• ${bullet.description}</div>
+                   `).join('')}
+                 </div>
+               ` : ''}
+             </div>
+           `).join('')}
+         </div>
+         ` : ''}
 
         ${resumeData.strengths && resumeData.strengths.length > 0 ? `
         <div class="section">
@@ -496,27 +533,29 @@ export async function POST(
         </div>
         ` : ''}
 
-        ${resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
-        <div class="section">
-          <div class="section-header">Volunteer Experience</div>
-          ${resumeData.volunteerExperience.map(vol => `
-            <div class="entry">
-              <div class="sub-header">${vol.position}</div>
-              <div>${vol.organization}</div>
-              <div>${vol.location}</div>
-              <div>${vol.startDate} - ${vol.current ? 'Present' : vol.endDate}</div>
-              ${vol.hoursPerWeek ? `<div>${vol.hoursPerWeek} hours/week</div>` : ''}
-              ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
-                <div class="bullet-points">
-                  ${vol.bulletPoints.map(bullet => `
-                    <div class="bullet-point">• ${bullet.description}</div>
-                  `).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
+                 ${resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
+         <div class="section">
+           <div class="section-header">Volunteer Experience</div>
+           ${resumeData.volunteerExperience.map(vol => `
+             <div class="entry">
+               <div class="entry-header">
+                 <div class="entry-title">${vol.position}</div>
+                 <div class="entry-date">${vol.startDate} - ${vol.current ? 'Present' : vol.endDate}</div>
+               </div>
+               <div>${vol.organization}</div>
+               <div>${vol.location}</div>
+               ${vol.hoursPerWeek ? `<div>${vol.hoursPerWeek} hours/week</div>` : ''}
+               ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
+                 <div class="bullet-points">
+                   ${vol.bulletPoints.map(bullet => `
+                     <div class="bullet-point">• ${bullet.description}</div>
+                   `).join('')}
+                 </div>
+               ` : ''}
+             </div>
+           `).join('')}
+         </div>
+         ` : ''}
 
         ${resumeData.interests && resumeData.interests.length > 0 ? `
         <div class="section">
