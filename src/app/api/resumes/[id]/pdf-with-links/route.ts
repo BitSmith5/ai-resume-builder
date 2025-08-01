@@ -170,9 +170,8 @@ export async function POST(
     const pageWidth = pageDimensions[pageSize].width;
     const pageHeight = pageDimensions[pageSize].height;
     
-    // Calculate content area (page minus margins)
-    const contentWidth = pageWidth - (exportSettings.sideMargins * 2);
-    const contentHeight = pageHeight - (exportSettings.topBottomMargin * 2);
+         // Calculate content area (page minus margins)
+     const contentWidth = pageWidth - (exportSettings.sideMargins * 2);
 
     // Create complete HTML with export settings applied
     const html = `
