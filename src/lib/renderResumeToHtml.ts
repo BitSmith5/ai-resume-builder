@@ -97,9 +97,11 @@ interface ContentItem {
   [key: string]: unknown;
 }
 
-// Function to map custom fonts to web-safe fonts for PDF generation
+
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// Temporary function to satisfy linter - not used in new PDF generation approach
 function getWebSafeFont(fontFamily: string): string {
-  // Force use of only the most basic system fonts to prevent embedding
   return 'Arial, Helvetica, sans-serif';
 }
 
@@ -565,7 +567,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
   return `
     <div class="resume-page" style="
       display: flex;
-      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Arial')};
+      font-family: Arial, Helvetica, sans-serif;
       background: #fff;
       color: #333;
       width: 100%; /* Use full available width from parent container */
@@ -972,7 +974,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         margin: 0 0 10px 0;
         text-transform: uppercase;
         letter-spacing: 2px;
-        font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
+        font-family: Arial, Helvetica, sans-serif;
       ">
         ${personalInfo.name}
       </h1>
@@ -983,12 +985,12 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
           margin: 0 0 10px 0;
           font-style: italic;
           color: #333;
-          font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
+          font-family: Arial, Helvetica, sans-serif;
         ">
           ${data.jobTitle}
         </div>
       ` : ''}
-                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: 1.2;">
+                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: Arial, Helvetica, sans-serif; line-height: 1.2;">
         ${[
           (personalInfo.city || personalInfo.state) ? [personalInfo.city, personalInfo.state].filter(Boolean).join(', ') : null,
           personalInfo.phone ? personalInfo.phone : null,
