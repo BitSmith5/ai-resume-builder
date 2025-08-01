@@ -29,6 +29,16 @@ interface ExportSettings {
 
 export const runtime = 'nodejs';
 
+// URL formatting function to ensure proper protocol
+const formatUrl = (url: string): string => {
+  if (!url) return '';
+  // If URL doesn't start with http:// or https://, add https://
+  if (!url.match(/^https?:\/\//)) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -72,27 +82,51 @@ export async function POST(
     }
 
     // Transform work experience data
-    const workExperience = resume.workExperience.map(work => ({
-      company: work.company || '',
-      position: work.position || '',
-      startDate: work.startDate.toISOString().split('T')[0],
-      endDate: work.endDate ? work.endDate.toISOString().split('T')[0] : '',
-      current: work.current || false,
-      bulletPoints: Array.isArray(work.bulletPoints) 
-        ? (work.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
-        : []
-    }));
+    const workExperience = resume.workExperience.map(work => {
+      const formatDate = (date: Date | null): string => {
+        if (!date || isNaN(date.getTime())) return '';
+        try {
+          return date.toISOString().split('T')[0];
+        } catch (error) {
+          return '';
+        }
+      };
+
+      return {
+        company: work.company || '',
+        position: work.position || '',
+        startDate: formatDate(work.startDate),
+        endDate: formatDate(work.endDate),
+        current: work.current || false,
+        city: '',
+        state: '',
+        bulletPoints: Array.isArray(work.bulletPoints) 
+          ? (work.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
+          : []
+      };
+    });
 
     // Transform education data
-    const education = resume.education.map(edu => ({
-      institution: edu.institution || '',
-      degree: edu.degree || '',
-      field: edu.field || '',
-      startDate: edu.startDate.toISOString().split('T')[0],
-      endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : '',
-      current: edu.current || false,
-      gpa: edu.gpa || undefined
-    }));
+    const education = resume.education.map(edu => {
+      const formatDate = (date: Date | null): string => {
+        if (!date || isNaN(date.getTime())) return '';
+        try {
+          return date.toISOString().split('T')[0];
+        } catch (error) {
+          return '';
+        }
+      };
+
+      return {
+        institution: edu.institution || '',
+        degree: edu.degree || '',
+        field: edu.field || '',
+        startDate: formatDate(edu.startDate),
+        endDate: formatDate(edu.endDate),
+        current: edu.current || false,
+        gpa: edu.gpa || undefined
+      };
+    });
 
     // Transform courses data
     const courses = resume.courses.map(course => ({
@@ -102,79 +136,117 @@ export async function POST(
     }));
 
     // Transform projects data
-    const projects = resume.projects.map(project => ({
-      title: project.title || '',
-      startDate: project.startDate.toISOString().split('T')[0],
-      endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
-      current: project.current || false,
-      technologies: project.technologies || '',
-      link: project.link || undefined,
-      bulletPoints: Array.isArray(project.bulletPoints) 
-        ? (project.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
-        : []
-    }));
+    const projects = resume.projects.map(project => {
+      const formatDate = (date: Date | null): string => {
+        if (!date || isNaN(date.getTime())) return '';
+        try {
+          return date.toISOString().split('T')[0];
+        } catch (error) {
+          return '';
+        }
+      };
+
+      return {
+        id: project.id.toString(),
+        title: project.title || '',
+        startDate: formatDate(project.startDate),
+        endDate: formatDate(project.endDate),
+        current: project.current || false,
+                 technologies: Array.isArray(project.technologies) ? project.technologies as string[] : [],
+         link: formatUrl(project.link || ''),
+        bulletPoints: Array.isArray(project.bulletPoints) 
+          ? (project.bulletPoints as Array<{ description: string }>).map(bullet => ({ id: Math.random().toString(), description: bullet.description }))
+          : []
+      };
+    });
 
     // Transform languages data
     const languages = resume.languages.map(lang => ({
+      id: lang.id.toString(),
       name: lang.name || '',
       proficiency: lang.proficiency || ''
     }));
 
     // Transform publications data
     const publications = resume.publications.map(pub => ({
+      id: pub.id.toString(),
       title: pub.title || '',
       authors: pub.authors || '',
       journal: pub.journal || '',
-      year: pub.year || '',
-      doi: pub.doi || undefined,
-      link: pub.link || undefined
+             year: pub.year || '',
+       doi: pub.doi || '',
+       link: formatUrl(pub.link || '')
     }));
 
     // Transform awards data
     const awards = resume.awards.map(award => ({
+      id: award.id.toString(),
       title: award.title || '',
       organization: award.organization || '',
       year: award.year || '',
       bulletPoints: Array.isArray(award.bulletPoints) 
-        ? (award.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
+        ? (award.bulletPoints as Array<{ description: string }>).map(bullet => ({ id: Math.random().toString(), description: bullet.description }))
         : []
     }));
 
     // Transform volunteer experience data
-    const volunteerExperience = resume.volunteerExperience.map(vol => ({
-      organization: vol.organization || '',
-      position: vol.position || '',
-      location: vol.location || '',
-      startDate: vol.startDate.toISOString().split('T')[0],
-      endDate: vol.endDate ? vol.endDate.toISOString().split('T')[0] : '',
-      current: vol.current || false,
-      hoursPerWeek: vol.hoursPerWeek || '',
-      bulletPoints: Array.isArray(vol.bulletPoints) 
-        ? (vol.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
-        : []
-    }));
+    const volunteerExperience = resume.volunteerExperience.map(vol => {
+      const formatDate = (date: Date | null): string => {
+        if (!date || isNaN(date.getTime())) return '';
+        try {
+          return date.toISOString().split('T')[0];
+        } catch (error) {
+          return '';
+        }
+      };
+
+      return {
+        id: vol.id.toString(),
+        organization: vol.organization || '',
+        position: vol.position || '',
+        location: vol.location || '',
+        startDate: formatDate(vol.startDate),
+        endDate: formatDate(vol.endDate),
+        current: vol.current || false,
+        hoursPerWeek: vol.hoursPerWeek || '',
+        bulletPoints: Array.isArray(vol.bulletPoints) 
+          ? (vol.bulletPoints as Array<{ description: string }>).map(bullet => ({ id: Math.random().toString(), description: bullet.description }))
+          : []
+      };
+    });
 
     // Parse the resume content JSON to get the actual personal info
     const resumeContent = resume.content as { personalInfo?: { name?: string; email?: string; phone?: string; city?: string; state?: string; summary?: string; website?: string; linkedin?: string; github?: string } };
     const personalInfo = resumeContent?.personalInfo || {};
 
-    const resumeData = {
-      title: resume.title,
-      jobTitle: (resume as ResumeWithTemplate).jobTitle || undefined,
-      profilePicture: resume.profilePicture || undefined,
-      content: {
-        personalInfo: {
-          name: personalInfo.name || resume.user.name || '',
-          email: personalInfo.email || resume.user.email || '',
-          phone: personalInfo.phone || resume.user.phone || '',
-          city: personalInfo.city || resume.user.location || '',
-          state: personalInfo.state || '',
-          summary: personalInfo.summary || '',
-          website: personalInfo.website || resume.user.portfolioUrl || '',
-          linkedin: personalInfo.linkedin || resume.user.linkedinUrl || '',
-          github: personalInfo.github || ''
+               // Phone number formatting function
+      const formatPhoneNumber = (phone: string): string => {
+        if (!phone) return '';
+        // Remove all non-digits
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) {
+          return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
         }
-      },
+        return phone; // Return original if not 10 digits
+      };
+
+     const resumeData = {
+       title: resume.title,
+       jobTitle: (resume as ResumeWithTemplate).jobTitle || undefined,
+       profilePicture: resume.profilePicture || undefined,
+             content: {
+         personalInfo: {
+           name: personalInfo.name || resume.user.name || '',
+           email: personalInfo.email || resume.user.email || '',
+           phone: personalInfo.phone || resume.user.phone || '',
+           city: personalInfo.city || resume.user.location || '',
+           state: personalInfo.state || '',
+           summary: personalInfo.summary || '',
+           website: formatUrl(personalInfo.website || resume.user.portfolioUrl || ''),
+           linkedin: formatUrl(personalInfo.linkedin || resume.user.linkedinUrl || ''),
+           github: formatUrl(personalInfo.github || '')
+         }
+       },
       strengths: (resume.strengths || []).map(strength => ({
         skillName: strength.skillName || '',
         rating: strength.rating || 0
@@ -193,7 +265,7 @@ export async function POST(
       volunteerExperience
     };
 
-    // Create clean HTML template with only web-safe fonts and clickable links
+    // Create clean HTML template with export settings applied
     const html = `
       <!DOCTYPE html>
       <html>
@@ -206,7 +278,7 @@ export async function POST(
             margin: ${exportSettings.topBottomMargin}pt ${exportSettings.sideMargins}pt;
           }
           body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: ${exportSettings.fontFamily || 'Arial, Helvetica, sans-serif'};
             font-size: ${exportSettings.bodyTextSize}pt;
             line-height: ${exportSettings.lineSpacing};
             margin: 0;
@@ -217,28 +289,38 @@ export async function POST(
           }
           .header {
             text-align: center;
-            margin-bottom: 20pt;
-          }
-          .name {
-            font-size: ${exportSettings.nameSize}pt;
-            font-weight: bold;
             margin-bottom: 5pt;
           }
-          .job-title {
-            font-size: ${exportSettings.bodyTextSize}pt;
-            margin-bottom: 10pt;
-          }
-          .contact-info {
-            text-align: center;
-            margin-bottom: 20pt;
-          }
-          .contact-link {
-            color: #0066cc;
-            text-decoration: none;
-          }
-          .contact-link:hover {
-            text-decoration: underline;
-          }
+                     .name {
+             font-size: ${exportSettings.nameSize}pt;
+             font-weight: normal;
+             margin-bottom: 2pt;
+           }
+                       .job-title {
+              font-size: ${exportSettings.bodyTextSize}pt;
+              margin-bottom: 0pt;
+              padding-bottom: 0pt;
+              line-height: 1;
+            }
+                     .contact-info {
+             text-align: center;
+             margin-bottom: 2pt;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             gap: 0pt;
+             flex-wrap: wrap;
+             line-height: 1;
+           }
+                     .contact-link {
+             color: #000000;
+             text-decoration: underline;
+             cursor: pointer;
+           }
+           .contact-separator {
+             margin: 0 2pt;
+             color: #000000;
+           }
           .section {
             margin-bottom: ${exportSettings.sectionSpacing}pt;
           }
@@ -278,14 +360,20 @@ export async function POST(
           ${resumeData.jobTitle ? `<div class="job-title">${resumeData.jobTitle}</div>` : ''}
         </div>
         
-        <div class="contact-info">
-          <div>${resumeData.content.personalInfo.email}</div>
-          <div>${resumeData.content.personalInfo.phone}</div>
-          <div>${resumeData.content.personalInfo.city}, ${resumeData.content.personalInfo.state}</div>
-          ${resumeData.content.personalInfo.website ? `<div><a href="${resumeData.content.personalInfo.website}" class="contact-link">${resumeData.content.personalInfo.website}</a></div>` : ''}
-          ${resumeData.content.personalInfo.linkedin ? `<div><a href="${resumeData.content.personalInfo.linkedin}" class="contact-link">${resumeData.content.personalInfo.linkedin}</a></div>` : ''}
-          ${resumeData.content.personalInfo.github ? `<div><a href="${resumeData.content.personalInfo.github}" class="contact-link">${resumeData.content.personalInfo.github}</a></div>` : ''}
-        </div>
+                 <div class="contact-info">
+           ${resumeData.content.personalInfo.city || resumeData.content.personalInfo.state ? 
+             `<span>${resumeData.content.personalInfo.city || ''}${resumeData.content.personalInfo.city && resumeData.content.personalInfo.state ? ', ' : ''}${resumeData.content.personalInfo.state || ''}</span>` : ''}
+           ${resumeData.content.personalInfo.phone ? 
+             `${resumeData.content.personalInfo.city || resumeData.content.personalInfo.state ? '<span class="contact-separator">•</span>' : ''}<span>${formatPhoneNumber(resumeData.content.personalInfo.phone)}</span>` : ''}
+           ${resumeData.content.personalInfo.email ? 
+             `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone) ? '<span class="contact-separator">•</span>' : ''}<span>${resumeData.content.personalInfo.email}</span>` : ''}
+           ${resumeData.content.personalInfo.linkedin ? 
+             `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.linkedin}" class="contact-link">LinkedIn</a></span>` : ''}
+           ${resumeData.content.personalInfo.github ? 
+             `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.github}" class="contact-link">GitHub</a></span>` : ''}
+                       ${resumeData.content.personalInfo.website ? 
+              `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin || resumeData.content.personalInfo.github) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.website}" class="contact-link">${resumeData.content.personalInfo.website.replace(/^https?:\/\//, '')}</a></span>` : ''}
+         </div>
 
         ${resumeData.content.personalInfo.summary ? `
         <div class="section">
@@ -336,7 +424,7 @@ export async function POST(
               <div class="sub-header">
                 ${project.link ? `<a href="${project.link}" class="project-link">${project.title}</a>` : project.title}
               </div>
-              <div>${project.technologies}</div>
+              <div>${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
               <div>${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
               ${project.bulletPoints && project.bulletPoints.length > 0 ? `
                 <div class="bullet-points">
@@ -440,35 +528,19 @@ export async function POST(
       </html>
     `;
 
-    // Launch Puppeteer with font-disabling arguments
+    // Launch Puppeteer with standard arguments
     const browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu',
-        '--disable-font-subpixel-positioning',
-        '--disable-gpu-font-rasterization',
-        '--disable-font-antialiasing',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-fonts',
-        '--disable-remote-fonts',
-        '--disable-font-loading',
-        '--disable-font-synthesis'
+        '--disable-dev-shm-usage'
       ]
     });
 
     const page = await browser.newPage();
-    
-    // Set user agent to prevent font embedding
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
 
-    // Set content with font-disabling CSS
+    // Set content
     await page.setContent(html, {
       waitUntil: 'networkidle0'
     });
@@ -498,7 +570,7 @@ export async function POST(
   } catch (error) {
     console.error('Error generating PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to generate PDF' },
+      { error: 'Failed to generate PDF', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

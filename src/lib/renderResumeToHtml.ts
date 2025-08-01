@@ -28,6 +28,8 @@ interface ResumeData {
     startDate: string;
     endDate: string;
     current: boolean;
+    city?: string;
+    state?: string;
     bulletPoints: Array<{
       description: string;
     }>;
@@ -60,6 +62,8 @@ interface PageContent {
     startDate: string;
     endDate: string;
     current: boolean;
+    city?: string;
+    state?: string;
     bulletPoints: Array<{
       description: string;
     }>;
@@ -115,9 +119,16 @@ interface ClassicPageContent {
     current: boolean;
     city?: string;
     state?: string;
-    bulletPoints: Array<{
+    bulletPoints?: Array<{
       description: string;
     }>;
+    institution?: string;
+    degree?: string;
+    field?: string;
+    gpa?: number;
+    title?: string;
+    provider?: string;
+    link?: string;
   }>;
   education: Array<{
     institution: string;
@@ -160,6 +171,8 @@ interface ExportSettings {
   topBottomMargin?: number;
   sideMargins?: number;
   alignTextLeftRight?: boolean;
+  pageWidth?: number;
+  pageHeight?: number;
 }
 
 interface ClassicSection {
@@ -675,285 +688,91 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
 function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings): string {
   const { personalInfo } = data.content;
 
-  // Function to format dates as MM/YYYY
+  // Format date helper - matches React component exactly
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString;
+      let date: Date;
       
-      const month = String(date.getMonth() + 1).padStart(2, '0');
+      // Handle YYYY-MM-DD format (from API) to avoid timezone issues
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        date = new Date(year, month - 1, day); // month is 0-indexed
+      } else if (/^[A-Za-z]{3} \d{4}$/.test(dateString)) { // Handle "MMM YYYY" format
+        const [monthStr, yearStr] = dateString.split(' ');
+        const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthStr);
+        const year = parseInt(yearStr);
+        if (monthIndex !== -1 && !isNaN(year)) {
+          date = new Date(year, monthIndex, 1); // Set to 1st day of the month to avoid timezone issues with month end
+        } else {
+          date = new Date(dateString); // Fallback if parsing fails
+        }
+      } else {
+        date = new Date(dateString);
+      }
+      
+      // Check if date is valid before formatting
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      const monthNames = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      const month = monthNames[date.getMonth()];
       const year = date.getFullYear();
-      return `${month}/${year}`;
+      const result = `${month} ${year}`;
+      return result;
     } catch {
       return dateString;
     }
   };
 
-  // Function to format URLs by removing http/https prefix
+  // Format URL helper - matches React component
   const formatUrl = (url: string): string => {
     if (!url) return '';
     return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
   };
 
-  // Calculate content distribution across pages
-  const calculatePages = (): Array<ClassicPageContent> => {
-    const pages: Array<ClassicPageContent> = [];
-    const maxContentHeight = 900; // Maximum content height per page
-    const bottomMargin = 80; // Bottom margin for content
-    const headerHeight = 180; // Only on first page
-    const itemSpacing = 15;
-    
-         // Helper function to estimate content height
-           const estimateContentHeight = (content: ClassicSection['items'][0], type: 'work' | 'courses' | 'education'): number => {
-      let height = 0;
-      
-             switch (type) {
-         case 'work':
-           height = 80;
-           if (content.bulletPoints && content.bulletPoints.length > 0) {
-             height += content.bulletPoints.length * 22;
-           }
-           break;
-         case 'courses':
-           height = 45;
-           break;
-         case 'education':
-           height = 60;
-           break;
-       }
-      
-      return height;
-    };
-    
-    // Helper function to estimate section header height
-    const estimateSectionHeaderHeight = (): number => {
-      return 45; // Section title + border + spacing
-    };
-    
-         // Calculate all section heights first
-     const sections: Array<ClassicSection> = [];
-    
-    if (data.workExperience && data.workExperience.length > 0) {
-      const workHeight = estimateSectionHeaderHeight() + data.workExperience.reduce((total, item) => total + estimateContentHeight(item, 'work') + itemSpacing, 0);
-      sections.push({ type: 'work', items: data.workExperience, height: workHeight });
-    }
-    
-         if (data.courses && data.courses.length > 0) {
-       const coursesHeight = estimateSectionHeaderHeight() + data.courses.reduce((total, item) => total + estimateContentHeight(item, 'courses') + itemSpacing, 0);
-       sections.push({ type: 'courses', items: data.courses, height: coursesHeight });
-     }
-    
-    if (data.education && data.education.length > 0) {
-      const educationHeight = estimateSectionHeaderHeight() + data.education.reduce((total, item) => total + estimateContentHeight(item, 'education') + itemSpacing, 0);
-      sections.push({ type: 'education', items: data.education, height: educationHeight });
-    }
-    
-    let currentPage: ClassicPageContent = {
-      workExperience: [],
-      education: [],
-      courses: [],
-      skills: [],
-      interests: [],
-      workExperienceStarted: false,
-      coursesStarted: false,
-      educationStarted: false
-    };
-    
-    let currentPageHeight = headerHeight; // Start with header height for first page
-    
-    // Track which sections have actually started across all pages
-    let workExperienceStarted = false;
-    let coursesStarted = false;
-    let educationStarted = false;
-    
-    // Process sections in correct visual order: work, courses, education
-    for (const section of sections) {
-      
-      if (section.type === 'education') {
-        // For Education, check if it can fit on current page
-        
-        // Force Education to fit on current page if we're on page 1 or 2
-        const currentPageNumber = pages.length + 1;
-        
-        if (currentPageNumber <= 2 || currentPageHeight + section.height <= maxContentHeight - bottomMargin - 20) {
-          // Add Education to current page
-          currentPage.education = section.items as ClassicPageContent['education'];
-          currentPage.educationStarted = educationStarted;
-          educationStarted = true; // Mark as started
-          currentPageHeight += section.height;
-        } else {
-          // Start new page for Education
-          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
-            pages.push(currentPage);
-          }
-          
-          currentPage = {
-            workExperience: [],
-            education: [],
-            courses: [],
-            skills: [],
-            interests: [],
-            workExperienceStarted: workExperienceStarted,
-            coursesStarted: coursesStarted,
-            educationStarted: educationStarted
-          };
-          currentPageHeight = 0;
-          
-          currentPage.education = section.items as ClassicPageContent['education'];
-          currentPage.educationStarted = educationStarted;
-          educationStarted = true; // Mark as started
-          currentPageHeight += section.height;
-        }
-        continue;
-      }
-      
-      // For Work Experience and Courses, process items individually to allow splitting
-      const sectionHeaderHeight = estimateSectionHeaderHeight();
-      
-      // Check if section header fits
-      if (currentPageHeight + sectionHeaderHeight > maxContentHeight - bottomMargin - 20) {
-        // Start new page
-        if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
-          pages.push(currentPage);
-        }
-        
-        currentPage = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          skills: [],
-          interests: [],
-          workExperienceStarted: workExperienceStarted,
-          coursesStarted: coursesStarted,
-          educationStarted: educationStarted
-        };
-        currentPageHeight = 0;
-      }
-      
-      // Add section header and mark section as started
-      currentPageHeight += sectionHeaderHeight;
-      if (section.type === 'work') {
-        currentPage.workExperienceStarted = workExperienceStarted;
-        workExperienceStarted = true;
-      } else if (section.type === 'courses') {
-        currentPage.coursesStarted = coursesStarted;
-        coursesStarted = true;
-      }
-      
-      // Process items in the section
-      for (let i = 0; i < section.items.length; i++) {
-        const item = section.items[i];
-        const itemHeight = estimateContentHeight(item, section.type as 'work' | 'courses' | 'education');
-        
-        // Check if item fits on current page
-        if (currentPageHeight + itemHeight > maxContentHeight - bottomMargin - 20) {
-          // Start new page
-          if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0) {
-            pages.push(currentPage);
-          }
-          
-          currentPage = {
-            workExperience: [],
-            education: [],
-            courses: [],
-            skills: [],
-            interests: [],
-            workExperienceStarted: workExperienceStarted, // Use actual started state
-            coursesStarted: coursesStarted,
-            educationStarted: educationStarted
-          };
-          currentPageHeight = 0; // Start with 0 height like React template
-        }
-        
-        // Add item to current page
-        switch (section.type as 'work' | 'courses' | 'education') {
-          case 'work':
-            currentPage.workExperience.push(item as ClassicPageContent['workExperience'][0]);
-            break;
-          case 'courses':
-            currentPage.courses.push(item as ClassicPageContent['courses'][0]);
-            break;
-          case 'education':
-            currentPage.education.push(item as ClassicPageContent['education'][0]);
-            break;
-        }
-        
-        currentPageHeight += itemHeight + itemSpacing;
-      }
-    }
-    
-    // Add remaining content to pages
-    if (currentPage.workExperience.length > 0 || currentPage.education.length > 0 || currentPage.courses.length > 0 || currentPage.skills.length > 0 || currentPage.interests.length > 0) {
-      pages.push(currentPage);
-    }
-    
-    // Only create a page if we have content to show
-    if (pages.length === 0 && (data.strengths && data.strengths.length > 0 || data.interests && data.interests.length > 0)) {
-      pages.push({
-        workExperience: [],
-        education: [],
-        courses: [],
-        skills: data.strengths || [],
-        interests: data.interests || [],
-        workExperienceStarted: false,
-        coursesStarted: false,
-        educationStarted: false
-      });
-    }
-    
-    // Add skills and interests to the last page, but check for overflow
-    if (pages.length > 0) {
-      const lastPage = pages[pages.length - 1];
-      
-      // Estimate skills and interests height
-      const skillsHeight = data.strengths && data.strengths.length > 0 ? 40 : 0; // Reduced height estimate
-      const interestsHeight = data.interests && data.interests.length > 0 ? 40 : 0; // Reduced height estimate
-      const totalSkillsInterestsHeight = skillsHeight + interestsHeight;
-      
-      // Check if skills/interests would overflow the bottom margin
-      if (currentPageHeight + totalSkillsInterestsHeight > maxContentHeight - bottomMargin - 20) {
-        // Create a new page for skills and interests
-        const newPage = {
-          workExperience: [],
-          education: [],
-          courses: [],
-          skills: data.strengths || [],
-          interests: data.interests || [],
-          workExperienceStarted: true,
-          coursesStarted: true,
-          educationStarted: true
-        };
-        pages.push(newPage);
-      } else {
-        // Add to current page
-        if (data.strengths && data.strengths.length > 0) {
-          lastPage.skills = [...data.strengths];
-        }
-        
-        if (data.interests && data.interests.length > 0) {
-          lastPage.interests = [...data.interests];
-        }
-      }
-    }
-    
-    return pages;
+  // Phone number formatting function - matches React component
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-digit characters
+    const phoneNumber = value.replace(/\D/g, "");
+
+    // Limit to 10 digits
+    const trimmed = phoneNumber.slice(0, 10);
+
+    // Format as (XXX) XXX-XXXX
+    if (trimmed.length === 0) return "";
+    if (trimmed.length <= 3) return `(${trimmed}`;
+    if (trimmed.length <= 6)
+      return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3)}`;
+    return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3, 6)}-${trimmed.slice(6)}`;
   };
 
-  const pages = calculatePages();
+  // Get font family with fallback - matches React component
+  const getFontFamily = () => {
+    return exportSettings?.fontFamily || 'Times New Roman, serif';
+  };
 
-  // Filter out empty pages to prevent blank pages
-  const filteredPages = pages.filter(page => 
-    page.workExperience.length > 0 || 
-    page.education.length > 0 || 
-    page.courses.length > 0 || 
-    page.skills.length > 0 || 
-    page.interests.length > 0
-  );
+  // Get font sizes with fallbacks - matches React component
+  const getNameSize = () => exportSettings?.nameSize || 40;
+  const getSectionHeadersSize = () => exportSettings?.sectionHeadersSize || 18;
+  const getSubHeadersSize = () => exportSettings?.subHeadersSize || 16;
+  const getBodyTextSize = () => exportSettings?.bodyTextSize || 14;
+  const getSectionSpacing = () => exportSettings?.sectionSpacing || 20;
+  const getEntrySpacing = () => exportSettings?.entrySpacing || 12;
+  const getLineSpacing = () => exportSettings?.lineSpacing || 14;
+  const getTopBottomMargin = () => exportSettings?.topBottomMargin || 40;
+  const getSideMargins = () => exportSettings?.sideMargins || 40;
+  const getPageWidth = () => exportSettings?.pageWidth || 850;
+  const getPageHeight = () => exportSettings?.pageHeight || 1100;
+  const getAlignTextLeftRight = () => exportSettings?.alignTextLeftRight || false;
 
-  // Render header (same for all pages)
+  // Render header - matches React component exactly
   const renderHeader = () => `
-    <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #000; padding-bottom: 16px;">
+    <div style="text-align: center; margin-bottom: ${getSectionSpacing()}px;">
       ${data.profilePicture && data.profilePicture.trim() !== '' && data.profilePicture.startsWith('data:') ? `
         <div style="
           width: 120px;
@@ -962,42 +781,42 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
           background-image: url('${data.profilePicture}');
           background-size: cover;
           background-position: center;
-          background-repeat: no-repeat;
           margin: 0 auto 12px auto;
           border: 3px solid #000;
-          background-color: #f0f0f0;
         "></div>
       ` : ''}
       <h1 style="
-                        font-size: ${exportSettings?.nameSize || 32}pt; 
-        font-weight: bold; 
-        margin: 0 0 10px 0;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-family: Arial, Helvetica, sans-serif;
+        font-size: ${getNameSize()}px; 
+        font-weight: normal; 
+        margin: 0 0 1px 0;
+        font-family: ${getFontFamily()};
       ">
         ${personalInfo.name}
       </h1>
       ${data.jobTitle ? `
         <div style="
-                          font-size: ${exportSettings?.subHeadersSize || 18}pt; 
-          font-weight: bold; 
-          margin: 0 0 10px 0;
-          font-style: italic;
+          font-size: 16px; 
+          font-weight: normal; 
+          margin: 0 0 4px 0;
+          font-family: ${getFontFamily()};
           color: #333;
-          font-family: Arial, Helvetica, sans-serif;
         ">
           ${data.jobTitle}
         </div>
       ` : ''}
-                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: Arial, Helvetica, sans-serif; line-height: 1.2;">
+      <div style="
+        font-size: 12px; 
+        color: #333;
+        font-family: ${getFontFamily()};
+        line-height: 1.2;
+      ">
         ${[
-          (personalInfo.city || personalInfo.state) ? [personalInfo.city, personalInfo.state].filter(Boolean).join(', ') : null,
-          personalInfo.phone ? personalInfo.phone : null,
-          personalInfo.email ? `<span class="email-text">${personalInfo.email}</span>` : null,
-          personalInfo.linkedin ? `<a href="${personalInfo.linkedin.startsWith('http') ? personalInfo.linkedin : `https://${personalInfo.linkedin}`}" target="_blank" style="color: #333; text-decoration: underline;">LinkedIn</a>` : null,
-          personalInfo.github ? `<a href="${personalInfo.github.startsWith('http') ? personalInfo.github : `https://${personalInfo.github}`}" target="_blank" style="color: #333; text-decoration: underline;">GitHub</a>` : null,
-          personalInfo.website ? `<a href="${personalInfo.website.startsWith('http') ? personalInfo.website : `https://${personalInfo.website}`}" target="_blank" style="color: #333; text-decoration: underline;">${formatUrl(personalInfo.website)}</a>` : null
+          (personalInfo.city || personalInfo.state) && [personalInfo.city, personalInfo.state].filter(Boolean).join(', '),
+          formatPhoneNumber(personalInfo.phone),
+          personalInfo.email,
+          personalInfo.linkedin && `<a href="${personalInfo.linkedin.startsWith('http') ? personalInfo.linkedin : `https://${personalInfo.linkedin}`}" target="_blank" rel="noopener noreferrer" style="color: #333; text-decoration: underline; cursor: pointer;">LinkedIn</a>`,
+          personalInfo.github && `<a href="${personalInfo.github.startsWith('http') ? personalInfo.github : `https://${personalInfo.github}`}" target="_blank" rel="noopener noreferrer" style="color: #333; text-decoration: underline; cursor: pointer;">GitHub</a>`,
+          personalInfo.website && `<a href="${personalInfo.website.startsWith('http') ? personalInfo.website : `https://${personalInfo.website}`}" target="_blank" rel="noopener noreferrer" style="color: #333; text-decoration: underline; cursor: pointer;">${formatUrl(personalInfo.website)}</a>`
         ].filter(Boolean).map((item, index, array) => 
           `<span>${item}${index < array.length - 1 ? ' • ' : ''}</span>`
         ).join('')}
@@ -1005,297 +824,282 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
     </div>
   `;
 
-  // Render a single page
-  const renderPage = (pageContent: ClassicPageContent, pageIndex: number) => {
-    const isFirstPage = pageIndex === 0;
-    
+  // Render professional summary - matches React component
+  const renderProfessionalSummary = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Professional Summary
+      </h2>
+      <p style="
+        font-size: ${getBodyTextSize()}px; 
+        margin: 0; 
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${personalInfo.summary}
+      </p>
+    </div>
+  `;
 
+  // Render technical skills - matches React component
+  const renderTechnicalSkills = () => {
+    let skillsHtml = `
+      <div style="margin-bottom: ${getSectionSpacing()}px;">
+        <h2 style="
+          font-size: ${getSectionHeadersSize()}px; 
+          font-weight: bold; 
+          margin: 0 0 0px 0;
+          font-family: ${getFontFamily()};
+          border-bottom: 1px solid #000;
+          padding-bottom: 1px;
+        ">
+          Technical Skills
+        </h2>
+    `;
+
+    // Render strengths if they exist
+    if (data.strengths && data.strengths.length > 0) {
+      skillsHtml += `
+        <div style="
+          font-size: ${getBodyTextSize()}px; 
+          font-family: ${getFontFamily()};
+          line-height: ${getLineSpacing()}px;
+          margin-bottom: 0px;
+          text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+        ">
+          ${data.strengths.map((skill, index) => 
+            `<span>${skill.skillName}${index < data.strengths.length - 1 ? ' • ' : ''}</span>`
+          ).join('')}
+        </div>
+      `;
+    }
+
+    skillsHtml += '</div>';
+    return skillsHtml;
+  };
+
+  // Render work experience - matches React component
+  const renderWorkExperience = () => {
+    if (!data.workExperience || data.workExperience.length === 0) return '';
     
     return `
-      <div style="
-        font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; 
-        background: transparent; 
-        color: #000; 
-        padding: 0; /* Remove hardcoded padding - let parent container handle margins */
-        width: 100%; /* Use full available width from parent container */
-        min-height: 1056px; /* Minimum height for Letter size, but allow content to expand */
-        margin: 0 auto;
-        margin-bottom: ${pageIndex < filteredPages.length - 1 ? '20px' : '0'};
-        line-height: ${exportSettings?.lineSpacing || 1.6};
-        position: relative;
-        overflow: visible; /* Allow content to be visible even if it extends beyond container */
-        page-break-after: ${pageIndex < filteredPages.length - 1 ? 'always' : 'avoid'};
-        box-sizing: border-box;
-      ">
-        <!-- Content wrapper that respects bottom margin -->
-        <div style="
-          padding-bottom: 80px; /* Ensure content doesn't overlap with bottom margin */
-          padding-top: ${isFirstPage ? '0' : '0'}; /* No extra top padding for non-first pages */
-          box-sizing: border-box;
-          width: 100%;
+      <div style="margin-bottom: ${getSectionSpacing()}px;">
+        <h2 style="
+          font-size: ${getSectionHeadersSize()}px; 
+          font-weight: bold; 
+          margin: 0 0 0px 0;
+          font-family: ${getFontFamily()};
+          border-bottom: 1px solid #000;
+          padding-bottom: 1px;
         ">
-
-          
-          <!-- Header - only on first page -->
-          ${isFirstPage ? renderHeader() : ''}
-
-          <!-- Summary - only on first page -->
-          ${isFirstPage && personalInfo.summary ? `
-            <div style="margin-bottom: 20px;">
-              <h2 style="
-                font-size: ${exportSettings?.sectionHeadersSize || 18}pt; 
+          Work Experience
+        </h2>
+        ${data.workExperience.map((work, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              display: flex; 
+              justify-content: space-between; 
+              align-items: flex-start;
+              margin-bottom: 2px;
+            ">
+              <div style="
+                font-size: ${getSubHeadersSize()}px; 
                 font-weight: bold; 
-                margin: 0 0 8px 0;
-                text-transform: uppercase;
-                border-bottom: 1px solid #000;
-                padding-bottom: 4px;
-                font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
+                font-family: ${getFontFamily()};
               ">
-                Professional Summary
-              </h2>
-              <p style="font-size: ${exportSettings?.bodyTextSize || 14}pt; margin: 0; text-align: ${exportSettings?.alignTextLeftRight ? 'justify' : 'left'}; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: ${exportSettings?.lineSpacing || 1.6};">
-                ${personalInfo.summary}
-              </p>
-            </div>
-          ` : ''}
-
-          <!-- Work Experience -->
-          ${pageContent.workExperience.length > 0 ? `
-            <div style="margin-bottom: 20px;">
-              ${!pageContent.workExperienceStarted ? `
-                <h2 style="
-                  font-size: ${exportSettings?.sectionHeadersSize || 18}pt; 
-                  font-weight: bold; 
-                  margin: 0 0 12px 0;
-                  text-transform: uppercase;
-                  border-bottom: 1px solid #000;
-                  padding-bottom: 4px;
-                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                ">
-                  Work Experience
-                </h2>
-              ` : ''}
-              ${pageContent.workExperience.map((exp) => `
-                <div style="margin-bottom: 16px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <h3 style="
-                                          font-size: ${exportSettings?.subHeadersSize || 16}pt; 
-                    font-weight: bold; 
-                    margin: 0;
-                    text-transform: uppercase;
-                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                    ">
-                      ${exp.position}
-                    </h3>
-                    <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
-                      ${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate)}
-                    </span>
-                  </div>
-                  <div style="
-                    font-size: ${exportSettings?.bodyTextSize || 14}pt; 
-                    font-weight: bold; 
-                    color: #333;
-                    margin-bottom: 8px;
-                    font-style: italic;
-                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                  ">
-                    ${exp.company}
-                    ${(exp.city || exp.state) ? `
-                                              <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-weight: normal; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
-                        {' - '}${[exp.city, exp.state].filter(Boolean).join(', ')}
-                      </span>
-                    ` : ''}
-                  </div>
-                  ${exp.bulletPoints.length > 0 ? `
-                    <ul style="
-                      font-size: ${Math.max(10, (exportSettings?.bodyTextSize || 14) * 0.9)}pt; 
-                      margin: 0; 
-                      padding-left: 20px;
-                      text-align: ${exportSettings?.alignTextLeftRight ? 'justify' : 'left'};
-                      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                      line-height: ${exportSettings?.lineSpacing || 1.6};
-                    ">
-                      ${exp.bulletPoints.map((bullet) => `
-                        <li style="margin-bottom: 2px; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: ${exportSettings?.lineSpacing || 1.6};">
-                          ${bullet.description}
-                        </li>
-                      `).join('')}
-                    </ul>
-                  ` : ''}
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-
-          <!-- Courses -->
-          ${pageContent.courses.length > 0 ? `
-            <div style="margin-bottom: 20px;">
-              ${!pageContent.coursesStarted ? `
-                <h2 style="
-                  font-size: 18px; 
-                  font-weight: bold; 
-                  margin: 0 0 12px 0;
-                  text-transform: uppercase;
-                  border-bottom: 1px solid #000;
-                  padding-bottom: 4px;
-                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                ">
-                  Courses & Certifications
-                </h2>
-              ` : ''}
-              ${pageContent.courses.map((course) => `
-                <div style="margin-bottom: 12px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <h3 style="
-                      font-size: 16px; 
-                      font-weight: bold; 
-                      margin: 0;
-                      text-transform: uppercase;
-                      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                    ">
-                      ${course.title}
-                    </h3>
-                  </div>
-                  <div style="
-                    font-size: 14px; 
-                    font-weight: bold; 
-                    color: #333;
-                    margin-bottom: 3px;
-                    font-style: italic;
-                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                  ">
-                    ${course.provider}
-                  </div>
-                  ${course.link ? `
-                    <div style="font-size: 12px; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
-                      <a href="${course.link}" target="_blank" rel="noopener noreferrer" style="color: #666; text-decoration: underline;">
-                        ${formatUrl(course.link)}
-                      </a>
-                    </div>
-                  ` : ''}
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-
-          <!-- Education -->
-          ${pageContent.education.length > 0 ? `
-            <div style="margin-bottom: 20px;">
-              ${!pageContent.educationStarted ? `
-                <h2 style="
-                  font-size: 18px; 
-                  font-weight: bold; 
-                  margin: 0 0 12px 0;
-                  text-transform: uppercase;
-                  border-bottom: 1px solid #000;
-                  padding-bottom: 4px;
-                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                ">
-                  Education
-                </h2>
-              ` : ''}
-              ${pageContent.education.map((edu) => `
-                <div style="margin-bottom: 12px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <h3 style="
-                      font-size: 16px; 
-                      font-weight: bold; 
-                      margin: 0;
-                      text-transform: uppercase;
-                      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                    ">
-                      ${edu.degree} in ${edu.field}
-                    </h3>
-                    <span style="font-size: 12px; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
-                      ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
-                    </span>
-                  </div>
-                  <div style="
-                    font-size: 14px; 
-                    font-weight: bold; 
-                    color: #333;
-                    margin-bottom: 3px;
-                    font-style: italic;
-                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                  ">
-                    ${edu.institution}
-                  </div>
-                  ${edu.gpa ? `
-                    <div style="font-size: 13px; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
-                      GPA: ${edu.gpa}
-                    </div>
-                  ` : ''}
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-          
-          <!-- Skills -->
-          ${pageContent.skills.length > 0 ? `
-            <div style="margin-bottom: 20px;">
-              <h2 style="
-                font-size: 18px; 
-                font-weight: bold; 
-                margin: 0 0 8px 0;
-                text-transform: uppercase;
-                border-bottom: 1px solid #000;
-                padding-bottom: 4px;
-                font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
+                ${work.company}
+                ${work.city && work.state && `, ${work.city}, ${work.state}`}
+              </div>
+              <div style="
+                font-size: ${getBodyTextSize()}px;
+                font-family: ${getFontFamily()};
+                font-weight: bold;
               ">
-                Skills
-              </h2>
-                          <div style="font-size: 14px; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: 1.6;">
-              ${pageContent.skills.map((strength) => `
-                <span style="
-                  display: inline-block;
-                  margin-right: 15px;
-                  margin-bottom: 4px;
-                  font-weight: bold;
-                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                  line-height: 1.6;
-                ">
-                  ${strength.skillName} (${strength.rating}/10)
-                </span>
-              `).join('')}
+                ${formatDate(work.startDate)} - ${work.current ? 'Present' : formatDate(work.endDate)}
+              </div>
             </div>
+            <div style="
+              font-size: ${getBodyTextSize()}px; 
+              font-style: italic;
+              font-family: ${getFontFamily()};
+              margin-bottom: 2px;
+            ">
+              ${work.position}
             </div>
-          ` : ''}
-
-          <!-- Interests -->
-          ${pageContent.interests.length > 0 ? `
-            <div style="margin-bottom: 20px;">
-              <h2 style="
-                font-size: 18px; 
-                font-weight: bold; 
-                margin: 0 0 8px 0;
-                text-transform: uppercase;
-                border-bottom: 1px solid #000;
-                padding-bottom: 4px;
-                font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
+            ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+              <ul style="
+                margin: 0; 
+                padding-left: 20px;
+                font-size: ${getBodyTextSize()}px;
+                font-family: ${getFontFamily()};
+                line-height: ${getLineSpacing()}px;
               ">
-                Interests
-              </h2>
-                          <div style="font-size: 14px; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: 1.6;">
-              ${pageContent.interests.map((interest) => `
-                <span style="
-                  display: inline-block;
-                  margin-right: 15px;
-                  margin-bottom: 4px;
-                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-                  line-height: 1.6;
-                ">
-                  ${interest.icon} ${interest.name}
-                </span>
-              `).join('')}
-            </div>
-            </div>
-          ` : ''}
-        </div> <!-- Close content wrapper -->
+                ${work.bulletPoints.map((point, pointIndex) => `
+                  <li style="
+                    margin-bottom: 2px;
+                    text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                  ">
+                    ${point.description}
+                  </li>
+                `).join('')}
+              </ul>
+            ` : ''}
+          </div>
+        `).join('')}
       </div>
     `;
   };
-  
-  return `
+
+  // Render education - matches React component
+  const renderEducation = () => {
+    if (!data.education || data.education.length === 0) return '';
+    
+    return `
+      <div style="margin-bottom: ${getSectionSpacing()}px;">
+        <h2 style="
+          font-size: ${getSectionHeadersSize()}px; 
+          font-weight: bold; 
+          margin: 0 0 0px 0;
+          font-family: ${getFontFamily()};
+          border-bottom: 1px solid #000;
+          padding-bottom: 1px;
+        ">
+          Education
+        </h2>
+        ${data.education.map((edu, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              display: flex; 
+              justify-content: space-between; 
+              align-items: flex-start;
+              margin-bottom: 4px;
+            ">
+              <div style="
+                font-size: ${getSubHeadersSize()}px; 
+                font-weight: bold; 
+                font-family: ${getFontFamily()};
+              ">
+                ${edu.degree} in ${edu.field}
+              </div>
+              <div style="
+                font-size: ${getBodyTextSize()}px;
+                font-family: ${getFontFamily()};
+                font-weight: bold;
+              ">
+                ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
+              </div>
+            </div>
+            <div style="
+              font-size: ${getBodyTextSize()}px;
+              font-family: ${getFontFamily()};
+              text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+            ">
+              ${edu.institution}
+              ${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  // Render courses - matches React component
+  const renderCourses = () => {
+    if (!data.courses || data.courses.length === 0) return '';
+    
+    return `
+      <div style="margin-bottom: ${getSectionSpacing()}px;">
+        <h2 style="
+          font-size: ${getSectionHeadersSize()}px; 
+          font-weight: bold; 
+          margin: 0 0 0px 0;
+          font-family: ${getFontFamily()};
+          border-bottom: 1px solid #000;
+          padding-bottom: 1px;
+        ">
+          Courses
+        </h2>
+        <div style="
+          font-size: ${getBodyTextSize()}px;
+          font-family: ${getFontFamily()};
+          line-height: ${getLineSpacing()}px;
+          margin-top: 4px;
+          text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+        ">
+          ${data.courses.map((course, index) => `
+            <div style="padding-bottom: ${getEntrySpacing()}px;">
+              <div style="
+                margin-bottom: 2px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                <strong>${course.title}</strong> - ${course.provider}
+              </div>
+              ${course.link ? `
+                <div>
+                  <a href="${course.link.startsWith('http') ? course.link : `https://${course.link}`}" target="_blank" rel="noopener noreferrer" style="
+                    color: #0066cc; 
+                    text-decoration: underline;
+                    cursor: pointer;
+                    font-size: ${getBodyTextSize()}px;
+                    font-family: ${getFontFamily()};
+                    text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                  ">
+                    ${formatUrl(course.link)}
+                  </a>
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  };
+
+  // Render interests - matches React component
+  const renderInterests = () => {
+    if (!data.interests || data.interests.length === 0) return '';
+    
+    return `
+      <div style="margin-bottom: ${getSectionSpacing()}px;">
+        <h2 style="
+          font-size: ${getSectionHeadersSize()}px; 
+          font-weight: bold; 
+          margin: 0 0 0px 0;
+          font-family: ${getFontFamily()};
+          border-bottom: 1px solid #000;
+          padding-bottom: 1px;
+        ">
+          Interests
+        </h2>
+        <div style="
+          font-size: ${getBodyTextSize()}px;
+          font-family: ${getFontFamily()};
+          line-height: ${getLineSpacing()}px;
+          margin-top: 4px;
+          text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+        ">
+                     ${(data.interests || []).map((interest, index) => `
+             <span>
+               <span style="margin-right: 4px;">${interest.icon}</span>
+               ${interest.name}
+               ${index < (data.interests?.length || 0) - 1 ? ' • ' : ''}
+             </span>
+           `).join('')}
+        </div>
+      </div>
+    `;
+  };
+
+  // Generate the complete HTML - matches React component structure
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -1303,7 +1107,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
       <title>${data.title}</title>
       <style>
         @page {
-          size: Letter;
+          size: ${exportSettings?.pageSize === 'letter' ? 'letter' : 'A4'};
           margin: 0;
         }
         * {
@@ -1312,9 +1116,10 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         body { 
           margin: 0; 
           padding: 0; 
-          font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
-          background: transparent;
-          line-height: 1.6;
+          font-family: ${getFontFamily()};
+          background: #fff;
+          color: #000;
+          line-height: 1.2;
           -webkit-text-size-adjust: 100%;
           -ms-text-size-adjust: 100%;
           text-size-adjust: 100%;
@@ -1322,23 +1127,59 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         .resume-container {
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
+          align-items: center;
+          gap: 20px;
           width: 100%;
-          background: transparent;
+          background: #fff;
+        }
+        .resume-page {
+          font-family: ${getFontFamily()}; 
+          background: #fff; 
+          color: #000; 
+          padding: ${getTopBottomMargin()}px ${getSideMargins()}px;
+          width: ${getPageWidth()}px;
+          height: ${getPageHeight()}px;
+          margin: 0 auto;
+          line-height: 1.2;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          border-radius: 20px;
+          border: 1px solid #e0e0e0;
         }
         p, div, span, li {
           word-wrap: break-word;
           overflow-wrap: break-word;
         }
+        @media print {
+          .resume-page {
+            box-shadow: none;
+            border-radius: 0;
+            border: none;
+            margin: 0;
+            padding: ${getTopBottomMargin()}px ${getSideMargins()}px;
+          }
+          .resume-container {
+            gap: 0;
+          }
+        }
       </style>
     </head>
     <body>
       <div class="resume-container">
-        ${filteredPages.map((pageContent, pageIndex) => {
-          return renderPage(pageContent, pageIndex);
-        }).join('')}
+        <div class="resume-page">
+          ${renderHeader()}
+          ${personalInfo.summary ? renderProfessionalSummary() : ''}
+          ${renderTechnicalSkills()}
+          ${renderWorkExperience()}
+          ${renderEducation()}
+          ${renderCourses()}
+          ${renderInterests()}
+        </div>
       </div>
     </body>
     </html>
   `;
+
+  return html;
 } 
