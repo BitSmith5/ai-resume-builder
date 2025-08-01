@@ -6315,8 +6315,8 @@ export default function ResumeEditorV2({
 
       console.log('🎯 PDF export settings (scaled):', pdfExportSettings);
 
-      // Call the HTML generation API
-      const response = await fetch(`/api/resumes/${resumeId}/pdf-html`, {
+      // Call the PDF generation API with proper link support
+      const response = await fetch(`/api/resumes/${resumeId}/pdf-with-links`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -6328,47 +6328,22 @@ export default function ResumeEditorV2({
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('🎯 HTML generation error response:', errorData);
-        throw new Error(errorData.error || errorData.details || 'Failed to generate HTML');
+        console.error('🎯 PDF generation error response:', errorData);
+        throw new Error(errorData.error || errorData.details || 'Failed to generate PDF');
       }
 
-      // Get the HTML content
-      const html = await response.text();
+      // Get the PDF blob
+      const pdfBlob = await response.blob();
       
-      // Create a temporary div to hold the HTML
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      document.body.appendChild(tempDiv);
-      
-      // Import html2pdf dynamically
-      const html2pdf = (await import('html2pdf.js')).default;
-      
-      // Configure html2pdf options
-      const opt = {
-        margin: 0,
-        filename: `${resumeData.title || 'resume'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 3, // Increased scale for better text quality
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          imageTimeout: 0,
-          removeContainer: true
-        },
-        jsPDF: { 
-          unit: 'pt', 
-          format: exportSettings.pageSize === 'letter' ? 'letter' : 'a4',
-          orientation: 'portrait'
-        }
-      };
-      
-      // Generate PDF from the HTML
-      await html2pdf().set(opt).from(tempDiv).save();
-      
-      // Clean up
-      document.body.removeChild(tempDiv);
+      // Create a download link
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${resumeData.title || 'resume'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       // Show success message
       setSuccess('PDF downloaded successfully!');

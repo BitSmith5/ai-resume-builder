@@ -986,7 +986,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         ${[
           (personalInfo.city || personalInfo.state) ? [personalInfo.city, personalInfo.state].filter(Boolean).join(', ') : null,
           personalInfo.phone ? personalInfo.phone : null,
-          personalInfo.email ? personalInfo.email : null,
+          personalInfo.email ? `<span class="email-text">${personalInfo.email}</span>` : null,
           personalInfo.linkedin ? `<a href="${personalInfo.linkedin.startsWith('http') ? personalInfo.linkedin : `https://${personalInfo.linkedin}`}" target="_blank" style="color: #333; text-decoration: underline;">LinkedIn</a>` : null,
           personalInfo.github ? `<a href="${personalInfo.github.startsWith('http') ? personalInfo.github : `https://${personalInfo.github}`}" target="_blank" style="color: #333; text-decoration: underline;">GitHub</a>` : null,
           personalInfo.website ? `<a href="${personalInfo.website.startsWith('http') ? personalInfo.website : `https://${personalInfo.website}`}" target="_blank" style="color: #333; text-decoration: underline;">${formatUrl(personalInfo.website)}</a>` : null
