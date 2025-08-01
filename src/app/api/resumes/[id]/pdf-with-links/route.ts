@@ -292,7 +292,6 @@ export async function POST(
           body {
             font-family: ${exportSettings.fontFamily || 'Arial, Helvetica, sans-serif'};
             font-size: ${exportSettings.bodyTextSize}pt;
-            line-height: ${exportSettings.lineSpacing};
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
@@ -312,7 +311,6 @@ export async function POST(
               font-size: ${exportSettings.bodyTextSize}pt;
               margin-bottom: 0pt;
               padding-bottom: 0pt;
-              line-height: 1;
             }
                      .contact-info {
              text-align: center;
@@ -322,7 +320,6 @@ export async function POST(
              align-items: center;
              gap: 0pt;
              flex-wrap: wrap;
-             line-height: 1;
            }
                      .contact-link {
              color: #000000;
@@ -369,20 +366,25 @@ export async function POST(
              font-weight: bold;
              text-align: right;
            }
-          .bullet-points {
-            margin-left: 20pt;
-          }
-          .bullet-point {
-            margin-bottom: 3pt;
-          }
+                                           .bullet-points {
+              margin-left: 20pt;
+            }
+                       .bullet-point {
+              margin-bottom: 3pt;
+              line-height: ${exportSettings.lineSpacing * 5}pt;
+            }
+            .body-text {
+              line-height: ${exportSettings.lineSpacing * 7}pt;
+            }
           .project-link {
             color: #0066cc;
             text-decoration: none;
             font-weight: bold;
           }
-          .project-link:hover {
-            text-decoration: underline;
-          }
+                     .project-link:hover {
+             text-decoration: underline;
+           }
+           
         </style>
       </head>
       <body>
@@ -406,12 +408,12 @@ export async function POST(
               `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin || resumeData.content.personalInfo.github) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.website}" class="contact-link">${resumeData.content.personalInfo.website.replace(/^https?:\/\//, '')}</a></span>` : ''}
          </div>
 
-        ${resumeData.content.personalInfo.summary ? `
-        <div class="section">
-          <div class="section-header">Summary</div>
-          <div>${resumeData.content.personalInfo.summary}</div>
-        </div>
-        ` : ''}
+                                   ${resumeData.content.personalInfo.summary ? `
+          <div class="section">
+            <div class="section-header">Summary</div>
+            <div class="body-text">${resumeData.content.personalInfo.summary}</div>
+          </div>
+          ` : ''}
 
                  ${resumeData.workExperience && resumeData.workExperience.length > 0 ? `
          <div class="section">
@@ -422,7 +424,7 @@ export async function POST(
                  <div class="entry-company">${work.company}</div>
                  <div class="entry-date">${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
                </div>
-               <div class="entry-position">${work.position}</div>
+                               <div class="entry-position body-text">${work.position}</div>
                ${work.bulletPoints && work.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
                    ${work.bulletPoints.map(bullet => `
@@ -444,8 +446,8 @@ export async function POST(
                  <div class="entry-title">${edu.degree} in ${edu.field}</div>
                  <div class="entry-date">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
                </div>
-               <div>${edu.institution}</div>
-               ${edu.gpa ? `<div>GPA: ${edu.gpa}</div>` : ''}
+                               <div class="body-text">${edu.institution}</div>
+                               ${edu.gpa ? `<div class="body-text">GPA: ${edu.gpa}</div>` : ''}
              </div>
            `).join('')}
          </div>
@@ -462,7 +464,7 @@ export async function POST(
                  </div>
                  <div class="entry-date">${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
                </div>
-               <div>${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
+                               <div class="body-text">${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
                ${project.bulletPoints && project.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
                    ${project.bulletPoints.map(bullet => `
@@ -478,7 +480,7 @@ export async function POST(
         ${resumeData.strengths && resumeData.strengths.length > 0 ? `
         <div class="section">
           <div class="section-header">Skills</div>
-          <div>${resumeData.strengths.map(skill => skill.skillName).join(', ')}</div>
+                     <div class="body-text">${resumeData.strengths.map(skill => skill.skillName).join(', ')}</div>
         </div>
         ` : ''}
 
@@ -487,8 +489,8 @@ export async function POST(
            <div class="section-header">Courses</div>
            ${resumeData.courses.map(course => `
              <div class="entry">
-               <div class="entry-title">${course.title}</div>
-               <div>${course.provider}</div>
+                               <div class="entry-title">${course.title}</div>
+                <div class="body-text">${course.provider}</div>
              </div>
            `).join('')}
          </div>
@@ -497,7 +499,7 @@ export async function POST(
         ${resumeData.languages && resumeData.languages.length > 0 ? `
         <div class="section">
           <div class="section-header">Languages</div>
-          <div>${resumeData.languages.map(lang => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
+                     <div class="body-text">${resumeData.languages.map(lang => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
         </div>
         ` : ''}
 
@@ -506,9 +508,9 @@ export async function POST(
            <div class="section-header">Publications</div>
            ${resumeData.publications.map(pub => `
              <div class="entry">
-               <div class="entry-title">${pub.title}</div>
-               <div>${pub.authors}</div>
-               <div>${pub.journal}, ${pub.year}</div>
+                               <div class="entry-title">${pub.title}</div>
+                <div class="body-text">${pub.authors}</div>
+                <div class="body-text">${pub.journal}, ${pub.year}</div>
              </div>
            `).join('')}
          </div>
@@ -519,8 +521,8 @@ export async function POST(
            <div class="section-header">Awards</div>
            ${resumeData.awards.map(award => `
              <div class="entry">
-               <div class="entry-title">${award.title}</div>
-               <div>${award.organization}, ${award.year}</div>
+                               <div class="entry-title">${award.title}</div>
+                <div class="body-text">${award.organization}, ${award.year}</div>
                ${award.bulletPoints && award.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
                    ${award.bulletPoints.map(bullet => `
@@ -542,9 +544,9 @@ export async function POST(
                  <div class="entry-title">${vol.position}</div>
                  <div class="entry-date">${vol.startDate} - ${vol.current ? 'Present' : vol.endDate}</div>
                </div>
-               <div>${vol.organization}</div>
-               <div>${vol.location}</div>
-               ${vol.hoursPerWeek ? `<div>${vol.hoursPerWeek} hours/week</div>` : ''}
+                               <div class="body-text">${vol.organization}</div>
+                <div class="body-text">${vol.location}</div>
+                ${vol.hoursPerWeek ? `<div class="body-text">${vol.hoursPerWeek} hours/week</div>` : ''}
                ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
                    ${vol.bulletPoints.map(bullet => `
@@ -560,7 +562,7 @@ export async function POST(
         ${resumeData.interests && resumeData.interests.length > 0 ? `
         <div class="section">
           <div class="section-header">Interests</div>
-          <div>${resumeData.interests.map(interest => interest.name).join(', ')}</div>
+                     <div class="body-text">${resumeData.interests.map(interest => interest.name).join(', ')}</div>
         </div>
         ` : ''}
       </body>
