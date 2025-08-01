@@ -797,9 +797,10 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         <div style="
           font-size: 16px; 
           font-weight: normal; 
-          margin: 0 0 4px 0;
+          margin: 0 0 30px 0;
           font-family: ${getFontFamily()};
           color: #333;
+          border: 2px solid red; /* Temporary border to debug layout */
         ">
           ${data.jobTitle}
         </div>

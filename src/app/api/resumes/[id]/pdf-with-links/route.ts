@@ -39,6 +39,8 @@ const formatUrl = (url: string): string => {
   return url;
 };
 
+
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -307,11 +309,11 @@ export async function POST(
              font-weight: normal;
              margin-bottom: 2pt;
            }
-                       .job-title {
-              font-size: ${exportSettings.bodyTextSize}pt;
-              margin-bottom: 0pt;
-              padding-bottom: 0pt;
-            }
+                                                                                               .job-title {
+                font-size: ${exportSettings.bodyTextSize}pt;
+                margin-bottom: 4pt;
+                padding-bottom: 0pt;
+              }
                      .contact-info {
              text-align: center;
              margin-bottom: 2pt;
@@ -359,20 +361,22 @@ export async function POST(
             .entry-company {
               font-weight: bold;
             }
-            .entry-position {
-              font-style: italic;
-            }
+                                                                                                       .entry-position {
+                font-style: italic;
+                margin-bottom: 2pt;
+              }
            .entry-date {
              font-weight: bold;
              text-align: right;
            }
-                                           .bullet-points {
-              margin-left: 20pt;
-            }
-                       .bullet-point {
-              margin-bottom: 3pt;
-              line-height: ${exportSettings.lineSpacing * 5}pt;
-            }
+                                                                                                                                                                               .bullet-points {
+                margin-left: 5pt;
+              }
+                                                                                               .bullet-point {
+                line-height: ${exportSettings.lineSpacing * 8}pt;
+                padding-left: 4pt;
+                text-indent: -4pt;
+              }
             .body-text {
               line-height: ${exportSettings.lineSpacing * 7}pt;
             }
@@ -427,9 +431,9 @@ export async function POST(
                                <div class="entry-position body-text">${work.position}</div>
                ${work.bulletPoints && work.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
-                   ${work.bulletPoints.map(bullet => `
-                     <div class="bullet-point">• ${bullet.description}</div>
-                   `).join('')}
+                                                                               ${work.bulletPoints.map(bullet => `
+                       <div class="bullet-point">• ${bullet.description}</div>
+                     `).join('')}
                  </div>
                ` : ''}
              </div>
@@ -467,9 +471,9 @@ export async function POST(
                                <div class="body-text">${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
                ${project.bulletPoints && project.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
-                   ${project.bulletPoints.map(bullet => `
-                     <div class="bullet-point">• ${bullet.description}</div>
-                   `).join('')}
+                                                                               ${project.bulletPoints.map(bullet => `
+                       <div class="bullet-point">• ${bullet.description}</div>
+                     `).join('')}
                  </div>
                ` : ''}
              </div>
@@ -525,9 +529,9 @@ export async function POST(
                 <div class="body-text">${award.organization}, ${award.year}</div>
                ${award.bulletPoints && award.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
-                   ${award.bulletPoints.map(bullet => `
-                     <div class="bullet-point">• ${bullet.description}</div>
-                   `).join('')}
+                                                                           ${award.bulletPoints.map(bullet => `
+                       <div class="bullet-point">• ${bullet.description}</div>
+                     `).join('')}
                  </div>
                ` : ''}
              </div>
@@ -549,9 +553,9 @@ export async function POST(
                 ${vol.hoursPerWeek ? `<div class="body-text">${vol.hoursPerWeek} hours/week</div>` : ''}
                ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
                  <div class="bullet-points">
-                   ${vol.bulletPoints.map(bullet => `
-                     <div class="bullet-point">• ${bullet.description}</div>
-                   `).join('')}
+                                                                           ${vol.bulletPoints.map(bullet => `
+                       <div class="bullet-point">• ${bullet.description}</div>
+                     `).join('')}
                  </div>
                ` : ''}
              </div>
