@@ -128,7 +128,7 @@ export default function TestPdfComparison() {
     setGeneratedHtml(html);
   }, [exportSettings]);
 
-  const handleExportSettingsChange = (key: string, value: any) => {
+  const handleExportSettingsChange = (key: string, value: string | number) => {
     setExportSettings(prev => ({
       ...prev,
       [key]: value

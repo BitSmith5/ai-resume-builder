@@ -81,16 +81,16 @@ export async function POST(
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
 
-    // Transform work experience data
-    const workExperience = resume.workExperience.map(work => {
-      const formatDate = (date: Date | null): string => {
-        if (!date || isNaN(date.getTime())) return '';
-        try {
-          return date.toISOString().split('T')[0];
-        } catch (error) {
-          return '';
-        }
-      };
+         // Transform work experience data
+     const workExperience = resume.workExperience.map(work => {
+       const formatDate = (date: Date | null): string => {
+         if (!date || isNaN(date.getTime())) return '';
+         try {
+           return date.toISOString().split('T')[0];
+         } catch {
+           return '';
+         }
+       };
 
       return {
         company: work.company || '',
@@ -106,16 +106,16 @@ export async function POST(
       };
     });
 
-    // Transform education data
-    const education = resume.education.map(edu => {
-      const formatDate = (date: Date | null): string => {
-        if (!date || isNaN(date.getTime())) return '';
-        try {
-          return date.toISOString().split('T')[0];
-        } catch (error) {
-          return '';
-        }
-      };
+         // Transform education data
+     const education = resume.education.map(edu => {
+       const formatDate = (date: Date | null): string => {
+         if (!date || isNaN(date.getTime())) return '';
+         try {
+           return date.toISOString().split('T')[0];
+         } catch {
+           return '';
+         }
+       };
 
       return {
         institution: edu.institution || '',
@@ -135,16 +135,16 @@ export async function POST(
       link: course.link || undefined
     }));
 
-    // Transform projects data
-    const projects = resume.projects.map(project => {
-      const formatDate = (date: Date | null): string => {
-        if (!date || isNaN(date.getTime())) return '';
-        try {
-          return date.toISOString().split('T')[0];
-        } catch (error) {
-          return '';
-        }
-      };
+         // Transform projects data
+     const projects = resume.projects.map(project => {
+       const formatDate = (date: Date | null): string => {
+         if (!date || isNaN(date.getTime())) return '';
+         try {
+           return date.toISOString().split('T')[0];
+         } catch {
+           return '';
+         }
+       };
 
       return {
         id: project.id.toString(),
@@ -189,16 +189,16 @@ export async function POST(
         : []
     }));
 
-    // Transform volunteer experience data
-    const volunteerExperience = resume.volunteerExperience.map(vol => {
-      const formatDate = (date: Date | null): string => {
-        if (!date || isNaN(date.getTime())) return '';
-        try {
-          return date.toISOString().split('T')[0];
-        } catch (error) {
-          return '';
-        }
-      };
+         // Transform volunteer experience data
+     const volunteerExperience = resume.volunteerExperience.map(vol => {
+       const formatDate = (date: Date | null): string => {
+         if (!date || isNaN(date.getTime())) return '';
+         try {
+           return date.toISOString().split('T')[0];
+         } catch {
+           return '';
+         }
+       };
 
       return {
         id: vol.id.toString(),
