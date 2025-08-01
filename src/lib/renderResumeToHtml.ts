@@ -97,6 +97,12 @@ interface ContentItem {
   [key: string]: unknown;
 }
 
+// Function to map custom fonts to web-safe fonts for PDF generation
+function getWebSafeFont(fontFamily: string): string {
+  // Force use of only the most basic system fonts to prevent embedding
+  return 'Arial, Helvetica, sans-serif';
+}
+
 // Type definitions for classic template
 interface ClassicPageContent {
   workExperience: Array<{
@@ -182,11 +188,11 @@ export function renderResumeToHtml(data: ResumeData, template: string, exportSet
   if (template === 'classic') {
     return renderClassicTemplate(data, exportSettings);
   } else {
-    return renderModernTemplateWithPageBreaks(data);
+    return renderModernTemplateWithPageBreaks(data, exportSettings);
   }
 }
 
-function renderModernTemplateWithPageBreaks(data: ResumeData): string {
+function renderModernTemplateWithPageBreaks(data: ResumeData, exportSettings?: ExportSettings): string {
   // Use the same page calculation logic as the React component
   const calculatePages = (): PageContent[] => {
     const pages: PageContent[] = [];
@@ -408,13 +414,13 @@ function renderModernTemplateWithPageBreaks(data: ResumeData): string {
       education: pageIndex > 0 || pages.slice(0, pageIndex).some(page => page.education.length > 0)
     };
     
-    return generatePageHtml(data, pageContent, isFirstPage, pageIndex, pages, sectionsStarted);
+            return generatePageHtml(data, pageContent, isFirstPage, pageIndex, pages, sectionsStarted, exportSettings);
   });
   
   return pagesHtml.join('');
 }
 
-function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPage: boolean, pageIndex: number, allPages: PageContent[], sectionsStarted: { workExperience: boolean; courses: boolean; education: boolean }): string {
+function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPage: boolean, pageIndex: number, allPages: PageContent[], sectionsStarted: { workExperience: boolean; courses: boolean; education: boolean }, exportSettings?: ExportSettings): string {
   const { personalInfo } = data.content;
   
   const formatUrl = (url: string): string => {
@@ -559,7 +565,7 @@ function generatePageHtml(data: ResumeData, pageContent: PageContent, isFirstPag
   return `
     <div class="resume-page" style="
       display: flex;
-      font-family: sans-serif;
+      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Arial')};
       background: #fff;
       color: #333;
       width: 100%; /* Use full available width from parent container */
@@ -966,7 +972,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         margin: 0 0 10px 0;
         text-transform: uppercase;
         letter-spacing: 2px;
-        font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
+        font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
       ">
         ${personalInfo.name}
       </h1>
@@ -977,12 +983,12 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
           margin: 0 0 10px 0;
           font-style: italic;
           color: #333;
-          font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
+          font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
         ">
           ${data.jobTitle}
         </div>
       ` : ''}
-                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; line-height: 1.2;">
+                    <div style="font-size: ${exportSettings?.bodyTextSize || 14}pt; color: #333; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: 1.2;">
         ${[
           (personalInfo.city || personalInfo.state) ? [personalInfo.city, personalInfo.state].filter(Boolean).join(', ') : null,
           personalInfo.phone ? personalInfo.phone : null,
@@ -1005,7 +1011,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
     
     return `
       <div style="
-        font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; 
+        font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; 
         background: transparent; 
         color: #000; 
         padding: 0; /* Remove hardcoded padding - let parent container handle margins */
@@ -1041,11 +1047,11 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                 text-transform: uppercase;
                 border-bottom: 1px solid #000;
                 padding-bottom: 4px;
-                font-family: 'Times New Roman', serif;
+                font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
               ">
                 Professional Summary
               </h2>
-              <p style="font-size: ${exportSettings?.bodyTextSize || 14}pt; margin: 0; text-align: ${exportSettings?.alignTextLeftRight ? 'justify' : 'left'}; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; line-height: ${exportSettings?.lineSpacing || 1.6};">
+              <p style="font-size: ${exportSettings?.bodyTextSize || 14}pt; margin: 0; text-align: ${exportSettings?.alignTextLeftRight ? 'justify' : 'left'}; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: ${exportSettings?.lineSpacing || 1.6};">
                 ${personalInfo.summary}
               </p>
             </div>
@@ -1062,7 +1068,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                   text-transform: uppercase;
                   border-bottom: 1px solid #000;
                   padding-bottom: 4px;
-                  font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
+                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                 ">
                   Work Experience
                 </h2>
@@ -1071,15 +1077,15 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                 <div style="margin-bottom: 16px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <h3 style="
-                      font-size: ${exportSettings?.subHeadersSize || 16}pt; 
-                      font-weight: bold; 
-                      margin: 0;
-                      text-transform: uppercase;
-                      font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
+                                          font-size: ${exportSettings?.subHeadersSize || 16}pt; 
+                    font-weight: bold; 
+                    margin: 0;
+                    text-transform: uppercase;
+                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                     ">
                       ${exp.position}
                     </h3>
-                    <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
+                    <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
                       ${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate)}
                     </span>
                   </div>
@@ -1089,11 +1095,11 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                     color: #333;
                     margin-bottom: 8px;
                     font-style: italic;
-                    font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
+                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                   ">
                     ${exp.company}
                     ${(exp.city || exp.state) ? `
-                      <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-weight: normal; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;">
+                                              <span style="font-size: ${Math.max(8, (exportSettings?.bodyTextSize || 14) * 0.8)}pt; color: #666; font-weight: normal; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
                         {' - '}${[exp.city, exp.state].filter(Boolean).join(', ')}
                       </span>
                     ` : ''}
@@ -1104,11 +1110,11 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                       margin: 0; 
                       padding-left: 20px;
                       text-align: ${exportSettings?.alignTextLeftRight ? 'justify' : 'left'};
-                      font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif;
+                      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                       line-height: ${exportSettings?.lineSpacing || 1.6};
                     ">
                       ${exp.bulletPoints.map((bullet) => `
-                        <li style="margin-bottom: 2px; font-family: '${exportSettings?.fontFamily || 'Times New Roman'}', serif; line-height: ${exportSettings?.lineSpacing || 1.6};">
+                        <li style="margin-bottom: 2px; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: ${exportSettings?.lineSpacing || 1.6};">
                           ${bullet.description}
                         </li>
                       `).join('')}
@@ -1130,7 +1136,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                   text-transform: uppercase;
                   border-bottom: 1px solid #000;
                   padding-bottom: 4px;
-                  font-family: 'Times New Roman', serif;
+                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                 ">
                   Courses & Certifications
                 </h2>
@@ -1143,7 +1149,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                       font-weight: bold; 
                       margin: 0;
                       text-transform: uppercase;
-                      font-family: 'Times New Roman', serif;
+                      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                     ">
                       ${course.title}
                     </h3>
@@ -1154,12 +1160,12 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                     color: #333;
                     margin-bottom: 3px;
                     font-style: italic;
-                    font-family: 'Times New Roman', serif;
+                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                   ">
                     ${course.provider}
                   </div>
                   ${course.link ? `
-                    <div style="font-size: 12px; color: #666; font-family: 'Times New Roman', serif;">
+                    <div style="font-size: 12px; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
                       <a href="${course.link}" target="_blank" rel="noopener noreferrer" style="color: #666; text-decoration: underline;">
                         ${formatUrl(course.link)}
                       </a>
@@ -1181,7 +1187,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                   text-transform: uppercase;
                   border-bottom: 1px solid #000;
                   padding-bottom: 4px;
-                  font-family: 'Times New Roman', serif;
+                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                 ">
                   Education
                 </h2>
@@ -1194,11 +1200,11 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                       font-weight: bold; 
                       margin: 0;
                       text-transform: uppercase;
-                      font-family: 'Times New Roman', serif;
+                      font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                     ">
                       ${edu.degree} in ${edu.field}
                     </h3>
-                    <span style="font-size: 12px; color: #666; font-family: 'Times New Roman', serif;">
+                    <span style="font-size: 12px; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
                       ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
                     </span>
                   </div>
@@ -1208,12 +1214,12 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                     color: #333;
                     margin-bottom: 3px;
                     font-style: italic;
-                    font-family: 'Times New Roman', serif;
+                    font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                   ">
                     ${edu.institution}
                   </div>
                   ${edu.gpa ? `
-                    <div style="font-size: 13px; color: #666; font-family: 'Times New Roman', serif;">
+                    <div style="font-size: 13px; color: #666; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};">
                       GPA: ${edu.gpa}
                     </div>
                   ` : ''}
@@ -1232,18 +1238,18 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                 text-transform: uppercase;
                 border-bottom: 1px solid #000;
                 padding-bottom: 4px;
-                font-family: 'Times New Roman', serif;
+                font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
               ">
                 Skills
               </h2>
-                          <div style="font-size: 14px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+                          <div style="font-size: 14px; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: 1.6;">
               ${pageContent.skills.map((strength) => `
                 <span style="
                   display: inline-block;
                   margin-right: 15px;
                   margin-bottom: 4px;
                   font-weight: bold;
-                  font-family: 'Times New Roman', serif;
+                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                   line-height: 1.6;
                 ">
                   ${strength.skillName} (${strength.rating}/10)
@@ -1263,17 +1269,17 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
                 text-transform: uppercase;
                 border-bottom: 1px solid #000;
                 padding-bottom: 4px;
-                font-family: 'Times New Roman', serif;
+                font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
               ">
                 Interests
               </h2>
-                          <div style="font-size: 14px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+                          <div style="font-size: 14px; font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')}; line-height: 1.6;">
               ${pageContent.interests.map((interest) => `
                 <span style="
                   display: inline-block;
                   margin-right: 15px;
                   margin-bottom: 4px;
-                  font-family: 'Times New Roman', serif;
+                  font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
                   line-height: 1.6;
                 ">
                   ${interest.icon} ${interest.name}
@@ -1304,7 +1310,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         body { 
           margin: 0; 
           padding: 0; 
-          font-family: 'Times New Roman', serif;
+          font-family: ${getWebSafeFont(exportSettings?.fontFamily || 'Times New Roman')};
           background: transparent;
           line-height: 1.6;
           -webkit-text-size-adjust: 100%;

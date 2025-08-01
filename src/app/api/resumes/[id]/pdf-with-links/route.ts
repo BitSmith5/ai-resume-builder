@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { renderResumeToHtml } from '@/lib/renderResumeToHtml';
 import puppeteer from 'puppeteer';
 
 interface ResumeWithTemplate {
@@ -30,35 +29,10 @@ interface ExportSettings {
 
 export const runtime = 'nodejs';
 
-// Function to map custom fonts to web-safe fonts for PDF generation
-function getWebSafeFont(fontFamily: string): string {
-  const fontMap: { [key: string]: string } = {
-    'Times New Roman': 'Times New Roman, Times, serif',
-    'Arial': 'Arial, Helvetica, sans-serif',
-    'Calibri': 'Arial, Helvetica, sans-serif',
-    'Georgia': 'Georgia, Times, serif',
-    'Verdana': 'Verdana, Geneva, sans-serif',
-    'Tahoma': 'Tahoma, Geneva, sans-serif',
-    'Trebuchet MS': 'Trebuchet MS, Arial, sans-serif',
-    'Comic Sans MS': 'Comic Sans MS, cursive',
-    'Impact': 'Impact, Charcoal, sans-serif',
-    'Courier New': 'Courier New, Courier, monospace',
-    'Lucida Console': 'Courier New, Courier, monospace',
-    'Palatino': 'Palatino, Times, serif',
-    'Garamond': 'Garamond, Times, serif',
-    'Bookman': 'Bookman, Times, serif',
-    'Avant Garde': 'Arial, Helvetica, sans-serif',
-    'Helvetica': 'Helvetica, Arial, sans-serif'
-  };
-  
-  return fontMap[fontFamily] || 'Times New Roman, Times, serif';
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  let browser;
   try {
     const { id } = await params;
     const session = await getServerSession(authOptions);
@@ -84,7 +58,12 @@ export async function POST(
         workExperience: true,
         education: true,
         courses: true,
-        interests: true
+        interests: true,
+        projects: true,
+        languages: true,
+        publications: true,
+        awards: true,
+        volunteerExperience: true
       }
     });
 
@@ -122,6 +101,59 @@ export async function POST(
       link: course.link || undefined
     }));
 
+    // Transform projects data
+    const projects = resume.projects.map(project => ({
+      title: project.title || '',
+      startDate: project.startDate.toISOString().split('T')[0],
+      endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
+      current: project.current || false,
+      technologies: project.technologies || '',
+      link: project.link || undefined,
+      bulletPoints: Array.isArray(project.bulletPoints) 
+        ? (project.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
+        : []
+    }));
+
+    // Transform languages data
+    const languages = resume.languages.map(lang => ({
+      name: lang.name || '',
+      proficiency: lang.proficiency || ''
+    }));
+
+    // Transform publications data
+    const publications = resume.publications.map(pub => ({
+      title: pub.title || '',
+      authors: pub.authors || '',
+      journal: pub.journal || '',
+      year: pub.year || '',
+      doi: pub.doi || undefined,
+      link: pub.link || undefined
+    }));
+
+    // Transform awards data
+    const awards = resume.awards.map(award => ({
+      title: award.title || '',
+      organization: award.organization || '',
+      year: award.year || '',
+      bulletPoints: Array.isArray(award.bulletPoints) 
+        ? (award.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
+        : []
+    }));
+
+    // Transform volunteer experience data
+    const volunteerExperience = resume.volunteerExperience.map(vol => ({
+      organization: vol.organization || '',
+      position: vol.position || '',
+      location: vol.location || '',
+      startDate: vol.startDate.toISOString().split('T')[0],
+      endDate: vol.endDate ? vol.endDate.toISOString().split('T')[0] : '',
+      current: vol.current || false,
+      hoursPerWeek: vol.hoursPerWeek || '',
+      bulletPoints: Array.isArray(vol.bulletPoints) 
+        ? (vol.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
+        : []
+    }));
+
     // Parse the resume content JSON to get the actual personal info
     const resumeContent = resume.content as { personalInfo?: { name?: string; email?: string; phone?: string; city?: string; state?: string; summary?: string; website?: string; linkedin?: string; github?: string } };
     const personalInfo = resumeContent?.personalInfo || {};
@@ -153,129 +185,310 @@ export async function POST(
       interests: (resume.interests || []).map(interest => ({
         name: interest.name || '',
         icon: interest.icon || ''
-      }))
+      })),
+      projects,
+      languages,
+      publications,
+      awards,
+      volunteerExperience
     };
 
-    // Use the existing renderResumeToHtml function
-    const template = exportSettings.template === 'standard' ? 'classic' : 'modern';
-    const renderedHtml = renderResumeToHtml(resumeData, template, exportSettings);
-
-    // Calculate proper page dimensions based on page size (in points)
-    const pageDimensions = {
-      letter: { width: 612, height: 792 }, // 8.5" x 11" in points (72 DPI)
-      a4: { width: 595, height: 842 }      // A4 in points (72 DPI)
-    };
-    
-    const pageSize = exportSettings.pageSize === 'letter' ? 'letter' : 'a4';
-    const pageWidth = pageDimensions[pageSize].width;
-    const pageHeight = pageDimensions[pageSize].height;
-    
-         // Calculate content area (page minus margins)
-     const contentWidth = pageWidth - (exportSettings.sideMargins * 2);
-
-    // Create complete HTML with export settings applied
+    // Create clean HTML template with only web-safe fonts and clickable links
     const html = `
       <!DOCTYPE html>
       <html>
-        <head>
-          <meta charset="utf-8">
-          <title>${resumeData.title} - Resume</title>
-          <style>
-            * {
-              box-sizing: border-box;
-            }
-            
-                         body {
-               margin: 0;
-               padding: 0;
-               background: white;
-               color: #000;
-               font-family: ${getWebSafeFont(exportSettings.fontFamily)};
-               line-height: ${exportSettings.lineSpacing || 1.6};
-             }
-            
-            .resume-container {
-              width: ${pageWidth}pt;
-              min-height: ${pageHeight}pt;
-              margin: 0 auto;
-              padding: ${exportSettings.topBottomMargin}pt ${exportSettings.sideMargins}pt;
-              background: white;
-              position: relative;
-              box-sizing: border-box;
-            }
-            
-            .resume-content {
-              width: 100%;
-              max-width: ${contentWidth}pt;
-              margin: 0 auto;
-            }
-            
-            @page {
-              size: ${exportSettings.pageSize === 'letter' ? 'letter' : 'A4'};
-              margin: 0;
-            }
-            
-            @media print {
-              body {
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
-              }
-            }
-            
-            /* Ensure links are properly styled and clickable */
-            a {
-              color: #333 !important;
-              text-decoration: underline !important;
-              cursor: pointer !important;
-            }
-            
-            /* Prevent email auto-detection */
-            .email-text {
-              color: #333 !important;
-              text-decoration: none !important;
-              pointer-events: none !important;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="resume-container">
-            <div class="resume-content">
-              ${renderedHtml}
+      <head>
+        <meta charset="utf-8">
+        <title>${resumeData.title || 'Resume'}</title>
+        <style>
+          @page {
+            size: ${exportSettings.pageSize === 'letter' ? 'letter' : 'A4'};
+            margin: ${exportSettings.topBottomMargin}pt ${exportSettings.sideMargins}pt;
+          }
+          body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: ${exportSettings.bodyTextSize}pt;
+            line-height: ${exportSettings.lineSpacing};
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-synthesis: none;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20pt;
+          }
+          .name {
+            font-size: ${exportSettings.nameSize}pt;
+            font-weight: bold;
+            margin-bottom: 5pt;
+          }
+          .job-title {
+            font-size: ${exportSettings.bodyTextSize}pt;
+            margin-bottom: 10pt;
+          }
+          .contact-info {
+            text-align: center;
+            margin-bottom: 20pt;
+          }
+          .contact-link {
+            color: #0066cc;
+            text-decoration: none;
+          }
+          .contact-link:hover {
+            text-decoration: underline;
+          }
+          .section {
+            margin-bottom: ${exportSettings.sectionSpacing}pt;
+          }
+          .section-header {
+            font-size: ${exportSettings.sectionHeadersSize}pt;
+            font-weight: bold;
+            margin-bottom: 10pt;
+            border-bottom: 1pt solid #000;
+          }
+          .sub-header {
+            font-size: ${exportSettings.subHeadersSize}pt;
+            font-weight: bold;
+            margin-bottom: 5pt;
+          }
+          .entry {
+            margin-bottom: ${exportSettings.entrySpacing}pt;
+          }
+          .bullet-points {
+            margin-left: 20pt;
+          }
+          .bullet-point {
+            margin-bottom: 3pt;
+          }
+          .project-link {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+          }
+          .project-link:hover {
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="name">${resumeData.content.personalInfo.name}</div>
+          ${resumeData.jobTitle ? `<div class="job-title">${resumeData.jobTitle}</div>` : ''}
+        </div>
+        
+        <div class="contact-info">
+          <div>${resumeData.content.personalInfo.email}</div>
+          <div>${resumeData.content.personalInfo.phone}</div>
+          <div>${resumeData.content.personalInfo.city}, ${resumeData.content.personalInfo.state}</div>
+          ${resumeData.content.personalInfo.website ? `<div><a href="${resumeData.content.personalInfo.website}" class="contact-link">${resumeData.content.personalInfo.website}</a></div>` : ''}
+          ${resumeData.content.personalInfo.linkedin ? `<div><a href="${resumeData.content.personalInfo.linkedin}" class="contact-link">${resumeData.content.personalInfo.linkedin}</a></div>` : ''}
+          ${resumeData.content.personalInfo.github ? `<div><a href="${resumeData.content.personalInfo.github}" class="contact-link">${resumeData.content.personalInfo.github}</a></div>` : ''}
+        </div>
+
+        ${resumeData.content.personalInfo.summary ? `
+        <div class="section">
+          <div class="section-header">Summary</div>
+          <div>${resumeData.content.personalInfo.summary}</div>
+        </div>
+        ` : ''}
+
+        ${resumeData.workExperience && resumeData.workExperience.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Work Experience</div>
+          ${resumeData.workExperience.map(work => `
+            <div class="entry">
+              <div class="sub-header">${work.position}</div>
+              <div>${work.company}</div>
+              <div>${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
+              ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+                <div class="bullet-points">
+                  ${work.bulletPoints.map(bullet => `
+                    <div class="bullet-point">• ${bullet.description}</div>
+                  `).join('')}
+                </div>
+              ` : ''}
             </div>
-          </div>
-        </body>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${resumeData.education && resumeData.education.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Education</div>
+          ${resumeData.education.map(edu => `
+            <div class="entry">
+              <div class="sub-header">${edu.degree} in ${edu.field}</div>
+              <div>${edu.institution}</div>
+              <div>${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
+              ${edu.gpa ? `<div>GPA: ${edu.gpa}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${resumeData.projects && resumeData.projects.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Projects</div>
+          ${resumeData.projects.map(project => `
+            <div class="entry">
+              <div class="sub-header">
+                ${project.link ? `<a href="${project.link}" class="project-link">${project.title}</a>` : project.title}
+              </div>
+              <div>${project.technologies}</div>
+              <div>${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
+              ${project.bulletPoints && project.bulletPoints.length > 0 ? `
+                <div class="bullet-points">
+                  ${project.bulletPoints.map(bullet => `
+                    <div class="bullet-point">• ${bullet.description}</div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${resumeData.strengths && resumeData.strengths.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Skills</div>
+          <div>${resumeData.strengths.map(skill => skill.skillName).join(', ')}</div>
+        </div>
+        ` : ''}
+
+        ${resumeData.courses && resumeData.courses.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Courses</div>
+          ${resumeData.courses.map(course => `
+            <div class="entry">
+              <div class="sub-header">${course.title}</div>
+              <div>${course.provider}</div>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${resumeData.languages && resumeData.languages.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Languages</div>
+          <div>${resumeData.languages.map(lang => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
+        </div>
+        ` : ''}
+
+        ${resumeData.publications && resumeData.publications.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Publications</div>
+          ${resumeData.publications.map(pub => `
+            <div class="entry">
+              <div class="sub-header">${pub.title}</div>
+              <div>${pub.authors}</div>
+              <div>${pub.journal}, ${pub.year}</div>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${resumeData.awards && resumeData.awards.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Awards</div>
+          ${resumeData.awards.map(award => `
+            <div class="entry">
+              <div class="sub-header">${award.title}</div>
+              <div>${award.organization}, ${award.year}</div>
+              ${award.bulletPoints && award.bulletPoints.length > 0 ? `
+                <div class="bullet-points">
+                  ${award.bulletPoints.map(bullet => `
+                    <div class="bullet-point">• ${bullet.description}</div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Volunteer Experience</div>
+          ${resumeData.volunteerExperience.map(vol => `
+            <div class="entry">
+              <div class="sub-header">${vol.position}</div>
+              <div>${vol.organization}</div>
+              <div>${vol.location}</div>
+              <div>${vol.startDate} - ${vol.current ? 'Present' : vol.endDate}</div>
+              ${vol.hoursPerWeek ? `<div>${vol.hoursPerWeek} hours/week</div>` : ''}
+              ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
+                <div class="bullet-points">
+                  ${vol.bulletPoints.map(bullet => `
+                    <div class="bullet-point">• ${bullet.description}</div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${resumeData.interests && resumeData.interests.length > 0 ? `
+        <div class="section">
+          <div class="section-header">Interests</div>
+          <div>${resumeData.interests.map(interest => interest.name).join(', ')}</div>
+        </div>
+        ` : ''}
+      </body>
       </html>
     `;
 
-    // Launch Puppeteer browser
-    browser = await puppeteer.launch({
+    // Launch Puppeteer with font-disabling arguments
+    const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-font-subpixel-positioning',
+        '--disable-gpu-font-rasterization',
+        '--disable-font-antialiasing',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-fonts',
+        '--disable-remote-fonts',
+        '--disable-font-loading',
+        '--disable-font-synthesis'
+      ]
     });
 
     const page = await browser.newPage();
     
-    // Set content and wait for it to load
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    // Set user agent to prevent font embedding
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
 
-    // Generate PDF with proper link support
-    const pdfBuffer = await page.pdf({
-      format: exportSettings.pageSize === 'letter' ? 'Letter' : 'A4',
-      printBackground: true,
-      margin: {
-        top: exportSettings.topBottomMargin,
-        right: exportSettings.sideMargins,
-        bottom: exportSettings.topBottomMargin,
-        left: exportSettings.sideMargins
-      },
-      preferCSSPageSize: false
+    // Set content with font-disabling CSS
+    await page.setContent(html, {
+      waitUntil: 'networkidle0'
     });
 
-    // Close browser
+    // Generate PDF with font-disabling options
+    const pdf = await page.pdf({
+      format: exportSettings.pageSize === 'letter' ? 'letter' : 'A4',
+      printBackground: true,
+      margin: {
+        top: `${exportSettings.topBottomMargin * 1.33}px`, // Convert pt to px (1pt ≈ 1.33px)
+        bottom: `${exportSettings.topBottomMargin * 1.33}px`,
+        left: `${exportSettings.sideMargins * 1.33}px`,
+        right: `${exportSettings.sideMargins * 1.33}px`
+      },
+      preferCSSPageSize: true
+    });
+
     await browser.close();
 
-    // Return PDF with proper headers
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdf, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${resume.title || 'resume'}.pdf"`,
@@ -283,17 +496,7 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Error generating PDF with links:', error);
-    
-    // Ensure browser is closed on error
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error('Error closing browser:', closeError);
-      }
-    }
-    
+    console.error('Error generating PDF:', error);
     return NextResponse.json(
       { error: 'Failed to generate PDF' },
       { status: 500 }
