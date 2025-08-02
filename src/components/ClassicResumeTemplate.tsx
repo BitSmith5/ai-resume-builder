@@ -1004,7 +1004,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   );
 
   // Helper function to get subsections for each section
-  const getSubsections = (sectionName: string) => {
+  const getSubsections = useCallback((sectionName: string) => {
     switch (sectionName) {
       case 'Professional Summary':
         return [{ id: 'professional-summary', name: 'Professional Summary', isFirst: true }];
@@ -1102,7 +1102,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       default:
         return [{ id: sectionName.toLowerCase().replace(/\s+/g, '-'), name: sectionName, isFirst: true }];
     }
-  };
+  }, [data.strengths, data.skillCategories, data.workExperience, data.education, data.projects, data.courses, data.languages, data.publications, data.awards, data.volunteerExperience, data.references]);
   
   // Filter out sections that have no data
   const sectionsWithData = validSections.filter(section => {
@@ -1111,7 +1111,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
   });
 
   // Helper function to estimate subsection heights (responsive to export settings)
-    const getEstimatedSubsectionHeight = (sectionName: string, subsection: { id: string; name: string; isFirst: boolean }): number => {
+    const getEstimatedSubsectionHeight = useCallback((sectionName: string, subsection: { id: string; name: string; isFirst: boolean }): number => {
     const sectionHeadersSize = data.sectionHeadersSize || 18;
     const subHeadersSize = data.subHeadersSize || 16;
     const bodyTextSize = data.bodyTextSize || 14;
@@ -1300,21 +1300,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           return subHeaderHeight + (bodyLineHeight * 2) + entrySpacing;
       }
     }
-  };
+  }, [data.sectionHeadersSize, data.subHeadersSize, data.bodyTextSize, data.lineSpacing, data.entrySpacing, data.strengths, data.skillCategories, data.workExperience, data.education, data.projects, data.courses, data.languages, data.publications, data.awards, data.volunteerExperience, data.references]);
 
-  // Use the test version instead of the original, wrapped in useMemo to prevent unnecessary re-renders
-  const workExperienceString = JSON.stringify(data.workExperience);
-  const educationString = JSON.stringify(data.education);
-  const projectsString = JSON.stringify(data.projects);
-  const coursesString = JSON.stringify(data.courses);
-  const languagesString = JSON.stringify(data.languages);
-  const publicationsString = JSON.stringify(data.publications);
-  const awardsString = JSON.stringify(data.awards);
-  const volunteerExperienceString = JSON.stringify(data.volunteerExperience);
-  const referencesString = JSON.stringify(data.references);
-  const strengthsString = JSON.stringify(data.strengths);
-  const skillCategoriesString = JSON.stringify(data.skillCategories);
-  const interestsString = JSON.stringify(data.interests);
+
 
   // Test version with improved pagination logic
   const calculatePagesTest = useCallback(() => {
@@ -1388,7 +1376,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
     }
     
     return pages;
-  }, [data.pageHeight, data.topBottomMargin, data.profilePicture, data.sectionSpacing, sectionsWithData, workExperienceString, educationString, projectsString, coursesString, languagesString, publicationsString, awardsString, volunteerExperienceString, referencesString, strengthsString, skillCategoriesString, interestsString, getEstimatedSubsectionHeight, getSubsections]);
+  }, [data.pageHeight, data.topBottomMargin, data.profilePicture, data.sectionSpacing, sectionsWithData, getEstimatedSubsectionHeight, getSubsections]);
 
   const pages = useMemo(() => calculatePagesTest(), [calculatePagesTest]);
 

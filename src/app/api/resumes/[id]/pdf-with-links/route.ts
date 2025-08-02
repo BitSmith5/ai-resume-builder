@@ -300,7 +300,7 @@ export async function POST(
         skillName: strength.skillName || '',
         rating: strength.rating || 0
       })),
-      skillCategories: (resumeContent as any)?.skillCategories || [],
+      skillCategories: (resumeContent as { skillCategories?: Array<{ id: string; title: string; skills: Array<{ id: string; name: string }> }> })?.skillCategories || [],
       workExperience,
       education,
       courses,
@@ -419,10 +419,10 @@ export async function POST(
               return `
                 <div class="section">
                   <div class="section-header">Technical Skills</div>
-                  ${resumeData.skillCategories.map((category: any) => `
+                  ${resumeData.skillCategories.map((category: { id: string; title: string; skills: Array<{ id: string; name: string }> }) => `
                     <div class="entry">
                       <div class="entry-title">${category.title}</div>
-                      <div class="body-text">${category.skills.map((skill: any) => skill.name).join(', ')}</div>
+                      <div class="body-text">${category.skills.map((skill: { id: string; name: string }) => skill.name).join(', ')}</div>
                     </div>
                   `).join('')}
                 </div>
