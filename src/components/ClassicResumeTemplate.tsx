@@ -579,6 +579,28 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                   </li>
                 ))}
               </ul>
+              {project.link && (
+                <div style={{ 
+                  marginTop: '4px',
+                  marginLeft: '10px',
+                  textAlign: 'left'
+                }}>
+                  <a 
+                    href={project.link.startsWith('http') ? project.link : `https://${project.link}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ 
+                      color: '#000', 
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontSize: `${data.bodyTextSize || 14}px`,
+                      fontFamily: data.fontFamily || 'Times New Roman, serif'
+                    }}
+                  >
+                    {formatUrl(project.link)}
+                  </a>
+                </div>
+              )}
           </div>
         ))}
       </div>
@@ -1145,13 +1167,44 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
               // Skills are rendered inline with commas, estimate based on how many lines needed
               const skillsPerLine = 8; // Even more skills per line (increased from 6)
               const linesNeeded = Math.ceil(category.skills.length / skillsPerLine);
-              const categoryHeight = subHeaderHeight + (linesNeeded * bodyLineHeight) + 2; // Further reduced padding from 4 to 2
+              // Account for category title (subHeaderHeight), marginBottom (4px), and skills content
+              const categoryHeight = subHeaderHeight + 4 + (linesNeeded * bodyLineHeight);
               // Add section header height if this is the first subsection
               return subsection.isFirst ? sectionHeaderHeight + categoryHeight + firstSubsectionMargin : categoryHeight;
             }
           }
-          // Fallback for default technical skills subsection
-          return sectionHeaderHeight + firstSubsectionMargin;
+          // Fallback for default technical skills subsection - calculate total height for all content
+          let totalHeight = sectionHeaderHeight + firstSubsectionMargin;
+          
+          // Add strengths if they exist
+          if (data.strengths && data.strengths.length > 0) {
+            const strengthsCount = data.strengths.length;
+            const strengthsHeight = strengthsCount * bodyLineHeight * 0.8;
+            totalHeight += strengthsHeight;
+          }
+          
+          // Add skill categories if they exist
+          if (data.skillCategories && data.skillCategories.length > 0) {
+            data.skillCategories.forEach((category, index) => {
+              // Category title height + marginBottom (4px)
+              totalHeight += subHeaderHeight + 4;
+              
+              // Skills content height
+              const skillsPerLine = 8;
+              const linesNeeded = Math.ceil(category.skills.length / skillsPerLine);
+              totalHeight += linesNeeded * bodyLineHeight;
+              
+              // Category marginBottom (8px) except for last category
+              if (index < (data.skillCategories?.length || 0) - 1) {
+                totalHeight += 8;
+              }
+            });
+          }
+          
+          // Add extra padding to be more conservative
+          totalHeight += 20;
+          
+          return totalHeight;
         case 'Work Experience':
           const workExp = data.workExperience || [];
           if (workExp.length > 0) {
@@ -1177,7 +1230,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
             const bulletPointsCount = firstProject.bulletPoints?.length || 0;
             // Add entry spacing for each project entry (except the last one)
             const entrySpacingTotal = (projects.length - 1) * entrySpacing;
-            return sectionHeaderHeight + subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight * 0.9) + entrySpacingTotal + firstSubsectionMargin; // Reduced bullet points multiplier
+            // Add height for link if it exists (marginTop: 4px + bodyLineHeight for the link text)
+            const linkHeight = firstProject.link ? (4 + bodyLineHeight) : 0;
+            return sectionHeaderHeight + subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight * 0.9) + linkHeight + entrySpacingTotal + firstSubsectionMargin; // Reduced bullet points multiplier
           }
           return sectionHeaderHeight + firstSubsectionMargin;
         case 'Courses':
@@ -1265,7 +1320,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           if (projects[projIndex]) {
             const project = projects[projIndex];
             const bulletPointsCount = project.bulletPoints?.length || 0;
-            return subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + entrySpacing;
+            // Add height for link if it exists (marginTop: 4px + bodyLineHeight for the link text)
+            const linkHeight = project.link ? (4 + bodyLineHeight) : 0;
+            return subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + linkHeight + entrySpacing;
           }
           return subHeaderHeight + entrySpacing;
         case 'Courses':
@@ -1349,13 +1406,30 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       
       const totalHeight = estimatedHeight + sectionSpacing;
       
-      // Check if adding this would exceed the content height with a very flexible buffer
-      const safetyBuffer = 10; // Further reduced buffer to be very aggressive about fitting content
+      // Check if adding this would exceed the content height with a more conservative buffer
+      const safetyBuffer = 50; // Increased buffer to be more conservative about fitting content
       const wouldExceedContent = (currentHeight + totalHeight) > (contentHeight - safetyBuffer);
       
-      // Create new page if we would exceed content height
-      if (wouldExceedContent && (currentPage.pageNumber > 0 || currentPage.subsections.length > 0)) {
-        // Create new page
+      // Special handling for first subsections: if this is the first subsection of a section
+      // and it would exceed content height, ensure the entire section moves to a new page
+      if (subsection.isFirst && wouldExceedContent) {
+        // Remove this section from the current page if it was already added
+        if (sectionsStartedOnPages.has(sectionName)) {
+          const sectionPageIndex = sectionsStartedOnPages.get(sectionName)!;
+          if (sectionPageIndex === currentPage.pageNumber) {
+            // Remove from current page
+            currentPage.sections = currentPage.sections.filter(s => s !== sectionName);
+            currentPage.subsections = currentPage.subsections.filter(sub => sub.sectionName !== sectionName);
+            sectionsStartedOnPages.delete(sectionName);
+          }
+        }
+        
+        // Create new page for this section
+        currentPage = { sections: [] as string[], pageNumber: pages.length, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
+        pages.push(currentPage);
+        currentHeight = 0; // Reset height for new page
+      } else if (wouldExceedContent && (currentPage.pageNumber > 0 || currentPage.subsections.length > 0)) {
+        // Create new page for non-first subsections
         currentPage = { sections: [] as string[], pageNumber: pages.length, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
         pages.push(currentPage);
         currentHeight = 0; // Reset height for new page
@@ -1666,6 +1740,28 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                       ))}
                     </ul>
                   )}
+                  {project.link && (
+                    <div style={{ 
+                      marginTop: '4px',
+                      marginLeft: '10px',
+                      textAlign: 'left'
+                    }}>
+                      <a 
+                        href={project.link.startsWith('http') ? project.link : `https://${project.link}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ 
+                          color: '#000', 
+                          textDecoration: 'underline',
+                          cursor: 'pointer',
+                          fontSize: `${data.bodyTextSize || 14}px`,
+                          fontFamily: data.fontFamily || 'Times New Roman, serif'
+                        }}
+                      >
+                        {formatUrl(project.link)}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -1858,6 +1954,28 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
                       </li>
                     ))}
                   </ul>
+                )}
+                {project.link && (
+                  <div style={{ 
+                    marginTop: '4px',
+                    marginLeft: '10px',
+                    textAlign: 'left'
+                  }}>
+                    <a 
+                      href={project.link.startsWith('http') ? project.link : `https://${project.link}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ 
+                        color: '#000', 
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        fontSize: `${data.bodyTextSize || 14}px`,
+                        fontFamily: data.fontFamily || 'Times New Roman, serif'
+                      }}
+                    >
+                      {formatUrl(project.link)}
+                    </a>
+                  </div>
                 )}
               </div>
             );
