@@ -18,6 +18,7 @@ import StarIcon from "@mui/icons-material/Star";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
+import { COLORS } from '@/lib/colorSystem';
 
 interface Resume {
   id: number;
@@ -102,9 +103,9 @@ export default function ResumePage() {
 
   const getResumeIconColor = (title: string) => {
     if (title.toLowerCase().includes('full-stack') || title.toLowerCase().includes('developer')) {
-      return '#FFD700'; // Yellow for developer resumes
+      return COLORS.primary; // Use primary color from color system
     }
-    return '#9E9E9E'; // Gray for others
+    return '#9E9E9E'; // Gray for others - keeping gray as requested
   };
 
   const handleResumeClick = (resumeId: number) => {
@@ -185,9 +186,9 @@ export default function ResumePage() {
                  justifyContent: 'center',
                  width: 26,
                  height: 26,
-                 bgcolor: '#B2F5EA',
+                 bgcolor: COLORS.primaryLight,
                  borderRadius: 1.5,
-                 color: '#333333'
+                 color: COLORS.primaryDark
                }}
              >
                <AddIcon sx={{ fontSize: 20 }} />
@@ -195,7 +196,7 @@ export default function ResumePage() {
              <Typography
                variant="body2"
                sx={{
-                 color: '#333333',
+                 color: COLORS.primaryDark,
                  fontWeight: 500
                }}
              >
@@ -258,7 +259,7 @@ export default function ResumePage() {
                         <Avatar
                           sx={{
                             bgcolor: getResumeIconColor(resume.title),
-                            color: getResumeIconColor(resume.title) === '#FFD700' ? 'black' : 'white',
+                            color: getResumeIconColor(resume.title) === COLORS.primary ? 'white' : 'white',
                             width: 32,
                             height: 32,
                             fontSize: '0.9rem',
@@ -278,7 +279,7 @@ export default function ResumePage() {
                                 size="small"
                                 icon={<StarIcon />}
                                 sx={{
-                                  bgcolor: '#4CAF50',
+                                  bgcolor: COLORS.primary,
                                   color: 'white',
                                   fontSize: '0.7rem',
                                   height: 20
@@ -290,8 +291,8 @@ export default function ResumePage() {
                               size="small"
                               icon={<CheckCircleIcon />}
                               sx={{
-                                bgcolor: '#E8F5E8',
-                                color: '#4CAF50',
+                                bgcolor: COLORS.backgroundLight,
+                                color: COLORS.primary,
                                 fontSize: '0.7rem',
                                 height: 20
                               }}
