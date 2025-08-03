@@ -344,6 +344,7 @@ export default function ResumeEditorV2({
   // Export panel state
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
+  const [pdfDownloading, setPdfDownloading] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -559,12 +560,12 @@ export default function ResumeEditorV2({
                 margin: '0',
               },
               '&::-webkit-scrollbar-thumb': {
-                background: '#c0c0c0',
+                background: '#cccccc',
                 borderRadius: '2px',
                 margin: '0',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                background: '#a0a0a0',
+                background: '#aaaaaa',
               },
             }}>
               {Array.from({ length: new Date().getFullYear() - 1900 + 1 }, (_, i) => new Date().getFullYear() - i).map((year) => (
@@ -607,12 +608,12 @@ export default function ResumeEditorV2({
                 margin: '0',
               },
               '&::-webkit-scrollbar-thumb': {
-                background: '#c0c0c0',
+                background: '#cccccc',
                 borderRadius: '2px',
                 margin: '0',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                background: '#a0a0a0',
+                background: '#aaaaaa',
               },
             }}>
               {[
@@ -6355,6 +6356,7 @@ export default function ResumeEditorV2({
       console.log('🎯 Export settings:', exportSettings);
 
       // Show loading state
+      setPdfDownloading(true);
       setSuccess('');
       setError('');
 
@@ -6407,6 +6409,8 @@ export default function ResumeEditorV2({
     } catch (error) {
       console.error('🎯 PDF download error:', error);
       setError(error instanceof Error ? error.message : 'Failed to download PDF');
+    } finally {
+      setPdfDownloading(false);
     }
   };
 
@@ -6709,11 +6713,11 @@ export default function ResumeEditorV2({
                 background: 'transparent',
               },
               '&::-webkit-scrollbar-thumb': {
-                background: '#e0e0e0',
+                background: '#cccccc',
                 borderRadius: '4px',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                background: '#c0c0c0',
+                background: '#aaaaaa',
               },
             }}>
             <DragDropContext 
@@ -7284,22 +7288,34 @@ export default function ResumeEditorV2({
               overflowY: 'auto', 
               overflowX: 'hidden',
               pr: 1,
+              // Webkit scrollbar styling - more specific
               '&::-webkit-scrollbar': {
-                width: '8px',
+                width: '8px !important',
+                backgroundColor: 'transparent !important',
               },
               '&::-webkit-scrollbar-track': {
-                background: 'white',
+                background: 'transparent !important',
+                backgroundColor: 'transparent !important',
               },
               '&::-webkit-scrollbar-thumb': {
-                background: 'white',
-                borderRadius: '4px',
+                background: '#cccccc !important',
+                backgroundColor: '#cccccc !important',
+                borderRadius: '4px !important',
+                border: 'none !important',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                background: 'rgba(0, 0, 0, 0.05)',
+                background: '#aaaaaa !important',
+                backgroundColor: '#aaaaaa !important',
               },
               '&::-webkit-scrollbar-button': {
-                display: 'none',
+                display: 'none !important',
               },
+              '&::-webkit-scrollbar-corner': {
+                background: 'transparent !important',
+              },
+              // Firefox scrollbar styling
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cccccc transparent',
             }}>
 
               
@@ -7351,19 +7367,20 @@ export default function ResumeEditorV2({
               width: '35%',
               overflowY: 'auto', 
               px: 0.5,
+              // Webkit scrollbar styling
               '&::-webkit-scrollbar': {
                 width: '10px',
               },
               '&::-webkit-scrollbar-track': {
-                background: 'transparent',
+                background: 'transparent !important',
                 marginLeft: '4px',
               },
               '&::-webkit-scrollbar-thumb': {
-                background: '#ccc',
+                background: '#cccccc !important',
                 borderRadius: '5px',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                background: '#999',
+                background: '#aaaaaa !important',
               },
               '&::-webkit-scrollbar-button': {
                 display: 'block',
@@ -7373,6 +7390,9 @@ export default function ResumeEditorV2({
               '&::-webkit-scrollbar-button:hover': {
                 // No background
               },
+              // Firefox scrollbar styling
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cccccc transparent',
             }}>
               {/* Resume Template Section */}
               <Box sx={{ 
@@ -8266,6 +8286,8 @@ export default function ResumeEditorV2({
             <Button
               variant="contained"
               onClick={handleDownloadPDF}
+              disabled={pdfDownloading}
+              startIcon={pdfDownloading ? <CircularProgress size={16} color="inherit" /> : null}
               sx={{
                 borderRadius: 6,
                 backgroundColor: '#000',
@@ -8273,9 +8295,13 @@ export default function ResumeEditorV2({
                 textTransform: 'none',
                 fontSize: 16,
                 boxShadow: 'none',
+                '&:disabled': {
+                  backgroundColor: '#666',
+                  color: 'white',
+                },
               }}
             >
-              Download by PDF
+              {pdfDownloading ? 'Generating PDF...' : 'Download by PDF'}
             </Button>
             <Button
               variant="contained"
