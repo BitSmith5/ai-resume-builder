@@ -377,7 +377,7 @@ export default function ResumeEditorV2({
   
   // Create a cache key from export settings
   const getCacheKey = useCallback((): string => {
-    return JSON.stringify(exportSettings) || '';
+    return JSON.stringify(exportSettings);
   }, [exportSettings]);
 
   // Autosave state
@@ -419,7 +419,7 @@ export default function ResumeEditorV2({
       
       // Check cache first
       const cacheKey = getCacheKey();
-      const cachedHtml = cacheKey ? previewCache.current.get(cacheKey) : undefined;
+      const cachedHtml = previewCache.current.get(cacheKey);
       
       if (cachedHtml) {
         setPreviewHtml(cachedHtml);
@@ -456,7 +456,9 @@ export default function ResumeEditorV2({
           // Limit cache size to prevent memory issues
           if (previewCache.current.size > 20) {
             const firstKey = previewCache.current.keys().next().value;
-            previewCache.current.delete(firstKey);
+            if (firstKey) {
+              previewCache.current.delete(firstKey);
+            }
           }
           
           setPreviewHtml(htmlContent);
