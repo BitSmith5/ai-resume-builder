@@ -22,7 +22,6 @@ import {
 } from "@mui/material";
 import {
   Menu as MenuIcon,
-  Dashboard as DashboardIcon,
   Description as ResumeIcon,
   Person as ProfileIcon,
   Logout as LogoutIcon,
