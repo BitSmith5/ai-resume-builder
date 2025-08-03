@@ -5,10 +5,7 @@ import { prisma } from '../../../../../lib/prisma';
 import { transformResumeData } from '../../../../../lib/resumeDataTransformer';
 import puppeteer from 'puppeteer';
 
-interface ResumeWithTemplate {
-  template?: string;
-  jobTitle?: string;
-}
+
 
 export const runtime = 'nodejs';
 
