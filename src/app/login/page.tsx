@@ -22,6 +22,7 @@ import {
   Tab,
 } from "@mui/material";
 import { Google as GoogleIcon, GitHub as GitHubIcon, Visibility, VisibilityOff } from "@mui/icons-material";
+import { COLORS } from "@/lib/colorSystem";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -62,7 +63,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (status === "authenticated" && session) {
-      router.push("/dashboard");
+      router.push("/dashboard/resume");
     }
   }, [session, status, router]);
 
@@ -81,14 +82,14 @@ export default function LoginPage() {
 
     try {
       const result = await signIn(provider, {
-        callbackUrl: "/dashboard",
+        callbackUrl: "/dashboard/resume",
         redirect: false,
       });
 
       if (result?.error) {
         setError(`Authentication failed: ${result.error}`);
       } else if (result?.ok) {
-        router.push("/dashboard");
+        router.push("/dashboard/resume");
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -113,7 +114,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid username or password.");
       } else if (result?.ok) {
-        router.push("/dashboard");
+        router.push("/dashboard/resume");
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -156,7 +157,7 @@ export default function LoginPage() {
 
         if (result?.ok) {
           console.log("Auto-sign-in successful, redirecting to dashboard...");
-          router.push("/dashboard");
+          router.push("/dashboard/resume");
         } else {
           console.error("Auto-sign-in failed:", result?.error);
           setError("Registration successful but auto-sign-in failed. Please sign in manually.");
@@ -197,11 +198,11 @@ export default function LoginPage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 8 }}>
-      <Card elevation={3}>
+    <Container maxWidth="sm" sx={{ mt: 8, pb: 4 }}>
+      <Card elevation={8}>
         <CardContent sx={{ p: 4 }}>
           <Box textAlign="center" mb={4}>
-            <Typography variant="h4" component="h1" gutterBottom>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ color: COLORS.primary }}>
               Welcome to AI Resume Builder
             </Typography>
             <Typography variant="body1" color="text.secondary">
@@ -215,7 +216,23 @@ export default function LoginPage() {
             </Alert>
           )}
 
-          <Tabs value={tabValue} onChange={handleTabChange} centered sx={{ mb: 2 }}>
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange} 
+            centered 
+            sx={{ 
+              mb: 2,
+              '& .MuiTab-root': {
+                color: COLORS.primary,
+                '&.Mui-selected': {
+                  color: COLORS.primaryDark,
+                },
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: COLORS.primary,
+              },
+            }}
+          >
             <Tab label="Sign In" />
             <Tab label="Sign Up" />
           </Tabs>
@@ -229,6 +246,19 @@ export default function LoginPage() {
                 required
                 fullWidth
                 disabled={isLoading}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: COLORS.primary,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: COLORS.hover,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: COLORS.primaryDark,
+                    },
+                  },
+                }}
               />
               <FormControl fullWidth required>
                 <InputLabel>Password</InputLabel>
@@ -242,12 +272,24 @@ export default function LoginPage() {
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
+                        sx={{ color: COLORS.primary }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   }
                   label="Password"
+                  sx={{
+                    '& fieldset': {
+                      borderColor: COLORS.primary,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: COLORS.hover,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: COLORS.primaryDark,
+                    },
+                  }}
                 />
               </FormControl>
               <Button
@@ -255,7 +297,16 @@ export default function LoginPage() {
                 variant="contained"
                 size="large"
                 disabled={isLoading}
-                sx={{ py: 1.5 }}
+                sx={{ 
+                  py: 1.5,
+                  backgroundColor: COLORS.primary,
+                  '&:hover': {
+                    backgroundColor: COLORS.hover,
+                  },
+                  '&:disabled': {
+                    backgroundColor: COLORS.uiBackground,
+                  },
+                }}
               >
                 Sign In
               </Button>
@@ -271,6 +322,19 @@ export default function LoginPage() {
                 required
                 fullWidth
                 disabled={isLoading}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: COLORS.primary,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: COLORS.hover,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: COLORS.primaryDark,
+                    },
+                  },
+                }}
               />
               <TextField
                 label="Username"
@@ -279,6 +343,19 @@ export default function LoginPage() {
                 required
                 fullWidth
                 disabled={isLoading}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: COLORS.primary,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: COLORS.hover,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: COLORS.primaryDark,
+                    },
+                  },
+                }}
               />
               <TextField
                 label="Email"
@@ -288,6 +365,19 @@ export default function LoginPage() {
                 required
                 fullWidth
                 disabled={isLoading}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: COLORS.primary,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: COLORS.hover,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: COLORS.primaryDark,
+                    },
+                  },
+                }}
               />
               <FormControl fullWidth required>
                 <InputLabel>Password</InputLabel>
@@ -301,12 +391,24 @@ export default function LoginPage() {
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
+                        sx={{ color: COLORS.primary }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   }
                   label="Password"
+                  sx={{
+                    '& fieldset': {
+                      borderColor: COLORS.primary,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: COLORS.hover,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: COLORS.primaryDark,
+                    },
+                  }}
                 />
               </FormControl>
               <Button
@@ -314,7 +416,16 @@ export default function LoginPage() {
                 variant="contained"
                 size="large"
                 disabled={isLoading}
-                sx={{ py: 1.5 }}
+                sx={{ 
+                  py: 1.5,
+                  backgroundColor: COLORS.primary,
+                  '&:hover': {
+                    backgroundColor: COLORS.hover,
+                  },
+                  '&:disabled': {
+                    backgroundColor: COLORS.uiBackground,
+                  },
+                }}
               >
                 Sign Up
               </Button>

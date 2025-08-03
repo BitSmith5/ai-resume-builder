@@ -7,6 +7,12 @@ export interface ResumeData {
   title: string;
   jobTitle?: string;
   profilePicture?: string;
+  fontFamily?: string; // Font family for the resume
+  nameSize?: number; // Font size for the name header
+  sectionHeadersSize?: number; // Font size for section headers
+  subHeadersSize?: number; // Font size for sub-headers (job titles, company names, etc.)
+  bodyTextSize?: number; // Font size for body text
+  sectionOrder?: string[]; // Array of section names in display order
   content: {
     personalInfo: {
       name: string;
@@ -24,6 +30,14 @@ export interface ResumeData {
     id: number;
     skillName: string;
     rating: number;
+  }>;
+  skillCategories?: Array<{
+    id: string;
+    title: string;
+    skills: Array<{
+      id: string;
+      name: string;
+    }>;
   }>;
   workExperience: Array<{
     id: number;
@@ -56,6 +70,52 @@ export interface ResumeData {
     id: number;
     name: string;
     icon: string;
+  }>;
+  projects?: Array<{
+    id: string;
+    title: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    technologies: string[];
+    link: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+  }>;
+  publications?: Array<{
+    id: string;
+    title: string;
+    authors: string;
+    journal: string;
+    year: string;
+    doi: string;
+    link: string;
+  }>;
+  awards?: Array<{
+    id: string;
+    title: string;
+    organization: string;
+    year: string;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+  }>;
+  volunteerExperience?: Array<{
+    id: string;
+    organization: string;
+    position: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    bulletPoints: Array<{
+      id: string;
+      description: string;
+    }>;
+    hoursPerWeek: string;
   }>;
   createdAt: string;
 }
@@ -95,16 +155,25 @@ interface ResumeTemplateRegistryProps {
 }
 
 const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, templateId }) => {
+
+  
   // Transform the data to match the template interface
   const transformedData = {
     title: data.title,
     jobTitle: data.jobTitle,
     profilePicture: data.profilePicture,
+    fontFamily: data.fontFamily, // Add fontFamily to transformed data
+    nameSize: data.nameSize, // Add nameSize to transformed data
+    sectionHeadersSize: data.sectionHeadersSize, // Add sectionHeadersSize to transformed data
+    subHeadersSize: data.subHeadersSize, // Add subHeadersSize to transformed data
+    bodyTextSize: data.bodyTextSize, // Add bodyTextSize to transformed data
+    sectionOrder: data.sectionOrder, // Add sectionOrder to transformed data
     content: data.content,
     strengths: data.strengths.map(s => ({
       skillName: s.skillName,
       rating: s.rating
     })),
+    skillCategories: data.skillCategories,
     workExperience: data.workExperience.map(exp => ({
       company: exp.company,
       position: exp.position,
@@ -130,8 +199,47 @@ const ResumeTemplateRegistry: React.FC<ResumeTemplateRegistryProps> = ({ data, t
     interests: data.interests?.map(interest => ({
       name: interest.name,
       icon: interest.icon
+    })),
+    projects: data.projects?.map(project => ({
+      id: project.id,
+      title: project.title,
+      bulletPoints: project.bulletPoints,
+      technologies: project.technologies,
+      link: project.link,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      current: project.current
+    })),
+    publications: data.publications?.map(publication => ({
+      id: publication.id,
+      title: publication.title,
+      authors: publication.authors,
+      journal: publication.journal,
+      year: publication.year,
+      doi: publication.doi,
+      link: publication.link
+    })),
+    awards: data.awards?.map(award => ({
+      id: award.id,
+      title: award.title,
+      organization: award.organization,
+      year: award.year,
+      bulletPoints: award.bulletPoints
+    })),
+    volunteerExperience: data.volunteerExperience?.map(volunteer => ({
+      id: volunteer.id,
+      organization: volunteer.organization,
+      position: volunteer.position,
+      location: volunteer.location,
+      startDate: volunteer.startDate,
+      endDate: volunteer.endDate,
+      current: volunteer.current,
+      bulletPoints: volunteer.bulletPoints,
+      hoursPerWeek: volunteer.hoursPerWeek
     }))
   };
+  
+
 
   switch (templateId) {
     case 'modern':

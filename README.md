@@ -29,7 +29,7 @@ A comprehensive resume builder application built with Next.js, Prisma, and Mater
 - **UI Framework**: Material-UI (MUI) v7
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js
-- **PDF Generation**: @react-pdf/renderer
+- **PDF Generation**: Puppeteer with clean HTML templates
 - **File Storage**: Browser localStorage (device-specific)
 - **Styling**: Emotion (CSS-in-JS)
 
@@ -104,7 +104,7 @@ The application uses the following main models:
 
 ## PDF Export
 
-The application generates professional PDF resumes using @react-pdf/renderer with:
+The application generates professional PDF resumes using Puppeteer with clean HTML templates, featuring:
 
 - Clean, professional layout
 - Proper typography and spacing

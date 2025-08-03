@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   AppBar,
   Box,
@@ -22,11 +22,11 @@ import {
 } from "@mui/material";
 import {
   Menu as MenuIcon,
-  Dashboard as DashboardIcon,
   Description as ResumeIcon,
   Person as ProfileIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
+import { COLORS } from "@/lib/colorSystem";
 
 const drawerWidth = 240;
 
@@ -40,6 +40,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mounted, setMounted] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Get current page title based on pathname
+  const getCurrentPageTitle = () => {
+    if (pathname === "/dashboard/resume") return "Resume";
+    if (pathname === "/dashboard/resume/new") return "Edit Resume";
+    if (pathname === "/dashboard/profile") return "Profile";
+    return "Resume Builder";
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -77,27 +86,50 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-    { text: "My Resumes", icon: <ResumeIcon />, path: "/dashboard/resumes" },
+    { text: "Resume", icon: <ResumeIcon />, path: "/dashboard/resume" }, // New menu item for Resume section
     { text: "Profile", icon: <ProfileIcon />, path: "/dashboard/profile" },
   ];
 
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
+        <Typography variant="h6" noWrap component="div" sx={{ color: COLORS.primary }}>
           Resume Builder
         </Typography>
       </Toolbar>
       <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton onClick={() => router.push(item.path)}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        {menuItems.map((item) => {
+          const isSelected = pathname === item.path || 
+                           (item.path === "/dashboard/resume" && pathname?.startsWith("/dashboard/resume"));
+          
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+              <ListItemButton 
+                onClick={() => router.push(item.path)}
+                sx={{
+                  mx: 1,
+                  borderRadius: '20px',
+                  backgroundColor: isSelected ? COLORS.selectedBackground : 'transparent',
+                  color: isSelected ? COLORS.primary : 'inherit',
+                  '&:hover': {
+                    backgroundColor: COLORS.selectedBackground,
+                    borderRadius: '20px',
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: isSelected ? COLORS.primary : 'inherit',
+                  },
+                  '& .MuiListItemText-primary': {
+                    fontWeight: isSelected ? 600 : 400,
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
     </Box>
   );
@@ -106,9 +138,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <Box sx={{ display: "flex" }}>
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
+          backgroundColor: 'transparent',
+          boxShadow: 'none',
         }}
       >
         <Toolbar>
@@ -121,15 +156,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Dashboard
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, color: 'black' }}>
+            {getCurrentPageTitle()}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography 
               variant="body2" 
               sx={{ 
                 mr: 2,
-                display: { xs: 'none', sm: 'block' }
+                display: { xs: 'none', sm: 'block' },
+                color: 'black'
               }}
             >
               {mounted ? (session?.user?.name || "User") : "..."}
@@ -171,6 +207,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
+              borderRight: 'none',
             },
           }}
         >
@@ -183,6 +220,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
+              borderRight: 'none',
             },
           }}
           open

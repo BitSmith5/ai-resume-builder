@@ -10,6 +10,8 @@ export async function GET() {
     const session = await getServerSession(authOptions as any) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
     
+    console.log('Profile API called with user:', user);
+    
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -25,13 +27,61 @@ export async function GET() {
         location: true,
         phone: true,
         linkedinUrl: true,
+        githubUrl: true,
         portfolioUrl: true,
         preferences: true,
       },
     });
 
     if (!userProfile) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      // Create user profile if it doesn't exist
+      try {
+        const newUserProfile = await prisma.user.create({
+          data: {
+            id: user.id,
+            name: user.name || "",
+            email: user.email || "",
+            image: user.image || null,
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            bio: true,
+            location: true,
+            phone: true,
+            linkedinUrl: true,
+            githubUrl: true,
+            portfolioUrl: true,
+            preferences: true,
+          },
+        });
+        return NextResponse.json(newUserProfile);
+      } catch (createError) {
+        console.error("Error creating user profile:", createError);
+        // If creation fails, try to fetch again (in case of race condition)
+        const retryUserProfile = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            bio: true,
+            location: true,
+            phone: true,
+            linkedinUrl: true,
+            githubUrl: true,
+            portfolioUrl: true,
+            preferences: true,
+          },
+        });
+        if (retryUserProfile) {
+          return NextResponse.json(retryUserProfile);
+        }
+        return NextResponse.json({ error: "Failed to create user profile" }, { status: 500 });
+      }
     }
 
     return NextResponse.json(userProfile);
@@ -62,6 +112,7 @@ export async function PUT(request: NextRequest) {
       location, 
       phone, 
       linkedinUrl, 
+      githubUrl,
       portfolioUrl, 
       preferences 
     } = body;
@@ -83,6 +134,7 @@ export async function PUT(request: NextRequest) {
         location: location || null,
         phone: phone || null,
         linkedinUrl: linkedinUrl || null,
+        githubUrl: githubUrl || null,
         portfolioUrl: portfolioUrl || null,
         preferences: preferences || null,
       },
@@ -95,6 +147,7 @@ export async function PUT(request: NextRequest) {
         location: true,
         phone: true,
         linkedinUrl: true,
+        githubUrl: true,
         portfolioUrl: true,
         preferences: true,
       },
