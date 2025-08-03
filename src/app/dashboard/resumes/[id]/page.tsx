@@ -142,10 +142,10 @@ export default function ViewResumePage() {
           <Button
             variant="outlined"
             startIcon={<ArrowBackIcon />}
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/dashboard/resume')}
             sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
-            Back to Dashboard
+            Back to Resume
           </Button>
         </Box>
       </DashboardLayout>

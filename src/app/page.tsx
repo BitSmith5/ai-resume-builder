@@ -24,7 +24,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/dashboard");
+      router.push("/dashboard/resume");
     }
   }, [status, router]);
 

@@ -62,7 +62,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (status === "authenticated" && session) {
-      router.push("/dashboard");
+      router.push("/dashboard/resume");
     }
   }, [session, status, router]);
 
@@ -81,14 +81,14 @@ export default function LoginPage() {
 
     try {
       const result = await signIn(provider, {
-        callbackUrl: "/dashboard",
+        callbackUrl: "/dashboard/resume",
         redirect: false,
       });
 
       if (result?.error) {
         setError(`Authentication failed: ${result.error}`);
       } else if (result?.ok) {
-        router.push("/dashboard");
+        router.push("/dashboard/resume");
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -113,7 +113,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid username or password.");
       } else if (result?.ok) {
-        router.push("/dashboard");
+        router.push("/dashboard/resume");
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -156,7 +156,7 @@ export default function LoginPage() {
 
         if (result?.ok) {
           console.log("Auto-sign-in successful, redirecting to dashboard...");
-          router.push("/dashboard");
+          router.push("/dashboard/resume");
         } else {
           console.error("Auto-sign-in failed:", result?.error);
           setError("Registration successful but auto-sign-in failed. Please sign in manually.");
