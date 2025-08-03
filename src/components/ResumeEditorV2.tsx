@@ -6457,55 +6457,7 @@ export default function ResumeEditorV2({
     }
   };
 
-  // Temporary recovery function for Technical Skills
-  const handleRecoverTechnicalSkills = () => {
-    console.log('🔍 Attempting to recover Technical Skills data...');
-    // This is a temporary recovery - you can modify this with your actual skills data
-    const recoveredSkillCategories = [
-      {
-        id: 'category-1',
-        title: 'Programming Languages',
-        skills: [
-          { id: 'skill-1', name: 'JavaScript' },
-          { id: 'skill-2', name: 'TypeScript' },
-          { id: 'skill-3', name: 'Python' },
-          { id: 'skill-4', name: 'Java' }
-        ]
-      },
-      {
-        id: 'category-2',
-        title: 'Frameworks & Libraries',
-        skills: [
-          { id: 'skill-5', name: 'React' },
-          { id: 'skill-6', name: 'Node.js' },
-          { id: 'skill-7', name: 'Express.js' },
-          { id: 'skill-8', name: 'Next.js' }
-        ]
-      },
-      {
-        id: 'category-3',
-        title: 'Databases & Tools',
-        skills: [
-          { id: 'skill-9', name: 'SQL' },
-          { id: 'skill-10', name: 'MongoDB' },
-          { id: 'skill-11', name: 'Git' },
-          { id: 'skill-12', name: 'Docker' }
-        ]
-      }
-    ];
-    
-    setResumeData(prev => ({
-      ...prev,
-      skillCategories: recoveredSkillCategories,
-      deletedSections: prev.deletedSections?.filter(section => section !== 'Technical Skills') || []
-    }));
-    
-    if (!sectionOrder.includes('Technical Skills')) {
-      setSectionOrder(prev => [...prev, 'Technical Skills']);
-    }
-    
-    console.log('🔍 Technical Skills recovered:', recoveredSkillCategories);
-  };
+
 
   return (
     <Box sx={{ 
@@ -8256,28 +8208,7 @@ export default function ResumeEditorV2({
                 </Button>
               </Box>
 
-              {/* Temporary Recovery Button */}
-              <Box sx={{ mb: 4 }}>
-                <Button
-                  variant="outlined"
-                  onClick={handleRecoverTechnicalSkills}
-                  fullWidth
-                  startIcon={<RestartAltIcon />}
-                  sx={{
-                    borderRadius: 2,
-                    border: '1px solid #ff6b6b',
-                    color: '#ff6b6b',
-                    textTransform: 'none',
-                    py: 1,
-                    '&:hover': {
-                      border: '1px solid #ff5252',
-                      backgroundColor: '#fff5f5',
-                    }
-                  }}
-                >
-                  🔧 Recover Technical Skills (Temporary)
-                </Button>
-              </Box>
+
             </Box>
           </Box>
 
