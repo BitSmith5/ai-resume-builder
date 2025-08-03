@@ -89,7 +89,12 @@ export default function DashboardPage() {
   const formatDate = (dateString: string) => {
     if (!mounted) return "Loading...";
     try {
-      return new Date(dateString).toISOString().split('T')[0];
+      const date = new Date(dateString);
+      // Use a consistent format that doesn't depend on locale
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     } catch {
       return 'Unknown';
     }
@@ -142,7 +147,7 @@ export default function DashboardPage() {
               variant="contained"
               startIcon={<AddIcon />}
               size="large"
-              href="/dashboard/resumes/new"
+              href="/dashboard/resume/new"
             >
               Create New Resume
             </Button>
@@ -241,7 +246,7 @@ export default function DashboardPage() {
                 <Typography variant="body2" color="text.secondary" mb={3}>
                   Create your first professional resume to get started
                 </Typography>
-                <Button variant="contained" startIcon={<AddIcon />} href="/dashboard/resumes/new">
+                <Button variant="contained" startIcon={<AddIcon />} href="/dashboard/resume/new">
                   Create Your First Resume
                 </Button>
               </CardContent>
@@ -277,14 +282,14 @@ export default function DashboardPage() {
                       </Box>
                     )}
 
-                    <Box display="flex" gap={1}>
-                      <Button size="small" variant="outlined" href={`/dashboard/resumes/${resume.id}`}>
-                        View
-                      </Button>
-                      <Button size="small" variant="outlined" href={`/dashboard/resumes/${resume.id}/edit`}>
-                        Edit
-                      </Button>
-                    </Box>
+                                         <Box display="flex" gap={1}>
+                       <Button size="small" variant="outlined" href={`/dashboard/resume/new?id=${resume.id}`}>
+                         View
+                       </Button>
+                       <Button size="small" variant="outlined" href={`/dashboard/resume/new?id=${resume.id}`}>
+                         Edit
+                       </Button>
+                     </Box>
                   </CardContent>
                 </Card>
               ))}

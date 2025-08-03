@@ -1071,7 +1071,7 @@ export default function ResumeEditorV2({
         
         // If this was a new resume, update the URL with the new ID
         if (!resumeId && savedResume.id) {
-          router.replace(`/dashboard/resumes/${savedResume.id}/edit`);
+          router.replace(`/dashboard/resume/new?id=${savedResume.id}`);
         }
       } else {
         console.error('Save failed:', response.status, response.statusText);

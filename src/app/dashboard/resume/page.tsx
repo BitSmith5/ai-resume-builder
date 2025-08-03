@@ -9,11 +9,18 @@ import {
   IconButton,
   Divider,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import ArticleIcon from "@mui/icons-material/Article";
+import EditIcon from "@mui/icons-material/Edit";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { COLORS } from '@/lib/colorSystem';
@@ -55,6 +62,8 @@ export default function ResumePage() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchResumes();
@@ -109,6 +118,97 @@ export default function ResumePage() {
 
   const handleAddResume = () => {
     router.push('/dashboard/resume/new');
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, resumeId: number) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+    setSelectedResumeId(resumeId);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setSelectedResumeId(null);
+  };
+
+  const handleEditResume = () => {
+    if (selectedResumeId) {
+      router.push(`/dashboard/resume/new?id=${selectedResumeId}`);
+    }
+    handleMenuClose();
+  };
+
+  const handleExportResume = async () => {
+    if (selectedResumeId) {
+      try {
+        // Use the same export settings as ResumeEditorV2
+        const exportSettings = {
+          template: 'standard',
+          pageSize: 'letter',
+          fontFamily: 'Times New Roman',
+          nameSize: 40,
+          sectionHeadersSize: 14,
+          subHeadersSize: 10.5,
+          bodyTextSize: 11,
+          sectionSpacing: 12,
+          entrySpacing: 9,
+          lineSpacing: 12,
+          topBottomMargin: 33,
+          sideMargins: 33,
+          alignTextLeftRight: false,
+          pageWidth: 850,
+          pageHeight: 1100,
+        };
+
+        const response = await fetch(`/api/resumes/${selectedResumeId}/pdf-html`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            exportSettings,
+            generatePdf: true
+          }),
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `resume-${selectedResumeId}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } else {
+          console.error('Failed to export resume');
+        }
+      } catch (error) {
+        console.error('Error exporting resume:', error);
+      }
+    }
+    handleMenuClose();
+  };
+
+  const handleDeleteResume = async () => {
+    if (selectedResumeId && window.confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
+      try {
+        const response = await fetch(`/api/resumes/${selectedResumeId}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          // Remove the resume from the local state
+          setResumes(prevResumes => prevResumes.filter(resume => resume.id !== selectedResumeId));
+        } else {
+          console.error('Failed to delete resume');
+        }
+      } catch (error) {
+        console.error('Error deleting resume:', error);
+      }
+    }
+    handleMenuClose();
   };
 
   if (loading) {
@@ -296,10 +396,7 @@ export default function ResumePage() {
                        <Box sx={{ width: '5%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                          <IconButton
                            size="small"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             // Handle menu actions
-                           }}
+                           onClick={(e) => handleMenuOpen(e, resume.id)}
                          >
                            <MoreHorizIcon />
                          </IconButton>
@@ -312,6 +409,47 @@ export default function ResumePage() {
             )}
           </Box>
         </Box>
+
+        {/* Resume Actions Menu */}
+        <Menu
+          anchorEl={menuAnchorEl}
+          open={Boolean(menuAnchorEl)}
+          onClose={handleMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              minWidth: 180,
+            }
+          }}
+        >
+          <MenuItem onClick={handleEditResume}>
+            <ListItemIcon>
+              <EditIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Edit Resume Info</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleExportResume}>
+            <ListItemIcon>
+              <FileDownloadIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleDeleteResume}>
+            <ListItemIcon>
+              <DeleteIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+            </ListItemIcon>
+            <ListItemText sx={{ color: 'text.secondary' }}>Delete</ListItemText>
+          </MenuItem>
+        </Menu>
       </Box>
     </DashboardLayout>
   );
