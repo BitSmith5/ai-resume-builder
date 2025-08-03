@@ -3,8 +3,9 @@ import Image from 'next/image';
 import { MdEmail, MdPhone, MdLocationOn, MdLanguage, MdLink } from 'react-icons/md';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import { getImage } from '@/lib/imageStorage';
+import { COLORS } from '@/lib/colorSystem';
 
-const MASTER_COLOR = '#c8665b';
+const MASTER_COLOR = COLORS.primary;
 
 interface ResumeData {
   title: string;
