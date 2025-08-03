@@ -1118,7 +1118,6 @@ export default function ResumeEditorV2({
       mouseY = window.event.clientY;
     } else {
       // Fallback: try to get from the drag update result if available
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mouseY = (result as any).clientY || 0;
     }
     
@@ -1527,8 +1526,6 @@ export default function ResumeEditorV2({
       </Box>
     ),
     "Technical Skills": (resumeData, setResumeData) => {
-      // Initialize skill categories if not exists
-      const skillCategories = resumeData.skillCategories || [];
 
 
 
