@@ -54,6 +54,8 @@ export async function GET() {
         startDate: project.startDate ? project.startDate.toISOString().split('T')[0] : '',
         endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
       })) || [],
+      // Extract additional data from content JSON
+      skillCategories: (resume.content as Record<string, unknown>)?.skillCategories || [],
       languages: resume.languages || [],
       deletedSections: (resume as { deletedSections?: string[] }).deletedSections || [],
       sectionOrder: (resume as { sectionOrder?: string[] }).sectionOrder || [],

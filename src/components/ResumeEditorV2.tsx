@@ -682,6 +682,12 @@ export default function ResumeEditorV2({
         const response = await fetch(`/api/resumes/${resumeId}`);
         if (response.ok) {
           const resume = await response.json();
+          console.log('📥 API Response for resume:', {
+            id: resume.id,
+            skillCategories: resume.skillCategories,
+            content: resume.content,
+            hasSkillCategories: !!resume.skillCategories?.length
+          });
           
           
           setResumeData({
@@ -760,8 +766,7 @@ export default function ResumeEditorV2({
                 return true; // Keep first occurrence
               });
 
-              console.log('Original work experience count:', mergedWorkExperience.length);
-              console.log('Deduplicated work experience count:', deduplicatedWorkExperience.length);
+
               
               return deduplicatedWorkExperience;
             })(),
@@ -952,6 +957,8 @@ export default function ResumeEditorV2({
   }, currentSectionOrder: string[]) => {
     if (!session?.user) return;
     
+    
+    
 
     
 
@@ -995,7 +1002,7 @@ export default function ResumeEditorV2({
         }
       };
       
-      const filteredData = {
+            const filteredData = {
         ...data,
         content: updatedContent,
         // Only include data for sections that are not deleted
@@ -1012,6 +1019,8 @@ export default function ResumeEditorV2({
         volunteerExperience: deletedSections.includes('Volunteer Experience') ? [] : (data.volunteerExperience || []),
         references: deletedSections.includes('References') ? [] : (data.references || []),
       };
+      
+
 
       // Save resume data
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
@@ -1027,6 +1036,7 @@ export default function ResumeEditorV2({
         sectionOrder: currentSectionOrder, // Add sectionOrder to save payload
         exportSettings: exportSettings, // Add exportSettings to save payload
         strengths: filteredData.strengths || [],
+        skillCategories: filteredData.skillCategories || [],
         workExperience: filteredData.workExperience || [],
         education: filteredData.education || [],
         courses: filteredData.courses || [],
@@ -1038,6 +1048,8 @@ export default function ResumeEditorV2({
         volunteerExperience: filteredData.volunteerExperience || [],
         references: filteredData.references || [],
       };
+      
+
       
 
       
@@ -1072,6 +1084,8 @@ export default function ResumeEditorV2({
     
     // Don't save if we're still loading initial data
     if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
+    
+
     
     debouncedSave(resumeData, profileData, sectionOrder);
   }, [resumeData, profileData, sectionOrder, exportSettings, loading, session?.user, resumeId, debouncedSave]);
@@ -1158,10 +1172,7 @@ export default function ResumeEditorV2({
       setSectionOrder(prev => [...prev, sectionName]);
       // Remove from deleted sections if it was previously deleted
       setResumeData(prev => {
-        console.log('🔍 Adding section:', sectionName);
-        console.log('🔍 Current deletedSections:', prev.deletedSections);
-        console.log('🔍 Current strengths:', prev.strengths);
-        console.log('🔍 Current skillCategories:', prev.skillCategories);
+
         
         return {
           ...prev,
@@ -1212,13 +1223,7 @@ export default function ResumeEditorV2({
     });
   };
 
-  // Debug logging for current state
-  console.log('🔍 Current resumeData state:', {
-    strengths: resumeData.strengths,
-    skillCategories: resumeData.skillCategories,
-    deletedSections: resumeData.deletedSections,
-    sectionOrder: sectionOrder
-  });
+
 
   if (loading || !session?.user) {
     return (
@@ -1527,22 +1532,24 @@ export default function ResumeEditorV2({
 
 
 
+
       const addSkillCategory = () => {
         const newCategory = {
           id: `category-${Date.now()}`,
           title: 'New Category',
           skills: []
         };
+  
         setResumeData(prev => ({
           ...prev,
-          skillCategories: [...(prev.skillCategories || skillCategories), newCategory]
+          skillCategories: [...(prev.skillCategories || []), newCategory]
         }));
       };
 
       const updateSkillCategory = (categoryId: string, updates: Partial<{ title: string; skills: Array<{ id: string; name: string }> }>) => {
         setResumeData(prev => ({
           ...prev,
-          skillCategories: (prev.skillCategories || skillCategories).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
+          skillCategories: (prev.skillCategories || []).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
             cat.id === categoryId ? { ...cat, ...updates } : cat
           )
         }));
@@ -1551,16 +1558,17 @@ export default function ResumeEditorV2({
       const deleteSkillCategory = (categoryId: string) => {
         setResumeData(prev => ({
           ...prev,
-          skillCategories: (prev.skillCategories || skillCategories).filter((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) => cat.id !== categoryId)
+          skillCategories: (prev.skillCategories || []).filter((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) => cat.id !== categoryId)
         }));
       };
 
       const addSkillToCategory = (categoryId: string, skillName: string) => {
         if (!skillName.trim()) return;
         const newSkill = { id: Math.random().toString(), name: skillName.trim() };
+
         setResumeData(prev => ({
           ...prev,
-          skillCategories: (prev.skillCategories || skillCategories).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
+          skillCategories: (prev.skillCategories || []).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
             cat.id === categoryId ? { ...cat, skills: [...cat.skills, newSkill] } : cat
           )
         }));
@@ -1569,7 +1577,7 @@ export default function ResumeEditorV2({
       const deleteSkillFromCategory = (categoryId: string, skillId: string) => {
         setResumeData(prev => ({
           ...prev,
-          skillCategories: (prev.skillCategories || skillCategories).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
+          skillCategories: (prev.skillCategories || []).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
             cat.id === categoryId ? { ...cat, skills: cat.skills.filter(skill => skill.id !== skillId) } : cat
           )
         }));
@@ -1662,7 +1670,7 @@ export default function ResumeEditorV2({
       const handleCategoryDragEnd = (result: DropResult) => {
         if (!result.destination) return;
         
-        const newCategories = Array.from(resumeData.skillCategories || skillCategories);
+        const newCategories = Array.from(resumeData.skillCategories || []);
         const [removed] = newCategories.splice(result.source.index, 1);
         newCategories.splice(result.destination.index, 0, removed);
         
@@ -1699,8 +1707,8 @@ export default function ResumeEditorV2({
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
             <Droppable droppableId="skill-categories" type="skill-category">
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.skillCategories || skillCategories).length === 0 ? 10 : 100 }}>
-                  {(resumeData.skillCategories || skillCategories).map((category, categoryIndex) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.skillCategories || []).length === 0 ? 10 : 100 }}>
+                  {(resumeData.skillCategories || []).map((category, categoryIndex) => (
                     <Draggable key={category.id} draggableId={category.id} index={categoryIndex}>
                       {(provided) => (
                         <Box
@@ -1769,7 +1777,7 @@ export default function ResumeEditorV2({
                                const { active, over } = event;
                                
                                if (active.id !== over?.id) {
-                                 const currentCategory = (resumeData.skillCategories || skillCategories).find(cat => cat.id === category.id);
+                                 const currentCategory = (resumeData.skillCategories || []).find(cat => cat.id === category.id);
                                  if (!currentCategory) return;
                                  
                                  const oldIndex = currentCategory.skills.findIndex((skill: { id: string; name: string }) => skill.id === active.id);

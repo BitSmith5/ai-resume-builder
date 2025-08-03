@@ -100,6 +100,7 @@ export async function PUT(
 
     const body = await request.json();
     console.log("PUT request body received:", JSON.stringify(body, null, 2));
+    console.log("🔍 PUT DEBUG - Body skillCategories field:", body.skillCategories);
     
     const { 
       title, 
@@ -111,6 +112,7 @@ export async function PUT(
       sectionOrder,
       exportSettings,
       strengths, 
+      skillCategories,
       workExperience, 
       education, 
       courses, 
@@ -122,6 +124,8 @@ export async function PUT(
       volunteerExperience,
       references
     } = body;
+    
+    console.log("🔍 PUT DEBUG - Destructured skillCategories:", skillCategories);
 
     if (!title || !content) {
       return NextResponse.json(
@@ -421,7 +425,7 @@ export async function PUT(
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
-      skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
+      skillCategories: skillCategories || [],
       workExperience: workExperience || [], // Include work experience with location in content
       projects: projects || [],
       languages: languages || [],
@@ -431,7 +435,9 @@ export async function PUT(
       references: references || [],
     };
     
-    console.log('🔍 PUT DEBUG - Skill Categories:', additionalData.skillCategories);
+          console.log('🔍 PUT DEBUG - Skill Categories:', additionalData.skillCategories);
+      console.log('🔍 PUT DEBUG - Content with skillCategories:', { ...content, ...additionalData });
+      console.log('🔍 PUT DEBUG - Full additionalData:', additionalData);
 
     // Get the current resume to check for profile picture changes
     const currentResume = await prisma.resume.findFirst({
@@ -579,15 +585,19 @@ export async function PUT(
         startDate: project.startDate ? project.startDate.toISOString().split('T')[0] : '',
         endDate: project.endDate ? project.endDate.toISOString().split('T')[0] : '',
       })) || [],
+      // Extract additional data from content JSON
+      skillCategories: (resume.content as Record<string, unknown>)?.skillCategories || [],
       languages: resume.languages || [],
       publications: resume.publications || [],
-      awards: resume.awards || [],
+      awards: (resume.content as Record<string, unknown>)?.awards || [],
       volunteerExperience: resume.volunteerExperience || [],
       references: resume.references || [],
     };
 
-    // Add deletedSections to the response
-    (processedResume as { deletedSections?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
+    // Add deletedSections, sectionOrder, and exportSettings to the response
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).sectionOrder = (resume as { sectionOrder?: unknown }).sectionOrder || [];
+    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).exportSettings = (resume as { exportSettings?: unknown }).exportSettings || {};
 
     return NextResponse.json(processedResume);
   } catch (error) {
