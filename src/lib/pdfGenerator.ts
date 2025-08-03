@@ -512,7 +512,7 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
             font-style: italic;
             font-size: ${exportSettings.bodyTextSize}px;
             margin-bottom: 2px;
-            text-align: left;
+            text-align: ${exportSettings.alignTextLeftRight ? 'justify' : 'left'};
             overflow: visible;
           }
           
@@ -527,13 +527,13 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
             font-size: ${exportSettings.bodyTextSize}px;
             line-height: ${exportSettings.lineSpacing}px;
             margin-bottom: 4px;
-            text-align: left;
+            text-align: ${exportSettings.alignTextLeftRight ? 'justify' : 'left'};
             overflow: visible;
           }
           
           .bullet-points {
             margin-left: 16px;
-            text-align: left;
+            text-align: ${exportSettings.alignTextLeftRight ? 'justify' : 'left'};
             overflow: visible;
           }
           
@@ -541,8 +541,10 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
             font-size: ${exportSettings.bodyTextSize}px;
             line-height: ${exportSettings.lineSpacing}px;
             margin-bottom: 2px;
-            text-align: left;
+            text-align: ${exportSettings.alignTextLeftRight ? 'justify' : 'left'};
             overflow: visible;
+            text-indent: -8px;
+            padding-left: 8px;
           }
           
           .project-link {
