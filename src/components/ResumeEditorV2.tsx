@@ -8238,47 +8238,99 @@ export default function ResumeEditorV2({
         onClose={() => setDeleteConfirmOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: `0 8px 32px ${COLORS.shadow}`,
+            border: `1px solid ${COLORS.overlay}`,
+          }
+        }}
       >
-        <DialogTitle sx={{ pb: 1, fontWeight: 600 }}>
+        <DialogTitle 
+          sx={{ 
+            pb: 1, 
+            fontWeight: 600,
+            background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+            color: 'white',
+            borderRadius: '12px 12px 0 0',
+            textAlign: 'center'
+          }}
+        >
           Delete Resume
         </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" sx={{ mb: 2 }}>
+        <DialogContent sx={{ pt: 3, pb: 2 }}>
+          <Typography variant="body1" sx={{ my: 3, color: '#333', lineHeight: 1.6 }}>
             Are you sure you want to delete this resume? This action cannot be undone and will permanently remove all associated data including:
           </Typography>
-          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
-            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+          <Box 
+            component="ul" 
+            sx={{ 
+              px: 4,
+              py: 2,
+              mb: 3,
+              backgroundColor: COLORS.selectedBackground,
+              borderRadius: 2,
+              border: `1px solid ${COLORS.overlay}`
+            }}
+          >
+            <Typography component="li" variant="body2" sx={{ mb: 1, color: '#555' }}>
               Personal information and contact details
             </Typography>
-            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+            <Typography component="li" variant="body2" sx={{ mb: 1, color: '#555' }}>
               Work experience and education history
             </Typography>
-            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+            <Typography component="li" variant="body2" sx={{ mb: 1, color: '#555' }}>
               Skills, projects, and achievements
             </Typography>
-            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+            <Typography component="li" variant="body2" sx={{ mb: 1, color: '#555' }}>
               Profile picture and all other resume data
             </Typography>
           </Box>
-          <Typography variant="body2" color="error" fontWeight={500}>
-            This action cannot be undone.
-          </Typography>
+          <Box 
+            sx={{ 
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffeaa7',
+              borderRadius: 2,
+              p: 2,
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant="body2" color="#856404" fontWeight={600}>
+              ⚠️ This action cannot be undone.
+            </Typography>
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 1 }}>
+        <DialogActions sx={{ p: 3, pt: 1, gap: 2 }}>
           <Button
             onClick={() => setDeleteConfirmOpen(false)}
             variant="outlined"
-            sx={{ textTransform: 'none' }}
+            sx={{ 
+              textTransform: 'none',
+              borderColor: COLORS.primary,
+              color: COLORS.primary,
+              '&:hover': {
+                borderColor: COLORS.primaryDark,
+                backgroundColor: COLORS.selectedBackground,
+              }
+            }}
           >
             Cancel
           </Button>
           <Button
             onClick={confirmDelete}
             variant="contained"
-            color="error"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
-            sx={{ textTransform: 'none' }}
+            sx={{ 
+              textTransform: 'none',
+              backgroundColor: '#dc3545',
+              '&:hover': {
+                backgroundColor: '#c82333',
+              },
+              '&:disabled': {
+                backgroundColor: '#6c757d',
+              }
+            }}
           >
             {loading ? 'Deleting...' : 'Delete Resume'}
           </Button>
