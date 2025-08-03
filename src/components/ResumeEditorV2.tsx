@@ -7,7 +7,7 @@
 // - Users can re-add deleted sections through the "Add Section" button
 // - Section order and deletion state are saved automatically
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -371,6 +371,14 @@ export default function ResumeEditorV2({
   const [previewHtml, setPreviewHtml] = useState<string>('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string>('');
+  
+  // Cache for preview results to avoid unnecessary API calls
+  const previewCache = useRef<Map<string, string>>(new Map());
+  
+  // Create a cache key from export settings
+  const getCacheKey = useCallback((): string => {
+    return JSON.stringify(exportSettings) || '';
+  }, [exportSettings]);
 
   // Autosave state
 
@@ -406,6 +414,20 @@ export default function ResumeEditorV2({
   // Load PDF preview when export panel opens or settings change
   useEffect(() => {
     if (exportPanelOpen && resumeId) {
+      // Create AbortController for request cancellation
+      const abortController = new AbortController();
+      
+      // Check cache first
+      const cacheKey = getCacheKey();
+      const cachedHtml = cacheKey ? previewCache.current.get(cacheKey) : undefined;
+      
+      if (cachedHtml) {
+        setPreviewHtml(cachedHtml);
+        setPreviewLoading(false);
+        setPreviewError('');
+        return;
+      }
+      
       // Debounce the API call to avoid excessive requests
       const timeoutId = setTimeout(async () => {
         try {
@@ -419,6 +441,7 @@ export default function ResumeEditorV2({
             body: JSON.stringify({
               exportSettings: exportSettings
             }),
+            signal: abortController.signal,
           });
           
           if (!response.ok) {
@@ -426,18 +449,35 @@ export default function ResumeEditorV2({
           }
           
           const htmlContent = await response.text();
+          
+          // Cache the result
+          previewCache.current.set(cacheKey, htmlContent);
+          
+          // Limit cache size to prevent memory issues
+          if (previewCache.current.size > 20) {
+            const firstKey = previewCache.current.keys().next().value;
+            previewCache.current.delete(firstKey);
+          }
+          
           setPreviewHtml(htmlContent);
         } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') {
+            // Request was cancelled, don't show error
+            return;
+          }
           console.error('Error loading preview:', err);
           setPreviewError('Failed to load preview');
         } finally {
           setPreviewLoading(false);
         }
-      }, 300); // 300ms debounce
+      }, 150); // Reduced to 150ms for faster response
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(timeoutId);
+        abortController.abort(); // Cancel any pending request
+      };
     }
-  }, [exportPanelOpen, resumeId, exportSettings]);
+  }, [exportPanelOpen, resumeId, getCacheKey]);
 
   const [sectionOrder, setSectionOrder] = useState([
     "Personal Info",
