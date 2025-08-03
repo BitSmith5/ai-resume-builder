@@ -36,7 +36,7 @@ const formatDate = (dateString: string): string => {
   try {
     // Handle date strings in YYYY-MM-DD format to avoid timezone issues
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const [year, month, day] = dateString.split('-').map(Number);
+      const [year, month] = dateString.split('-').map(Number);
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return `${months[month - 1]} ${year}`; // month - 1 because array is 0-indexed
@@ -52,7 +52,7 @@ const formatDate = (dateString: string): string => {
     const year = date.getFullYear();
     
     return `${month} ${year}`;
-  } catch (error) {
+  } catch {
     return dateString; // Return original if parsing fails
   }
 };
@@ -69,7 +69,7 @@ const formatPhoneNumber = (phone: string): string => {
 };
 
 // Function to render sections with pagination logic
-const renderSectionWithPagination = (sectionName: string, resumeData: any): string => {
+const renderSectionWithPagination = (sectionName: string, resumeData: unknown): string => {
   const sectionData = getSectionData(sectionName, resumeData);
   if (!sectionData || !sectionData.subsections || sectionData.subsections.length === 0) return '';
 
@@ -887,44 +887,7 @@ function splitContentIntoSections(htmlContent: string): string[] {
 }
 
 // Helper function to split a long section into smaller parts
-function splitLongSection(section: string, maxHeight: number, exportSettings: ExportSettings): string[] {
-  const parts: string[] = [];
-  const entries = section.match(/<div class="entry">[\s\S]*?<\/div>/g) || [];
-  
-  if (entries.length === 0) {
-    return [section];
-  }
-  
-  let currentPart = '';
-  let currentHeight = 0;
-  const sectionHeader = section.match(/<div class="section-header">[\s\S]*?<\/div>/)?.[0] || '';
-  
-  // Add section header to first part
-  if (sectionHeader) {
-    currentPart = sectionHeader;
-    currentHeight = exportSettings.sectionHeadersSize * (exportSettings.lineSpacing / 10) + 10;
-  }
-  
-  entries.forEach((entry) => {
-    const entryHeight = estimateEntryHeight(entry, exportSettings);
-    
-    if (currentHeight + entryHeight > maxHeight && currentPart.trim()) {
-      // Start new part
-      parts.push(currentPart);
-      currentPart = '';
-      currentHeight = 0;
-    }
-    
-    currentPart += entry;
-    currentHeight += entryHeight;
-  });
-  
-  if (currentPart.trim()) {
-    parts.push(currentPart);
-  }
-  
-  return parts;
-}
+
 
 // Helper function to estimate the height of a section part
 // Shared spacing constants for consistent calculations
@@ -1132,7 +1095,6 @@ function estimateSubsectionHeight(subsection: any, exportSettings: ExportSetting
     height += lineHeight; // Skill name
   } else if (subsection.name && subsection.proficiency) {
     // Languages
-    const langText = `${subsection.name} (${subsection.proficiency})`;
     height += lineHeight;
   } else if (subsection.name && subsection.title && subsection.company) {
     // References
@@ -1215,331 +1177,4 @@ export function generateCompleteHtml(resumeData: any, activeSections: string[], 
   
   // For both preview and PDF, use the processed HTML content directly
   return htmlContent;
-  
-  // Calculate proper page dimensions based on page size (in points)
-  const pageDimensions = {
-    letter: { width: 612, height: 792 }, // 8.5" x 11" in points (72 DPI)
-    a4: { width: 595, height: 842 }      // A4 in points (72 DPI)
-  };
-  
-  const pageSize = exportSettings.pageSize === 'letter' ? 'letter' : 'a4';
-  const pageWidth = pageDimensions[pageSize].width;
-  const pageHeight = pageDimensions[pageSize].height;
-  
-  // Calculate content area (page minus margins)
-  const contentWidth = pageWidth - (exportSettings.sideMargins * 2);
-  const contentHeight = pageHeight - (exportSettings.topBottomMargin * 2);
-  
-  // Calculate pagination
-  const estimatedLineHeight = exportSettings.bodyTextSize * (exportSettings.lineSpacing / 10); // line-height
-  const headerHeight = exportSettings.nameSize + exportSettings.bodyTextSize + 20; // name + job title + margins
-  const contactHeight = 20; // contact info height
-  const sectionHeaderHeight = exportSettings.sectionHeadersSize + 10; // section header + margin
-  
-  // Estimate content height for each section
-  let totalContentHeight = headerHeight + contactHeight;
-  
-  activeSections.forEach(sectionName => {
-    const sectionData = getSectionData(sectionName, resumeData);
-    if (sectionData) {
-      totalContentHeight += sectionHeaderHeight;
-      totalContentHeight += estimateSectionHeight(sectionData, exportSettings);
-    }
-  });
-  
-  // Calculate number of pages needed
-  const pagesNeeded = Math.ceil(totalContentHeight / contentHeight);
-  
-  // Convert points to pixels for preview (72 DPI)
-  const pageWidthPx = pageWidth * (96 / 72); // Convert points to pixels (96 DPI for screen)
-  const pageHeightPx = pageHeight * (96 / 72);
-  const contentHeightPx = contentHeight * (96 / 72);
-
-  // Create complete HTML with export settings applied
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>${resumeData.title} - Resume</title>
-        <style>
-          * {
-            box-sizing: border-box;
-            overflow: visible;
-          }
-          
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
-            color: #000;
-            font-family: '${exportSettings.fontFamily || 'Times New Roman'}', serif;
-            line-height: 1.4;
-            overflow: visible;
-          }
-          
-                                .resume-container {
-             width: 100%;
-             max-width: ${isPreview ? '100%' : `${pageWidthPx}px`};
-             margin: 0 auto;
-             ${isPreview ? '' : `padding: ${exportSettings.topBottomMargin}px ${exportSettings.sideMargins}px;`}
-             background: white;
-             position: relative;
-             box-sizing: border-box;
-             ${isPreview ? '' : 'border: none; box-shadow: none;'}
-             overflow: visible;
-           }
-           
-           .resume-content {
-             width: 100%;
-             margin: 0 auto;
-             overflow: visible;
-           }
-          
-          .header {
-            text-align: center;
-            margin-bottom: 16px;
-            overflow: visible;
-            display: block;
-          }
-          
-          .name {
-            font-size: ${exportSettings.nameSize}px;
-            font-weight: normal;
-            margin-bottom: 4px;
-            overflow: visible;
-            display: block;
-          }
-          
-          .job-title {
-            font-size: ${exportSettings.bodyTextSize}px;
-            margin-bottom: 4px;
-            padding-bottom: 0;
-            overflow: visible;
-            display: block;
-          }
-          
-          .contact-info {
-            text-align: center;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0;
-            flex-wrap: wrap;
-            overflow: visible;
-          }
-          
-          .contact-link {
-            color: #000000;
-            text-decoration: underline;
-            cursor: pointer;
-          }
-          
-          .contact-separator {
-            margin: 0 8px;
-            color: #000000;
-          }
-          
-          .section {
-            margin-bottom: 16px;
-            overflow: visible;
-            display: block;
-          }
-          
-          .section-header {
-            font-size: ${exportSettings.sectionHeadersSize}px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #000;
-            overflow: visible;
-            display: block;
-          }
-          
-          .sub-header {
-            font-size: ${exportSettings.subHeadersSize}px;
-            font-weight: bold;
-            margin-bottom: 6px;
-          }
-          
-          .entry {
-            margin-bottom: 12px;
-            overflow: visible;
-            display: block;
-          }
-          
-          .entry-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 4px;
-            overflow: visible;
-          }
-          
-          .entry-title {
-            font-weight: bold;
-            overflow: visible;
-            display: block;
-          }
-          
-          .entry-company {
-            font-weight: bold;
-            overflow: visible;
-            display: block;
-          }
-          
-          .entry-position {
-            font-style: italic;
-            margin-bottom: 4px;
-            overflow: visible;
-            display: block;
-          }
-          
-          .entry-date {
-            font-weight: bold;
-            text-align: right;
-            overflow: visible;
-            display: block;
-          }
-          
-          /* Work Experience left alignment */
-          .section-header,
-          .entry-company,
-          .entry-position,
-          .bullet-points,
-          .bullet-point {
-            text-align: left;
-          }
-          
-          .bullet-points {
-            margin-left: 20px;
-            overflow: visible;
-            display: block;
-          }
-          
-          .bullet-point {
-            line-height: ${exportSettings.lineSpacing / 10};
-            padding-left: 16px;
-            text-indent: -16px;
-            overflow: visible;
-            display: block;
-          }
-          
-          .body-text {
-            line-height: ${exportSettings.lineSpacing / 10};
-            overflow: visible;
-            display: block;
-          }
-          
-          .project-link {
-            color: #0066cc;
-            text-decoration: none;
-            font-weight: bold;
-          }
-          
-          .project-link:hover {
-            text-decoration: underline;
-          }
-          
-                     @page {
-             size: ${exportSettings.pageSize === 'letter' ? 'letter' : 'A4'};
-             margin: 0;
-           }
-           
-           @media print {
-             body {
-               -webkit-print-color-adjust: exact;
-               color-adjust: exact;
-             }
-           }
-           
-                       /* Pagination styles for both preview and PDF */
-            .page-break {
-              page-break-before: always;
-              break-before: page;
-            }
-            
-            .page-break-after {
-              page-break-after: always;
-              break-after: page;
-            }
-            
-            .avoid-break {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            /* Ensure sections don't break in the middle */
-            .section {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            /* Ensure entries don't break in the middle */
-            .entry {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            /* Ensure bullet points stay with their parent */
-            .bullet-points {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-                         /* Preview page specific styles */
-             .preview-page {
-               page-break-after: always;
-               break-after: page;
-               margin-bottom: 0;
-               background: white;
-               position: relative;
-               overflow: visible;
-               display: block;
-               clear: both;
-               border: 1px solid #ccc;
-               box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-             }
-            
-                         /* Remove borders and spacing for PDF download */
-             @media print {
-               .preview-page {
-                 border: none;
-                 box-shadow: none;
-                 margin-bottom: 0;
-               }
-               
-               /* Remove spacing divs in PDF */
-               .page-spacing {
-                 display: none !important;
-               }
-             }
-            
-            .page-content {
-              position: relative;
-              overflow: visible;
-              height: 100%;
-            }
-            
-            /* Ensure content stays within page boundaries */
-            .preview-page .section:last-child {
-              margin-bottom: 0;
-            }
-            
-            .preview-page .entry:last-child {
-              margin-bottom: 0;
-            }
-        </style>
-      </head>
-      <body>
-        <div class="resume-container">
-          <div class="resume-content">
-            ${htmlContent}
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-
-  return html;
 } 
