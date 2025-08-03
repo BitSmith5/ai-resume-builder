@@ -10,7 +10,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Stack,
   Chip,
 } from "@mui/material";
 import {
@@ -18,8 +17,6 @@ import {
   Security as SecurityIcon,
   Speed as SpeedIcon,
   Palette as DesignIcon,
-  CloudDone as CloudIcon,
-  Star as StarIcon,
 } from "@mui/icons-material";
 import { COLORS } from "@/lib/colorSystem";
 
