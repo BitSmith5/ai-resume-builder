@@ -14,8 +14,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import StarIcon from "@mui/icons-material/Star";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ArticleIcon from "@mui/icons-material/Article";
 import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { COLORS } from '@/lib/colorSystem';
@@ -98,14 +97,11 @@ export default function ResumePage() {
     if (title.toLowerCase().includes('full-stack') || title.toLowerCase().includes('developer')) {
       return 'B';
     }
-    return '?';
+    return <ArticleIcon sx={{ color: COLORS.primary }} />;
   };
 
   const getResumeIconColor = (title: string) => {
-    if (title.toLowerCase().includes('full-stack') || title.toLowerCase().includes('developer')) {
-      return COLORS.primary; // Use primary color from color system
-    }
-    return '#9E9E9E'; // Gray for others - keeping gray as requested
+    return 'transparent'; // Use transparent background for all resumes
   };
 
   const handleResumeClick = (resumeId: number) => {
@@ -244,91 +240,72 @@ export default function ResumePage() {
                 {/* Resume Rows */}
                 {resumes.map((resume, index) => (
                   <Box key={resume.id}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        py: 2,
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onClick={() => handleResumeClick(resume.id)}
-                    >
-                      {/* Resume Column */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '35%' }}>
-                        <Avatar
-                          sx={{
-                            bgcolor: getResumeIconColor(resume.title),
-                            color: getResumeIconColor(resume.title) === COLORS.primary ? 'white' : 'white',
-                            width: 32,
-                            height: 32,
-                            fontSize: '0.9rem',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          {getResumeIcon(resume.title)}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-                            {resume.title}
-                          </Typography>
-                          <Stack direction="row" spacing={1}>
-                            {index === 0 && (
-                              <Chip
-                                label="PRIMARY"
-                                size="small"
-                                icon={<StarIcon />}
-                                sx={{
-                                  bgcolor: COLORS.primary,
-                                  color: 'white',
-                                  fontSize: '0.7rem',
-                                  height: 20
-                                }}
-                              />
-                            )}
-                            <Chip
-                              label="Analysis Complete"
-                              size="small"
-                              icon={<CheckCircleIcon />}
-                              sx={{
-                                bgcolor: COLORS.backgroundLight,
-                                color: COLORS.primary,
-                                fontSize: '0.7rem',
-                                height: 20
-                              }}
-                            />
-                          </Stack>
-                        </Box>
-                      </Box>
+                                         <Box
+                       sx={{
+                         display: 'flex',
+                         alignItems: 'center',
+                         py: 2,
+                         cursor: 'pointer',
+                         transition: 'background-color 0.2s',
+                         minHeight: 60
+                       }}
+                       onClick={() => handleResumeClick(resume.id)}
+                     >
+                       {/* Resume Column */}
+                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '35%' }}>
+                         <Avatar
+                           sx={{
+                             bgcolor: getResumeIconColor(resume.title),
+                             color: getResumeIconColor(resume.title) === COLORS.primary ? 'white' : 'white',
+                             width: 32,
+                             height: 32,
+                             fontSize: '0.9rem',
+                             fontWeight: 'bold'
+                           }}
+                         >
+                           {getResumeIcon(resume.title)}
+                         </Avatar>
+                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                           <Typography variant="body2" fontWeight={500}>
+                             {resume.title}
+                           </Typography>
+                         </Box>
+                       </Box>
 
-                      {/* Target Job Title Column */}
-                      <Typography variant="body2" color="text.secondary" sx={{ width: '30%' }}>
-                        {resume.jobTitle || '-'}
-                      </Typography>
+                       {/* Target Job Title Column */}
+                       <Box sx={{ display: 'flex', alignItems: 'center', width: '30%' }}>
+                         <Typography variant="body2" color="text.secondary">
+                           {resume.jobTitle || '-'}
+                         </Typography>
+                       </Box>
 
-                      {/* Last Modified Column */}
-                      <Typography variant="body2" color="text.secondary" sx={{ width: '15%' }}>
-                        {formatTimeAgo(resume.updatedAt)}
-                      </Typography>
+                       {/* Last Modified Column */}
+                       <Box sx={{ display: 'flex', alignItems: 'center', width: '15%' }}>
+                         <Typography variant="body2" color="text.secondary">
+                           {formatTimeAgo(resume.updatedAt)}
+                         </Typography>
+                       </Box>
 
-                      {/* Created Column */}
-                      <Typography variant="body2" color="text.secondary" sx={{ width: '15%' }}>
-                        {formatTimeAgo(resume.createdAt)}
-                      </Typography>
+                       {/* Created Column */}
+                       <Box sx={{ display: 'flex', alignItems: 'center', width: '15%' }}>
+                         <Typography variant="body2" color="text.secondary">
+                           {formatTimeAgo(resume.createdAt)}
+                         </Typography>
+                       </Box>
 
-                      {/* Actions Column */}
-                      <Box sx={{ width: '5%', display: 'flex', justifyContent: 'flex-end' }}>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle menu actions
-                          }}
-                        >
-                          <MoreHorizIcon />
-                        </IconButton>
-                      </Box>
-                    </Box>
+                       {/* Actions Column */}
+                       <Box sx={{ width: '5%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                         <IconButton
+                           size="small"
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             // Handle menu actions
+                           }}
+                         >
+                           <MoreHorizIcon />
+                         </IconButton>
+                       </Box>
+                     </Box>
                     {index < resumes.length - 1 && <Divider />}
                   </Box>
                 ))}
