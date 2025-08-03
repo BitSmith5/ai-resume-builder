@@ -13,7 +13,7 @@ import {
   CircularProgress
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import StarIcon from "@mui/icons-material/Star";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRouter } from "next/navigation";
@@ -325,7 +325,7 @@ export default function ResumePage() {
                             // Handle menu actions
                           }}
                         >
-                          <MoreVertIcon />
+                          <MoreHorizIcon />
                         </IconButton>
                       </Box>
                     </Box>
