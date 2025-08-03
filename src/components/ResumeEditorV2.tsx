@@ -32,6 +32,10 @@ import {
   FormControlLabel,
   Stack,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -254,6 +258,7 @@ export default function ResumeEditorV2({
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
   const [pdfDownloading, setPdfDownloading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -6408,6 +6413,42 @@ export default function ResumeEditorV2({
     }
   };
 
+  const handleDeleteResume = async () => {
+    if (!resumeId) {
+      setError("No resume ID found");
+      return;
+    }
+
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setLoading(true);
+      setDeleteConfirmOpen(false);
+      
+      const response = await fetch(`/api/resumes/${resumeId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setSuccess("Resume deleted successfully");
+        // Redirect to resume page after a short delay
+        setTimeout(() => {
+          router.push("/dashboard/resume");
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to delete resume");
+      }
+    } catch (error) {
+      console.error("Error deleting resume:", error);
+      setError("An error occurred while deleting the resume");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
   return (
@@ -6550,12 +6591,14 @@ export default function ResumeEditorV2({
               variant="text"
               size="small"
               startIcon={<DeleteIcon />}
+              onClick={handleDeleteResume}
+              disabled={loading}
               sx={{ 
                 textTransform: 'none', 
                 fontWeight: 500,
                 backgroundColor: 'white',
                 border: 'none',
-                color: '#ccc',
+                color: loading ? '#ccc' : '#d32f2f',
                 borderRadius: 2,
                 display: 'flex',
                 alignItems: 'center',
@@ -6563,12 +6606,11 @@ export default function ResumeEditorV2({
                 px: 2,
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 '&:hover': {
-                  backgroundColor: '#fafafa',
+                  backgroundColor: loading ? '#fafafa' : '#ffebee',
                 }
               }}
-              disabled
             >
-            Delete
+            {loading ? 'Deleting...' : 'Delete'}
           </Button>
         </Box>
       </Box>
@@ -8189,6 +8231,59 @@ export default function ResumeEditorV2({
           </Stack>
         </Box>
       </Drawer>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ pb: 1, fontWeight: 600 }}>
+          Delete Resume
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Are you sure you want to delete this resume? This action cannot be undone and will permanently remove all associated data including:
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
+            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+              Personal information and contact details
+            </Typography>
+            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+              Work experience and education history
+            </Typography>
+            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+              Skills, projects, and achievements
+            </Typography>
+            <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+              Profile picture and all other resume data
+            </Typography>
+          </Box>
+          <Typography variant="body2" color="error" fontWeight={500}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            onClick={() => setDeleteConfirmOpen(false)}
+            variant="outlined"
+            sx={{ textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmDelete}
+            variant="contained"
+            color="error"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
+            sx={{ textTransform: 'none' }}
+          >
+            {loading ? 'Deleting...' : 'Delete Resume'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
 );
 } 
