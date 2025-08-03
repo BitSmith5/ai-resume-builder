@@ -26,6 +26,7 @@ import {
   Person as ProfileIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
+import { COLORS } from "@/lib/colorSystem";
 
 const drawerWidth = 240;
 
@@ -97,14 +98,38 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </Typography>
       </Toolbar>
       <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton onClick={() => router.push(item.path)}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        {menuItems.map((item) => {
+          const isSelected = pathname === item.path || 
+                           (item.path === "/dashboard/resume" && pathname?.startsWith("/dashboard/resume"));
+          
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+              <ListItemButton 
+                onClick={() => router.push(item.path)}
+                sx={{
+                  mx: 1,
+                  borderRadius: '20px',
+                  backgroundColor: isSelected ? COLORS.selectedBackground : 'transparent',
+                  color: isSelected ? COLORS.primary : 'inherit',
+                  '&:hover': {
+                    backgroundColor: COLORS.selectedBackground,
+                    borderRadius: '20px',
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: isSelected ? COLORS.primary : 'inherit',
+                  },
+                  '& .MuiListItemText-primary': {
+                    fontWeight: isSelected ? 600 : 400,
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
     </Box>
   );
