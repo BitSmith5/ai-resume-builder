@@ -366,6 +366,11 @@ export default function ResumeEditorV2({
     pageHeight: 1100,
   });
 
+  // PDF Preview state
+  const [previewHtml, setPreviewHtml] = useState<string>('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string>('');
+
   // Autosave state
 
 
@@ -394,6 +399,44 @@ export default function ResumeEditorV2({
       }
     };
   }, []);
+
+
+
+  // Load PDF preview when export panel opens or settings change
+  useEffect(() => {
+    if (exportPanelOpen && resumeId) {
+      // Debounce the API call to avoid excessive requests
+      const timeoutId = setTimeout(async () => {
+        try {
+          setPreviewLoading(true);
+          setPreviewError('');
+          const response = await fetch(`/api/resumes/${resumeId}/pdf-html`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              exportSettings: exportSettings
+            }),
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to load preview');
+          }
+          
+          const htmlContent = await response.text();
+          setPreviewHtml(htmlContent);
+        } catch (err) {
+          console.error('Error loading preview:', err);
+          setPreviewError('Failed to load preview');
+        } finally {
+          setPreviewLoading(false);
+        }
+      }, 300); // 300ms debounce
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [exportPanelOpen, resumeId, exportSettings]);
 
   const [sectionOrder, setSectionOrder] = useState([
     "Personal Info",
@@ -6315,29 +6358,22 @@ export default function ResumeEditorV2({
       setSuccess('');
       setError('');
 
-      // Scale down font sizes for PDF generation (points-based scaling)
+      // Use the same export settings for PDF as preview - NO SCALING
       const pdfExportSettings = {
-        ...exportSettings,
-        nameSize: Math.max(16, (exportSettings.nameSize || 40) * 0.6),
-        sectionHeadersSize: Math.max(12, (exportSettings.sectionHeadersSize || 14) * 0.6),
-        subHeadersSize: Math.max(10, (exportSettings.subHeadersSize || 10.5) * 0.6),
-        bodyTextSize: Math.max(8, (exportSettings.bodyTextSize || 11) * 0.6),
-        lineSpacing: Math.max(1.2, (exportSettings.lineSpacing || 12) * 0.1),
-        // Reduce margins to give more space for content
-        sideMargins: Math.max(20, (exportSettings.sideMargins || 33) * 0.8),
-        topBottomMargin: Math.max(20, (exportSettings.topBottomMargin || 33) * 0.8),
+        ...exportSettings
       };
 
       console.log('🎯 PDF export settings (scaled):', pdfExportSettings);
 
-      // Call the PDF generation API with proper link support
-      const response = await fetch(`/api/resumes/${resumeId}/pdf-with-links`, {
+      // Call the unified PDF generation API
+      const response = await fetch(`/api/resumes/${resumeId}/pdf-html`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          exportSettings: pdfExportSettings
+          exportSettings: pdfExportSettings,
+          generatePdf: true
         }),
       });
 
@@ -7246,28 +7282,23 @@ export default function ResumeEditorV2({
             <Box sx={{ 
               flex: 1, 
               overflowY: 'auto', 
+              overflowX: 'hidden',
               pr: 1,
               '&::-webkit-scrollbar': {
-                width: '10px',
+                width: '8px',
               },
               '&::-webkit-scrollbar-track': {
-                background: 'transparent',
-                marginLeft: '4px',
+                background: 'white',
               },
               '&::-webkit-scrollbar-thumb': {
-                background: '#b0b0b0',
-                borderRadius: '5px',
+                background: 'white',
+                borderRadius: '4px',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                background: '#909090',
+                background: 'rgba(0, 0, 0, 0.05)',
               },
               '&::-webkit-scrollbar-button': {
-                display: 'block',
-                height: '8px',
-                border: 'none',
-              },
-              '&::-webkit-scrollbar-button:hover': {
-                // No background
+                display: 'none',
               },
             }}>
 
@@ -7276,74 +7307,42 @@ export default function ResumeEditorV2({
 
               {/* Resume Preview */}
               <Box sx={{ 
-                overflow: 'visible',
-                height: 'calc(100vh - 200px)', // Extend to bottom of export panel
+                overflowY: 'visible',
+                overflowX: 'hidden',
+                height: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                pb: 2,
               }}>
-                {/* Transform data for ClassicResumeTemplate */}
-                {(() => {
-                  const transformedData = {
-                    title: resumeData.title,
-                    jobTitle: resumeData.jobTitle,
-                    profilePicture: resumeData.profilePicture,
-                    fontFamily: exportSettings.fontFamily,
-                    nameSize: exportSettings.nameSize,
-                    sectionHeadersSize: exportSettings.sectionHeadersSize,
-                    subHeadersSize: exportSettings.subHeadersSize,
-                    bodyTextSize: exportSettings.bodyTextSize,
-                    sectionSpacing: exportSettings.sectionSpacing,
-                    entrySpacing: exportSettings.entrySpacing,
-                    lineSpacing: exportSettings.lineSpacing,
-                    topBottomMargin: exportSettings.topBottomMargin,
-                    sideMargins: exportSettings.sideMargins,
-                    alignTextLeftRight: exportSettings.alignTextLeftRight,
-                    pageWidth: exportSettings.pageWidth,
-                    pageHeight: exportSettings.pageHeight,
-                    sectionOrder: sectionOrder,
-                    content: resumeData.content,
-                    strengths: resumeData.strengths,
-                    skillCategories: resumeData.skillCategories,
-                    workExperience: resumeData.workExperience.map(exp => ({
-                      company: exp.company,
-                      position: exp.position,
-                      startDate: exp.startDate,
-                      endDate: exp.endDate,
-                      current: exp.current,
-                      city: exp.location,
-                      bulletPoints: exp.bulletPoints
-                    })),
-                    education: resumeData.education,
-                    courses: resumeData.courses,
-                    interests: resumeData.interests,
-                    projects: resumeData.projects,
-                    languages: resumeData.languages,
-                    publications: resumeData.publications,
-                    awards: resumeData.awards,
-                    volunteerExperience: resumeData.volunteerExperience,
-                    references: resumeData.references
-                  };
-                  
-                  return (
-                    <Box sx={{ 
-                      transform: 'scale(0.80)', 
-                      transformOrigin: 'top left',
-                      width: '125%', // 100% / 0.80 = 125%
-                      height: '125%',
-                    }}>
-                                            {/* Word-style multi-page preview */}
-                      <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '20px',
-                        alignItems: 'center'
-                      }}>
-                        <ClassicResumeTemplate 
-                          key={`${exportSettings.sectionHeadersSize}-${exportSettings.subHeadersSize}-${exportSettings.bodyTextSize}-${exportSettings.sectionSpacing}-${exportSettings.entrySpacing}-${exportSettings.lineSpacing}-${exportSettings.topBottomMargin}-${exportSettings.sideMargins}-${exportSettings.pageWidth}-${exportSettings.pageHeight}`}
-                          data={transformedData} 
-                        />
-                      </Box>
-                    </Box>
-                  );
-                })()}
+                {previewLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <CircularProgress />
+                  </Box>
+                ) : previewError ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <Alert severity="error">{previewError}</Alert>
+                  </Box>
+                ) : previewHtml ? (
+                  <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    transform: 'scale(0.80)', 
+                    transformOrigin: 'top left',
+                    minHeight: 'fit-content',
+                    width: '100%',
+                  }}>
+                    <div 
+                      dangerouslySetInnerHTML={{ __html: previewHtml }}
+                      style={{ 
+                        width: '100%', 
+                        margin: 0, 
+                        padding: 0,
+                      }}
+                    />
+                  </Box>
+                ) : null}
               </Box>
             </Box>
 
@@ -7360,11 +7359,11 @@ export default function ResumeEditorV2({
                 marginLeft: '4px',
               },
               '&::-webkit-scrollbar-thumb': {
-                background: '#b0b0b0',
+                background: '#ccc',
                 borderRadius: '5px',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                background: '#909090',
+                background: '#999',
               },
               '&::-webkit-scrollbar-button': {
                 display: 'block',

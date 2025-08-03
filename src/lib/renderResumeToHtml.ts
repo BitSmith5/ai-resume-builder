@@ -22,6 +22,14 @@ interface ResumeData {
     skillName: string;
     rating: number;
   }>;
+  skillCategories?: Array<{
+    id: string;
+    title: string;
+    skills: Array<{
+      id: string;
+      name: string;
+    }>;
+  }>;
   workExperience: Array<{
     company: string;
     position: string;
@@ -51,6 +59,45 @@ interface ResumeData {
   interests?: Array<{
     name: string;
     icon: string;
+  }>;
+  projects?: Array<{
+    title: string;
+    description: string;
+    technologies: string[];
+    link?: string;
+  }>;
+  languages?: Array<{
+    name: string;
+    proficiency: string;
+  }>;
+  publications?: Array<{
+    title: string;
+    authors: string;
+    journal: string;
+    year: string;
+    link?: string;
+  }>;
+  awards?: Array<{
+    title: string;
+    issuer: string;
+    year: string;
+    description?: string;
+  }>;
+  volunteerExperience?: Array<{
+    organization: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    description: string;
+  }>;
+  references?: Array<{
+    name: string;
+    title: string;
+    company: string;
+    email: string;
+    phone: string;
+    relationship: string;
   }>;
 }
 
@@ -770,7 +817,467 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
   const getPageHeight = () => exportSettings?.pageHeight || 1100;
   const getAlignTextLeftRight = () => exportSettings?.alignTextLeftRight || false;
 
-  // Render header - matches React component exactly
+  // Use the section order from data or fall back to default order
+  const defaultSectionOrder = [
+    'Professional Summary',
+    'Technical Skills',
+    'Work Experience',
+    'Education',
+    'Projects',
+    'Courses',
+    'Languages',
+    'Publications',
+    'Awards',
+    'Volunteer Experience',
+    'References',
+    'Skills',
+    'Interests'
+  ];
+  
+  const sectionOrder = data.sectionOrder || defaultSectionOrder;
+  
+  // Filter out sections that have no data
+  const sectionsWithData = sectionOrder.filter(section => {
+    switch (section) {
+      case 'Professional Summary':
+        return personalInfo.summary && personalInfo.summary.trim() !== '';
+      case 'Technical Skills':
+        return (data.strengths && data.strengths.length > 0) || (data.skillCategories && data.skillCategories.length > 0);
+      case 'Work Experience':
+        return (data.workExperience && data.workExperience.length > 0);
+      case 'Education':
+        return (data.education && data.education.length > 0);
+      case 'Projects':
+        return (data.projects && data.projects.length > 0);
+      case 'Courses':
+        return (data.courses && data.courses.length > 0);
+      case 'Languages':
+        return (data.languages && data.languages.length > 0);
+      case 'Publications':
+        return (data.publications && data.publications.length > 0);
+      case 'Awards':
+        return (data.awards && data.awards.length > 0);
+      case 'Volunteer Experience':
+        return (data.volunteerExperience && data.volunteerExperience.length > 0);
+      case 'References':
+        return (data.references && data.references.length > 0);
+      case 'Skills':
+        return (data.strengths && data.strengths.length > 0);
+      case 'Interests':
+        return (data.interests && data.interests.length > 0);
+      default:
+        return false;
+    }
+  });
+
+  // Helper function to get subsections for each section
+  const getSubsections = (sectionName: string) => {
+    switch (sectionName) {
+      case 'Professional Summary':
+        return [{ id: 'professional-summary', name: 'Professional Summary', isFirst: true }];
+      case 'Technical Skills':
+        const subsections = [];
+        
+        // Add strengths as first subsection
+        if (data.strengths && data.strengths.length > 0) {
+          subsections.push({ 
+            id: 'technical-skills-strengths', 
+            name: 'Strengths', 
+            isFirst: true 
+          });
+        }
+        
+        // Add skill categories as separate subsections
+        if (data.skillCategories && data.skillCategories.length > 0) {
+          data.skillCategories.forEach((category, index) => {
+            subsections.push({ 
+              id: `technical-skills-category-${index}`, 
+              name: category.title, 
+              isFirst: index === 0 && subsections.length === 0 // First category is first if no strengths exist
+            });
+          });
+        }
+        
+        // If no strengths or categories, return a default subsection
+        if (subsections.length === 0) {
+          subsections.push({ 
+            id: 'technical-skills', 
+            name: 'Technical Skills', 
+            isFirst: true 
+          });
+        }
+        
+        return subsections;
+      case 'Work Experience':
+        return (data.workExperience || []).map((work, index) => ({
+          id: `work-${index}`,
+          name: `${work.position} at ${work.company}`,
+          isFirst: index === 0
+        }));
+      case 'Education':
+        return (data.education || []).map((edu, index) => ({
+          id: `education-${index}`,
+          name: `${edu.degree} at ${edu.institution}`,
+          isFirst: index === 0
+        }));
+      case 'Courses':
+        return (data.courses || []).map((course, index) => ({
+          id: `course-${index}`,
+          name: `${course.title} - ${course.provider}`,
+          isFirst: index === 0
+        }));
+      case 'Projects':
+        return (data.projects || []).map((project, index) => ({
+          id: `project-${index}`,
+          name: project.title,
+          isFirst: index === 0
+        }));
+      case 'Languages':
+        return [{ id: 'languages', name: 'Languages', isFirst: true }];
+      case 'Publications':
+        return (data.publications || []).map((pub, index) => ({
+          id: `publication-${index}`,
+          name: pub.title,
+          isFirst: index === 0
+        }));
+      case 'Awards':
+        return (data.awards || []).map((award, index) => ({
+          id: `award-${index}`,
+          name: award.title,
+          isFirst: index === 0
+        }));
+      case 'Volunteer Experience':
+        return (data.volunteerExperience || []).map((volunteer, index) => ({
+          id: `volunteer-${index}`,
+          name: `${volunteer.position} at ${volunteer.organization}`,
+          isFirst: index === 0
+        }));
+      case 'References':
+        return (data.references || []).map((reference, index) => ({
+          id: `reference-${index}`,
+          name: `${reference.name} - ${reference.title}`,
+          isFirst: index === 0
+        }));
+      case 'Interests':
+        return [{ id: 'interests', name: 'Interests', isFirst: true }];
+      default:
+        return [{ id: sectionName.toLowerCase().replace(/\s+/g, '-'), name: sectionName, isFirst: true }];
+    }
+  };
+
+  // Helper function to estimate subsection heights
+  const getEstimatedSubsectionHeight = (sectionName: string, subsection: { id: string; name: string; isFirst: boolean }): number => {
+    const sectionHeadersSize = getSectionHeadersSize();
+    const subHeadersSize = getSubHeadersSize();
+    const bodyTextSize = getBodyTextSize();
+    const lineSpacing = getLineSpacing();
+    const entrySpacing = getEntrySpacing();
+    
+    const sectionHeaderHeight = sectionHeadersSize + 6;
+    const subHeaderHeight = subHeadersSize + 2;
+    const bodyLineHeight = Math.max(bodyTextSize + 1, lineSpacing - 1);
+    
+    if (subsection.isFirst) {
+      const firstSubsectionMargin = 1;
+      switch (sectionName) {
+        case 'Professional Summary':
+          return sectionHeaderHeight + (bodyLineHeight * 2) + firstSubsectionMargin;
+        case 'Technical Skills':
+          // Handle individual technical skills subsections
+          if (subsection.id === 'technical-skills-strengths') {
+            const strengthsCount = data.strengths?.length || 0;
+            const strengthsHeight = strengthsCount * bodyLineHeight * 0.8;
+            return sectionHeaderHeight + strengthsHeight + firstSubsectionMargin;
+          } else if (subsection.id.startsWith('technical-skills-category-')) {
+            const categoryIndex = parseInt(subsection.id.split('-')[3]) || 0;
+            const category = data.skillCategories?.[categoryIndex];
+            if (category) {
+              // Skills are rendered inline with commas, estimate based on how many lines needed
+              const skillsPerLine = 8;
+              const linesNeeded = Math.ceil(category.skills.length / skillsPerLine);
+              // Account for category title (subHeaderHeight), marginBottom (4px), and skills content
+              const categoryHeight = subHeaderHeight + 4 + (linesNeeded * bodyLineHeight);
+              // Add section header height if this is the first subsection
+              return subsection.isFirst ? sectionHeaderHeight + categoryHeight + firstSubsectionMargin : categoryHeight;
+            }
+          } else if (subsection.id === 'technical-skills') {
+            // Fallback for default technical skills subsection - calculate total height for all content
+            let totalHeight = sectionHeaderHeight + firstSubsectionMargin;
+            
+            // Add strengths if they exist
+            if (data.strengths && data.strengths.length > 0) {
+              const strengthsCount = data.strengths.length;
+              const strengthsHeight = strengthsCount * bodyLineHeight * 0.8;
+              totalHeight += strengthsHeight;
+            }
+            
+            // Add skill categories if they exist
+            if (data.skillCategories && data.skillCategories.length > 0) {
+              data.skillCategories.forEach((category, index) => {
+                // Category title height + marginBottom (4px)
+                totalHeight += subHeaderHeight + 4;
+                
+                // Skills content height
+                const skillsPerLine = 8;
+                const linesNeeded = Math.ceil(category.skills.length / skillsPerLine);
+                totalHeight += linesNeeded * bodyLineHeight;
+                
+                // Category marginBottom (8px) except for last category
+                if (index < (data.skillCategories?.length || 0) - 1) {
+                  totalHeight += 8;
+                }
+              });
+            }
+            
+            // Add extra padding to be more conservative
+            totalHeight += 20;
+            
+            return totalHeight;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Work Experience':
+          const workExp = data.workExperience || [];
+          if (workExp.length > 0) {
+            const firstWork = workExp[0];
+            const bulletPointsCount = firstWork.bulletPoints?.length || 0;
+            return sectionHeaderHeight + subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Education':
+          const education = data.education || [];
+          if (education.length > 0) {
+            const entrySpacingTotal = (education.length - 1) * entrySpacing;
+            return sectionHeaderHeight + subHeaderHeight + (bodyLineHeight * 2) + entrySpacingTotal + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Courses':
+          const courses = data.courses || [];
+          if (courses.length > 0) {
+            const courseHeight = courses.length * (bodyLineHeight * 2.5) + (courses.length * 4);
+            const entrySpacingTotal = (courses.length - 1) * entrySpacing;
+            return sectionHeaderHeight + courseHeight + entrySpacingTotal + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Projects':
+          const projects = data.projects || [];
+          if (projects.length > 0) {
+            const projectHeight = projects.length * (bodyLineHeight * 3) + (projects.length * 4);
+            const entrySpacingTotal = (projects.length - 1) * entrySpacing;
+            return sectionHeaderHeight + projectHeight + entrySpacingTotal + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Languages':
+          const languages = data.languages || [];
+          if (languages.length > 0) {
+            return sectionHeaderHeight + bodyLineHeight + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Publications':
+          const publications = data.publications || [];
+          if (publications.length > 0) {
+            const publicationHeight = publications.length * (bodyLineHeight * 2.5) + (publications.length * 4);
+            const entrySpacingTotal = (publications.length - 1) * entrySpacing;
+            return sectionHeaderHeight + publicationHeight + entrySpacingTotal + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Awards':
+          const awards = data.awards || [];
+          if (awards.length > 0) {
+            const awardHeight = awards.length * (bodyLineHeight * 2.5) + (awards.length * 4);
+            const entrySpacingTotal = (awards.length - 1) * entrySpacing;
+            return sectionHeaderHeight + awardHeight + entrySpacingTotal + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Volunteer Experience':
+          const volunteerExp = data.volunteerExperience || [];
+          if (volunteerExp.length > 0) {
+            const volunteerHeight = volunteerExp.length * (bodyLineHeight * 2.5) + (volunteerExp.length * 4);
+            const entrySpacingTotal = (volunteerExp.length - 1) * entrySpacing;
+            return sectionHeaderHeight + volunteerHeight + entrySpacingTotal + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'References':
+          const references = data.references || [];
+          if (references.length > 0) {
+            const referenceHeight = references.length * (bodyLineHeight * 2.5) + (references.length * 4);
+            const entrySpacingTotal = (references.length - 1) * entrySpacing;
+            return sectionHeaderHeight + referenceHeight + entrySpacingTotal + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        case 'Interests':
+          const interests = data.interests || [];
+          if (interests.length > 0) {
+            return sectionHeaderHeight + bodyLineHeight + firstSubsectionMargin;
+          }
+          return sectionHeaderHeight + firstSubsectionMargin;
+        default:
+          return sectionHeaderHeight + (bodyLineHeight * 2) + firstSubsectionMargin;
+      }
+    } else {
+      switch (sectionName) {
+        case 'Work Experience':
+          const workExp = data.workExperience || [];
+          const workIndex = parseInt(subsection.id.split('-')[1]) || 0;
+          if (workExp[workIndex]) {
+            const work = workExp[workIndex];
+            const bulletPointsCount = work.bulletPoints?.length || 0;
+            return subHeaderHeight + bodyLineHeight + (bulletPointsCount * bodyLineHeight) + entrySpacing;
+          }
+          return subHeaderHeight + entrySpacing;
+        case 'Education':
+          const education = data.education || [];
+          const eduIndex = parseInt(subsection.id.split('-')[1]) || 0;
+          if (education[eduIndex]) {
+            return subHeaderHeight + (bodyLineHeight * 2) + entrySpacing;
+          }
+          return subHeaderHeight + entrySpacing;
+        case 'Courses':
+          return bodyLineHeight * 3 + 8 + entrySpacing;
+        case 'Projects':
+          return bodyLineHeight * 3 + 8 + entrySpacing;
+        case 'Languages':
+          return bodyLineHeight + entrySpacing;
+        case 'Publications':
+          return bodyLineHeight * 2.5 + 8 + entrySpacing;
+        case 'Awards':
+          return bodyLineHeight * 2.5 + 8 + entrySpacing;
+        case 'Volunteer Experience':
+          return bodyLineHeight * 2.5 + 8 + entrySpacing;
+        case 'References':
+          return bodyLineHeight * 2.5 + 8 + entrySpacing;
+        case 'Technical Skills':
+          // For non-first Technical Skills subsections (shouldn't happen with current structure)
+          return bodyLineHeight * 2 + entrySpacing;
+        default:
+          return subHeaderHeight + (bodyLineHeight * 2) + entrySpacing;
+      }
+    }
+  };
+
+  // Calculate pages with improved pagination logic
+  const calculatePages = () => {
+    const pageHeight = getPageHeight();
+    const topBottomMargin = getTopBottomMargin();
+    const contentHeight = pageHeight - (topBottomMargin * 2);
+    const headerHeight = data.profilePicture ? 180 : 120;
+    
+    const pages: { sections: string[]; pageNumber: number; subsections: Array<{ sectionName: string; subsectionId: string }> }[] = [];
+    let currentPage = { sections: [] as string[], pageNumber: 0, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
+    let currentHeight = headerHeight;
+    
+    pages.push(currentPage);
+    
+    const allSubsections: Array<{ sectionName: string; subsection: { id: string; name: string; isFirst: boolean } }> = [];
+    
+    for (const sectionName of sectionsWithData) {
+      const subsections = getSubsections(sectionName);
+      subsections.forEach(subsection => {
+        allSubsections.push({ sectionName, subsection });
+      });
+    }
+    
+    const processedSubsections = new Set<string>();
+    const sectionsStartedOnPages = new Map<string, number>();
+    
+    for (const { sectionName, subsection } of allSubsections) {
+      const subsectionKey = `${sectionName}-${subsection.id}`;
+      if (processedSubsections.has(subsectionKey)) {
+        continue;
+      }
+      
+      // Special handling for Technical Skills to ensure all subsections stay together
+      if (sectionName === 'Technical Skills' && subsection.isFirst) {
+        // Calculate total height for all Technical Skills subsections
+        const technicalSkillsSubsections = getSubsections('Technical Skills');
+        let totalTechnicalSkillsHeight = 0;
+        
+        for (const techSubsection of technicalSkillsSubsections) {
+          const subHeight = getEstimatedSubsectionHeight('Technical Skills', techSubsection);
+          const subIndex = technicalSkillsSubsections.findIndex(sub => sub.id === techSubsection.id);
+          const subSectionSpacing = subIndex === technicalSkillsSubsections.length - 1 ? getSectionSpacing() : 0;
+          totalTechnicalSkillsHeight += subHeight + subSectionSpacing;
+        }
+        
+        const safetyBuffer = 50;
+        const wouldExceedContent = (currentHeight + totalTechnicalSkillsHeight) > (contentHeight - safetyBuffer);
+        
+        if (wouldExceedContent) {
+          if (sectionsStartedOnPages.has(sectionName)) {
+            const sectionPageIndex = sectionsStartedOnPages.get(sectionName)!;
+            if (sectionPageIndex === currentPage.pageNumber) {
+              currentPage.sections = currentPage.sections.filter(s => s !== sectionName);
+              currentPage.subsections = currentPage.subsections.filter(sub => sub.sectionName !== sectionName);
+              sectionsStartedOnPages.delete(sectionName);
+            }
+          }
+          
+          currentPage = { sections: [] as string[], pageNumber: pages.length, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
+          pages.push(currentPage);
+          currentHeight = 0;
+        }
+        
+        // Add all Technical Skills subsections to the current page
+        if (!sectionsStartedOnPages.has(sectionName)) {
+          currentPage.sections.push(sectionName);
+          sectionsStartedOnPages.set(sectionName, currentPage.pageNumber);
+        }
+        
+        for (const techSubsection of technicalSkillsSubsections) {
+          const techSubsectionKey = `${sectionName}-${techSubsection.id}`;
+          if (!processedSubsections.has(techSubsectionKey)) {
+            currentPage.subsections.push({ sectionName, subsectionId: techSubsection.id });
+            processedSubsections.add(techSubsectionKey);
+          }
+        }
+        
+        currentHeight += totalTechnicalSkillsHeight;
+        continue; // Skip the normal processing for Technical Skills
+      }
+      
+      const estimatedHeight = getEstimatedSubsectionHeight(sectionName, subsection);
+      const subsections = getSubsections(sectionName);
+      const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
+      const sectionSpacing = currentIndex === subsections.length - 1 ? getSectionSpacing() : 0;
+      
+      const totalHeight = estimatedHeight + sectionSpacing;
+      const safetyBuffer = 50;
+      const wouldExceedContent = (currentHeight + totalHeight) > (contentHeight - safetyBuffer);
+      
+      if (subsection.isFirst && wouldExceedContent) {
+        if (sectionsStartedOnPages.has(sectionName)) {
+          const sectionPageIndex = sectionsStartedOnPages.get(sectionName)!;
+          if (sectionPageIndex === currentPage.pageNumber) {
+            currentPage.sections = currentPage.sections.filter(s => s !== sectionName);
+            currentPage.subsections = currentPage.subsections.filter(sub => sub.sectionName !== sectionName);
+            sectionsStartedOnPages.delete(sectionName);
+          }
+        }
+        
+        currentPage = { sections: [] as string[], pageNumber: pages.length, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
+        pages.push(currentPage);
+        currentHeight = 0;
+      } else if (wouldExceedContent && (currentPage.pageNumber > 0 || currentPage.subsections.length > 0)) {
+        currentPage = { sections: [] as string[], pageNumber: pages.length, subsections: [] as Array<{ sectionName: string; subsectionId: string }> };
+        pages.push(currentPage);
+        currentHeight = 0;
+      }
+      
+      if (!sectionsStartedOnPages.has(sectionName)) {
+        currentPage.sections.push(sectionName);
+        sectionsStartedOnPages.set(sectionName, currentPage.pageNumber);
+      }
+      
+      currentPage.subsections.push({ sectionName, subsectionId: subsection.id });
+      processedSubsections.add(subsectionKey);
+      currentHeight += totalHeight;
+    }
+    
+    return pages;
+  };
+
+  const pages = calculatePages();
+
+  // Render functions for each section
   const renderHeader = () => `
     <div style="text-align: center; margin-bottom: ${getSectionSpacing()}px;">
       ${data.profilePicture && data.profilePicture.trim() !== '' && data.profilePicture.startsWith('data:') ? `
@@ -797,10 +1304,9 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
         <div style="
           font-size: 16px; 
           font-weight: normal; 
-          margin: 0 0 30px 0;
+          margin: 0 0 4px 0;
           font-family: ${getFontFamily()};
           color: #333;
-          border: 2px solid red; /* Temporary border to debug layout */
         ">
           ${data.jobTitle}
         </div>
@@ -825,7 +1331,6 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
     </div>
   `;
 
-  // Render professional summary - matches React component
   const renderProfessionalSummary = () => `
     <div style="margin-bottom: ${getSectionSpacing()}px;">
       <h2 style="
@@ -850,25 +1355,19 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
     </div>
   `;
 
-  // Render technical skills - matches React component
-  const renderTechnicalSkills = () => {
-    let skillsHtml = `
-      <div style="margin-bottom: ${getSectionSpacing()}px;">
-        <h2 style="
-          font-size: ${getSectionHeadersSize()}px; 
-          font-weight: bold; 
-          margin: 0 0 0px 0;
-          font-family: ${getFontFamily()};
-          border-bottom: 1px solid #000;
-          padding-bottom: 1px;
-        ">
-          Technical Skills
-        </h2>
-    `;
-
-    // Render strengths if they exist
-    if (data.strengths && data.strengths.length > 0) {
-      skillsHtml += `
+  const renderTechnicalSkills = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Technical Skills
+      </h2>
+      ${data.strengths && data.strengths.length > 0 ? `
         <div style="
           font-size: ${getBodyTextSize()}px; 
           font-family: ${getFontFamily()};
@@ -880,226 +1379,1315 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
             `<span>${skill.skillName}${index < data.strengths.length - 1 ? ' • ' : ''}</span>`
           ).join('')}
         </div>
-      `;
-    }
+      ` : ''}
+    </div>
+  `;
 
-    skillsHtml += '</div>';
-    return skillsHtml;
-  };
-
-  // Render work experience - matches React component
-  const renderWorkExperience = () => {
-    if (!data.workExperience || data.workExperience.length === 0) return '';
-    
-    return `
-      <div style="margin-bottom: ${getSectionSpacing()}px;">
-        <h2 style="
-          font-size: ${getSectionHeadersSize()}px; 
-          font-weight: bold; 
-          margin: 0 0 0px 0;
-          font-family: ${getFontFamily()};
-          border-bottom: 1px solid #000;
-          padding-bottom: 1px;
-        ">
-          Work Experience
-        </h2>
-        ${data.workExperience.map((work, index) => `
-          <div style="padding-bottom: ${getEntrySpacing()}px;">
+  const renderWorkExperience = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Work Experience
+      </h2>
+      ${data.workExperience.map((work, index) => `
+        <div style="padding-bottom: ${getEntrySpacing()}px;">
+          <div style="
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            margin-bottom: 2px;
+          ">
             <div style="
-              display: flex; 
-              justify-content: space-between; 
-              align-items: flex-start;
-              margin-bottom: 2px;
-            ">
-              <div style="
-                font-size: ${getSubHeadersSize()}px; 
-                font-weight: bold; 
-                font-family: ${getFontFamily()};
-              ">
-                ${work.company}
-                ${work.city && work.state && `, ${work.city}, ${work.state}`}
-              </div>
-              <div style="
-                font-size: ${getBodyTextSize()}px;
-                font-family: ${getFontFamily()};
-                font-weight: bold;
-              ">
-                ${formatDate(work.startDate)} - ${work.current ? 'Present' : formatDate(work.endDate)}
-              </div>
-            </div>
-            <div style="
-              font-size: ${getBodyTextSize()}px; 
-              font-style: italic;
+              font-size: ${getSubHeadersSize()}px; 
+              font-weight: bold; 
               font-family: ${getFontFamily()};
-              margin-bottom: 2px;
             ">
-              ${work.position}
-            </div>
-            ${work.bulletPoints && work.bulletPoints.length > 0 ? `
-              <ul style="
-                margin: 0; 
-                padding-left: 20px;
-                font-size: ${getBodyTextSize()}px;
-                font-family: ${getFontFamily()};
-                line-height: ${getLineSpacing()}px;
-              ">
-                ${work.bulletPoints.map((point, pointIndex) => `
-                  <li style="
-                    margin-bottom: 2px;
-                    text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
-                  ">
-                    ${point.description}
-                  </li>
-                `).join('')}
-              </ul>
-            ` : ''}
-          </div>
-        `).join('')}
-      </div>
-    `;
-  };
-
-  // Render education - matches React component
-  const renderEducation = () => {
-    if (!data.education || data.education.length === 0) return '';
-    
-    return `
-      <div style="margin-bottom: ${getSectionSpacing()}px;">
-        <h2 style="
-          font-size: ${getSectionHeadersSize()}px; 
-          font-weight: bold; 
-          margin: 0 0 0px 0;
-          font-family: ${getFontFamily()};
-          border-bottom: 1px solid #000;
-          padding-bottom: 1px;
-        ">
-          Education
-        </h2>
-        ${data.education.map((edu, index) => `
-          <div style="padding-bottom: ${getEntrySpacing()}px;">
-            <div style="
-              display: flex; 
-              justify-content: space-between; 
-              align-items: flex-start;
-              margin-bottom: 4px;
-            ">
-              <div style="
-                font-size: ${getSubHeadersSize()}px; 
-                font-weight: bold; 
-                font-family: ${getFontFamily()};
-              ">
-                ${edu.degree} in ${edu.field}
-              </div>
-              <div style="
-                font-size: ${getBodyTextSize()}px;
-                font-family: ${getFontFamily()};
-                font-weight: bold;
-              ">
-                ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
-              </div>
+              ${work.company}
+              ${work.city && work.state && `, ${work.city}, ${work.state}`}
             </div>
             <div style="
               font-size: ${getBodyTextSize()}px;
               font-family: ${getFontFamily()};
+              font-weight: bold;
+            ">
+              ${formatDate(work.startDate)} - ${work.current ? 'Present' : formatDate(work.endDate)}
+            </div>
+          </div>
+          <div style="
+            font-size: ${getBodyTextSize()}px; 
+            font-style: italic;
+            font-family: ${getFontFamily()};
+            margin-bottom: 2px;
+          ">
+            ${work.position}
+          </div>
+          ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+            <ul style="
+              margin: 0; 
+              padding-left: 20px;
+              font-size: ${getBodyTextSize()}px;
+              font-family: ${getFontFamily()};
+              line-height: ${getLineSpacing()}px;
+            ">
+              ${work.bulletPoints.map((point, pointIndex) => `
+                <li style="
+                  margin-bottom: 2px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${point.description}
+                </li>
+              `).join('')}
+            </ul>
+          ` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const renderEducation = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Education
+      </h2>
+      ${data.education.map((edu, index) => `
+        <div style="padding-bottom: ${getEntrySpacing()}px;">
+          <div style="
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            margin-bottom: 4px;
+          ">
+            <div style="
+              font-size: ${getSubHeadersSize()}px; 
+              font-weight: bold; 
+              font-family: ${getFontFamily()};
+            ">
+              ${edu.degree} in ${edu.field}
+            </div>
+            <div style="
+              font-size: ${getBodyTextSize()}px;
+              font-family: ${getFontFamily()};
+              font-weight: bold;
+            ">
+              ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
+            </div>
+          </div>
+          <div style="
+            font-size: ${getBodyTextSize()}px;
+            font-family: ${getFontFamily()};
+            text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+          ">
+            ${edu.institution}
+            ${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const renderCourses = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Courses
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.courses || []).map((course, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              margin-bottom: 2px;
               text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
             ">
-              ${edu.institution}
-              ${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+              <strong>${course.title}</strong> - ${course.provider}
+            </div>
+            ${course.link ? `
+              <div>
+                <a href="${course.link.startsWith('http') ? course.link : `https://${course.link}`}" target="_blank" rel="noopener noreferrer" style="
+                  color: #0066cc; 
+                  text-decoration: underline;
+                  cursor: pointer;
+                  font-size: ${getBodyTextSize()}px;
+                  font-family: ${getFontFamily()};
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${formatUrl(course.link)}
+                </a>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const renderInterests = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Interests
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.interests || []).map((interest, index) => `
+          <span>
+            <span style="margin-right: 4px;">${interest.icon}</span>
+            ${interest.name}
+            ${index < (data.interests?.length || 0) - 1 ? ' • ' : ''}
+          </span>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const renderProjects = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Projects
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.projects || []).map((project, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              margin-bottom: 2px;
+              text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+            ">
+              <strong>${project.title}</strong>
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${project.description}
+            </div>
+            <div style="margin-bottom: 2px;">
+              <strong>Technologies:</strong> ${project.technologies.join(', ')}
+            </div>
+            ${project.link ? `
+              <div>
+                <a href="${project.link.startsWith('http') ? project.link : `https://${project.link}`}" target="_blank" rel="noopener noreferrer" style="
+                  color: #0066cc; 
+                  text-decoration: underline;
+                  cursor: pointer;
+                  font-size: ${getBodyTextSize()}px;
+                  font-family: ${getFontFamily()};
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${formatUrl(project.link)}
+                </a>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const renderLanguages = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Languages
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.languages || []).map((language, index) => `
+          <span>
+            ${language.name} (${language.proficiency})
+            ${index < (data.languages?.length || 0) - 1 ? ' • ' : ''}
+          </span>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const renderPublications = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Publications
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.publications || []).map((pub, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              margin-bottom: 2px;
+              text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+            ">
+              <strong>${pub.title}</strong>
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${pub.authors} - ${pub.journal} (${pub.year})
+            </div>
+            ${pub.link ? `
+              <div>
+                <a href="${pub.link.startsWith('http') ? pub.link : `https://${pub.link}`}" target="_blank" rel="noopener noreferrer" style="
+                  color: #0066cc; 
+                  text-decoration: underline;
+                  cursor: pointer;
+                  font-size: ${getBodyTextSize()}px;
+                  font-family: ${getFontFamily()};
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${formatUrl(pub.link)}
+                </a>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const renderAwards = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Awards
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.awards || []).map((award, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              margin-bottom: 2px;
+              text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+            ">
+              <strong>${award.title}</strong> - ${award.issuer} (${award.year})
+            </div>
+            ${award.description ? `
+              <div style="margin-bottom: 2px;">
+                ${award.description}
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const renderVolunteerExperience = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        Volunteer Experience
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.volunteerExperience || []).map((volunteer, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              margin-bottom: 2px;
+              text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+            ">
+              <strong>${volunteer.position}</strong> at ${volunteer.organization}
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${formatDate(volunteer.startDate)} - ${volunteer.current ? 'Present' : formatDate(volunteer.endDate)}
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${volunteer.description}
             </div>
           </div>
         `).join('')}
       </div>
-    `;
+    </div>
+  `;
+
+  const renderReferences = () => `
+    <div style="margin-bottom: ${getSectionSpacing()}px;">
+      <h2 style="
+        font-size: ${getSectionHeadersSize()}px; 
+        font-weight: bold; 
+        margin: 0 0 0px 0;
+        font-family: ${getFontFamily()};
+        border-bottom: 1px solid #000;
+        padding-bottom: 1px;
+      ">
+        References
+      </h2>
+      <div style="
+        font-size: ${getBodyTextSize()}px;
+        font-family: ${getFontFamily()};
+        line-height: ${getLineSpacing()}px;
+        margin-top: 4px;
+        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+      ">
+        ${(data.references || []).map((reference, index) => `
+          <div style="padding-bottom: ${getEntrySpacing()}px;">
+            <div style="
+              margin-bottom: 2px;
+              text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+            ">
+              <strong>${reference.name}</strong> - ${reference.title}
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${reference.company}
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${reference.email} • ${reference.phone}
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${reference.relationship}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // Helper function to get render function for a section
+  const getRenderFunction = (sectionName: string) => {
+    switch (sectionName) {
+      case 'Professional Summary':
+        return renderProfessionalSummary;
+      case 'Technical Skills':
+        return renderTechnicalSkills;
+      case 'Work Experience':
+        return renderWorkExperience;
+      case 'Education':
+        return renderEducation;
+      case 'Projects':
+        return renderProjects;
+      case 'Courses':
+        return renderCourses;
+      case 'Languages':
+        return renderLanguages;
+      case 'Publications':
+        return renderPublications;
+      case 'Awards':
+        return renderAwards;
+      case 'Volunteer Experience':
+        return renderVolunteerExperience;
+      case 'References':
+        return renderReferences;
+      case 'Interests':
+        return renderInterests;
+      default:
+        return () => '';
+    }
   };
 
-  // Render courses - matches React component
-  const renderCourses = () => {
-    if (!data.courses || data.courses.length === 0) return '';
+  // Helper function to render a specific subsection
+  const renderSubsection = (sectionName: string, subsection: { id: string; name: string; isFirst: boolean }) => {
+    const itemIndex = parseInt(subsection.id.split('-')[1]) || 0;
     
-    return `
-      <div style="margin-bottom: ${getSectionSpacing()}px;">
-        <h2 style="
-          font-size: ${getSectionHeadersSize()}px; 
-          font-weight: bold; 
-          margin: 0 0 0px 0;
-          font-family: ${getFontFamily()};
-          border-bottom: 1px solid #000;
-          padding-bottom: 1px;
-        ">
-          Courses
-        </h2>
-        <div style="
-          font-size: ${getBodyTextSize()}px;
-          font-family: ${getFontFamily()};
-          line-height: ${getLineSpacing()}px;
-          margin-top: 4px;
-          text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
-        ">
-          ${data.courses.map((course, index) => `
-            <div style="padding-bottom: ${getEntrySpacing()}px;">
-              <div style="
-                margin-bottom: 2px;
+    if (subsection.isFirst) {
+      switch (sectionName) {
+        case 'Professional Summary':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 0px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                Professional Summary
+              </h2>
+              <p style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px; 
+                margin-top: 4px;
                 text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
               ">
-                <strong>${course.title}</strong> - ${course.provider}
+                ${personalInfo.summary}
+              </p>
+            </div>
+          `;
+        case 'Technical Skills':
+          if (subsection.id === 'technical-skills-strengths') {
+            return `
+              <div>
+                <h2 style="
+                  font-size: ${getSectionHeadersSize()}px; 
+                  font-weight: bold; 
+                  margin-bottom: 0px;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 0px;
+                ">
+                  Technical Skills
+                </h2>
+                <div style="
+                  font-size: ${getBodyTextSize()}px; 
+                  line-height: ${getLineSpacing()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${data.strengths.map((skill, index) => 
+                    `<span>${skill.skillName}${index < data.strengths.length - 1 ? ', ' : ''}</span>`
+                  ).join('')}
+                </div>
               </div>
-              ${course.link ? `
+            `;
+          } else if (subsection.id.startsWith('technical-skills-category-')) {
+            const categoryIndex = parseInt(subsection.id.split('-')[3]) || 0;
+            const category = data.skillCategories?.[categoryIndex];
+            if (category) {
+              return `
                 <div>
-                  <a href="${course.link.startsWith('http') ? course.link : `https://${course.link}`}" target="_blank" rel="noopener noreferrer" style="
-                    color: #0066cc; 
-                    text-decoration: underline;
-                    cursor: pointer;
+                  ${subsection.isFirst ? `
+                    <h2 style="
+                      font-size: ${getSectionHeadersSize()}px; 
+                      font-weight: bold; 
+                      margin-bottom: 0px;
+                      border-bottom: 1px solid #000;
+                      padding-bottom: 0px;
+                    ">
+                      Technical Skills
+                    </h2>
+                  ` : ''}
+                  <div style="margin-top: 4px;">
+                    <div style="
+                      font-size: ${getSubHeadersSize()}px; 
+                      font-weight: bold; 
+                      margin-bottom: 4px;
+                    ">
+                      ${category.title}
+                    </div>
+                    <div style="
+                      font-size: ${getBodyTextSize()}px; 
+                      line-height: ${getLineSpacing()}px;
+                      text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                    ">
+                      ${category.skills.map((skill, index) => 
+                        `<span>${skill.name}${index < category.skills.length - 1 ? ', ' : ''}</span>`
+                      ).join('')}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+          } else if (subsection.id === 'technical-skills') {
+            // Fallback for default technical skills subsection
+            let content = '';
+            
+            // Add strengths if they exist
+            if (data.strengths && data.strengths.length > 0) {
+              content += `
+                <div style="
+                  font-size: ${getBodyTextSize()}px; 
+                  line-height: ${getLineSpacing()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${data.strengths.map((skill, index) => 
+                    `<span>${skill.skillName}${index < data.strengths.length - 1 ? ', ' : ''}</span>`
+                  ).join('')}
+                </div>
+              `;
+            }
+            
+            // Add skill categories if they exist
+            if (data.skillCategories && data.skillCategories.length > 0) {
+              data.skillCategories.forEach((category, index) => {
+                content += `
+                  <div style="margin-top: ${index === 0 && !data.strengths?.length ? '4px' : '8px'};">
+                    <div style="
+                      font-size: ${getSubHeadersSize()}px; 
+                      font-weight: bold; 
+                      margin-bottom: 4px;
+                    ">
+                      ${category.title}
+                    </div>
+                    <div style="
+                      font-size: ${getBodyTextSize()}px; 
+                      line-height: ${getLineSpacing()}px;
+                      text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                    ">
+                      ${category.skills.map((skill, skillIndex) => 
+                        `<span>${skill.name}${skillIndex < category.skills.length - 1 ? ', ' : ''}</span>`
+                      ).join('')}
+                    </div>
+                  </div>
+                `;
+              });
+            }
+            
+            return `
+              <div>
+                <h2 style="
+                  font-size: ${getSectionHeadersSize()}px; 
+                  font-weight: bold; 
+                  margin-bottom: 0px;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 0px;
+                ">
+                  Technical Skills
+                </h2>
+                ${content}
+              </div>
+            `;
+          }
+          return '';
+        case 'Work Experience':
+          const workExp = data.workExperience || [];
+          if (workExp[itemIndex]) {
+            const work = workExp[itemIndex];
+            return `
+              <div>
+                <h2 style="
+                  font-size: ${getSectionHeadersSize()}px; 
+                  font-weight: bold; 
+                  margin-bottom: 0px;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 1px;
+                ">
+                  Work Experience
+                </h2>
+                <div style="padding-bottom: ${getEntrySpacing()}px; margin-top: 4px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: bold; font-size: ${getSubHeadersSize()}px;">
+                      ${work.company}${work.city && work.state ? `, ${work.city}, ${work.state}` : ''}
+                    </div>
+                    <div style="font-size: ${getBodyTextSize()}px; font-weight: bold;">
+                      ${formatDate(work.startDate)} - ${work.current ? 'Present' : formatDate(work.endDate)}
+                    </div>
+                  </div>
+                  <div style="font-style: italic; font-size: ${getBodyTextSize()}px;">
+                    ${work.position}
+                  </div>
+                  ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+                    <ul style="margin: 2px 0; padding-left: 20px;">
+                      ${work.bulletPoints.map((bullet, bulletIndex) => `
+                        <li style="font-size: ${getBodyTextSize()}px; line-height: ${getLineSpacing()}px;">
+                          ${bullet.description}
+                        </li>
+                      `).join('')}
+                    </ul>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }
+          break;
+        case 'Education':
+          const education = data.education || [];
+          if (education[itemIndex]) {
+            const edu = education[itemIndex];
+            return `
+              <div>
+                <h2 style="
+                  font-size: ${getSectionHeadersSize()}px; 
+                  font-weight: bold; 
+                  margin-bottom: 0px;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 1px;
+                ">
+                  Education
+                </h2>
+                <div style="padding-bottom: ${getEntrySpacing()}px; margin-top: 4px;">
+                  <div style="
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: flex-start;
+                    margin-bottom: 4px;
+                  ">
+                    <div style="
+                      font-size: ${getSubHeadersSize()}px; 
+                      font-weight: bold;
+                      font-family: ${getFontFamily()};
+                    ">
+                      ${edu.degree} in ${edu.field}
+                    </div>
+                    <div style="
+                      font-size: ${getBodyTextSize()}px;
+                      font-family: ${getFontFamily()};
+                      font-weight: bold;
+                    ">
+                      ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
+                    </div>
+                  </div>
+                  <div style="
                     font-size: ${getBodyTextSize()}px;
                     font-family: ${getFontFamily()};
                     text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
                   ">
-                    ${formatUrl(course.link)}
-                  </a>
+                    ${edu.institution}
+                    ${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+                  </div>
                 </div>
-              ` : ''}
+              </div>
+            `;
+          }
+          break;
+        case 'Courses':
+          const courses = data.courses || [];
+          if (courses[itemIndex]) {
+            const course = courses[itemIndex];
+            return `
+              <div>
+                <h2 style="
+                  font-size: ${getSectionHeadersSize()}px; 
+                  font-weight: bold; 
+                  margin-bottom: 10px;
+                  border-bottom: 1px solid #000;
+                  padding-bottom: 1px;
+                ">
+                  Courses
+                </h2>
+                <div style="padding-bottom: ${getEntrySpacing()}px;">
+                  <div style="
+                    font-weight: bold; 
+                    font-size: ${getSubHeadersSize()}px;
+                    text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                  ">
+                    ${course.title}
+                  </div>
+                  <div style="
+                    font-size: ${getBodyTextSize()}px;
+                    text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                  ">
+                    ${course.provider}
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+          break;
+        case 'Projects':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 10px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                Projects
+              </h2>
+              <div style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                ${(data.projects || []).map((project, index) => `
+                  <div style="padding-bottom: ${getEntrySpacing()}px;">
+                    <div style="
+                      margin-bottom: 2px;
+                      text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                    ">
+                      <strong>${project.title}</strong>
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      ${project.description}
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      <strong>Technologies:</strong> ${project.technologies.join(', ')}
+                    </div>
+                    ${project.link ? `
+                      <div>
+                        <a href="${project.link.startsWith('http') ? project.link : `https://${project.link}`}" target="_blank" rel="noopener noreferrer" style="
+                          color: #0066cc; 
+                          text-decoration: underline;
+                          cursor: pointer;
+                          font-size: ${getBodyTextSize()}px;
+                          font-family: ${getFontFamily()};
+                          text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                        ">
+                          ${formatUrl(project.link)}
+                        </a>
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
             </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  };
-
-  // Render interests - matches React component
-  const renderInterests = () => {
-    if (!data.interests || data.interests.length === 0) return '';
+          `;
+        case 'Languages':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 10px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                Languages
+              </h2>
+              <div style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                ${(data.languages || []).map((language, index) => `
+                  <span>${language.name} (${language.proficiency})${index < (data.languages?.length || 0) - 1 ? ', ' : ''}</span>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case 'Publications':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 10px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                Publications
+              </h2>
+              <div style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                ${(data.publications || []).map((pub, index) => `
+                  <div style="padding-bottom: ${getEntrySpacing()}px;">
+                    <div style="
+                      margin-bottom: 2px;
+                      text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                    ">
+                      <strong>${pub.title}</strong>
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      ${pub.authors} - ${pub.journal} (${pub.year})
+                    </div>
+                    ${pub.link ? `
+                      <div>
+                        <a href="${pub.link.startsWith('http') ? pub.link : `https://${pub.link}`}" target="_blank" rel="noopener noreferrer" style="
+                          color: #0066cc; 
+                          text-decoration: underline;
+                          cursor: pointer;
+                          font-size: ${getBodyTextSize()}px;
+                          font-family: ${getFontFamily()};
+                          text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                        ">
+                          ${formatUrl(pub.link)}
+                        </a>
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case 'Awards':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 10px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                Awards
+              </h2>
+              <div style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                ${(data.awards || []).map((award, index) => `
+                  <div style="padding-bottom: ${getEntrySpacing()}px;">
+                    <div style="
+                      margin-bottom: 2px;
+                      text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                    ">
+                      <strong>${award.title}</strong> - ${award.issuer} (${award.year})
+                    </div>
+                    ${award.description ? `
+                      <div style="margin-bottom: 2px;">
+                        ${award.description}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case 'Volunteer Experience':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 10px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                Volunteer Experience
+              </h2>
+              <div style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                ${(data.volunteerExperience || []).map((volunteer, index) => `
+                  <div style="padding-bottom: ${getEntrySpacing()}px;">
+                    <div style="
+                      margin-bottom: 2px;
+                      text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                    ">
+                      <strong>${volunteer.position}</strong> at ${volunteer.organization}
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      ${formatDate(volunteer.startDate)} - ${volunteer.current ? 'Present' : formatDate(volunteer.endDate)}
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      ${volunteer.description}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case 'References':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 10px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                References
+              </h2>
+              <div style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                ${(data.references || []).map((reference, index) => `
+                  <div style="padding-bottom: ${getEntrySpacing()}px;">
+                    <div style="
+                      margin-bottom: 2px;
+                      text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                    ">
+                      <strong>${reference.name}</strong> - ${reference.title}
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      ${reference.company}
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      ${reference.email} • ${reference.phone}
+                    </div>
+                    <div style="margin-bottom: 2px;">
+                      ${reference.relationship}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case 'Interests':
+          return `
+            <div>
+              <h2 style="
+                font-size: ${getSectionHeadersSize()}px; 
+                font-weight: bold; 
+                margin-bottom: 10px;
+                border-bottom: 1px solid #000;
+                padding-bottom: 1px;
+              ">
+                Interests
+              </h2>
+              <div style="
+                font-size: ${getBodyTextSize()}px; 
+                line-height: ${getLineSpacing()}px;
+                text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+              ">
+                ${data.interests?.map((interest, index) => `
+                  <span>${interest.icon} ${interest.name}${index < (data.interests?.length || 0) - 1 ? ', ' : ''}</span>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        default:
+          return getRenderFunction(sectionName)();
+      }
+    } else {
+      switch (sectionName) {
+        case 'Work Experience':
+          const workExp = data.workExperience || [];
+          if (workExp[itemIndex]) {
+            const work = workExp[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="font-weight: bold; font-size: ${getSubHeadersSize()}px;">
+                    ${work.company}${work.city && work.state ? `, ${work.city}, ${work.state}` : ''}
+                  </div>
+                  <div style="font-size: ${getBodyTextSize()}px; font-weight: bold;">
+                    ${formatDate(work.startDate)} - ${work.current ? 'Present' : formatDate(work.endDate)}
+                  </div>
+                </div>
+                <div style="font-style: italic; font-size: ${getBodyTextSize()}px;">
+                  ${work.position}
+                </div>
+                ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+                  <ul style="margin: 2px 0; padding-left: 20px;">
+                    ${work.bulletPoints.map((bullet, bulletIndex) => `
+                      <li style="
+                        font-size: ${getBodyTextSize()}px; 
+                        line-height: ${getLineSpacing()}px;
+                        text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                      ">
+                        ${bullet.description}
+                      </li>
+                    `).join('')}
+                  </ul>
+                ` : ''}
+              </div>
+            `;
+          }
+          break;
+        case 'Education':
+          const education = data.education || [];
+          if (education[itemIndex]) {
+            const edu = education[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="
+                  display: flex; 
+                  justify-content: space-between; 
+                  align-items: flex-start;
+                  margin-bottom: 4px;
+                ">
+                  <div style="
+                    font-size: ${getSubHeadersSize()}px; 
+                    font-weight: bold;
+                    font-family: ${getFontFamily()};
+                  ">
+                    ${edu.degree} in ${edu.field}
+                  </div>
+                  <div style="
+                    font-size: ${getBodyTextSize()}px;
+                    font-family: ${getFontFamily()};
+                    font-weight: bold;
+                  ">
+                    ${formatDate(edu.startDate)} - ${edu.current ? 'Present' : formatDate(edu.endDate)}
+                  </div>
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  font-family: ${getFontFamily()};
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${edu.institution}
+                  ${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+                </div>
+              </div>
+            `;
+          }
+          break;
+        case 'Courses':
+          const courses = data.courses || [];
+          if (courses[itemIndex]) {
+            const course = courses[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="
+                  font-weight: bold; 
+                  font-size: ${getSubHeadersSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${course.title}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${course.provider}
+                </div>
+              </div>
+            `;
+          }
+          break;
+        case 'Projects':
+          const projects = data.projects || [];
+          if (projects[itemIndex]) {
+            const project = projects[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="
+                  font-weight: bold; 
+                  font-size: ${getSubHeadersSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${project.title}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${project.description}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  <strong>Technologies:</strong> ${project.technologies.join(', ')}
+                </div>
+              </div>
+            `;
+          }
+          break;
+        case 'Publications':
+          const publications = data.publications || [];
+          if (publications[itemIndex]) {
+            const pub = publications[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="
+                  font-weight: bold; 
+                  font-size: ${getSubHeadersSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${pub.title}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${pub.authors} - ${pub.journal} (${pub.year})
+                </div>
+              </div>
+            `;
+          }
+          break;
+        case 'Awards':
+          const awards = data.awards || [];
+          if (awards[itemIndex]) {
+            const award = awards[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="
+                  font-weight: bold; 
+                  font-size: ${getSubHeadersSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${award.title}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${award.issuer} (${award.year})
+                </div>
+                ${award.description ? `
+                  <div style="
+                    font-size: ${getBodyTextSize()}px;
+                    text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                  ">
+                    ${award.description}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }
+          break;
+        case 'Volunteer Experience':
+          const volunteerExp = data.volunteerExperience || [];
+          if (volunteerExp[itemIndex]) {
+            const volunteer = volunteerExp[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="
+                  font-weight: bold; 
+                  font-size: ${getSubHeadersSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${volunteer.position} at ${volunteer.organization}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${formatDate(volunteer.startDate)} - ${volunteer.current ? 'Present' : formatDate(volunteer.endDate)}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${volunteer.description}
+                </div>
+              </div>
+            `;
+          }
+          break;
+        case 'References':
+          const references = data.references || [];
+          if (references[itemIndex]) {
+            const reference = references[itemIndex];
+            return `
+              <div style="padding-bottom: ${getEntrySpacing()}px;">
+                <div style="
+                  font-weight: bold; 
+                  font-size: ${getSubHeadersSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${reference.name} - ${reference.title}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${reference.company}
+                </div>
+                <div style="
+                  font-size: ${getBodyTextSize()}px;
+                  text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
+                ">
+                  ${reference.email} • ${reference.phone}
+                </div>
+              </div>
+            `;
+          }
+          break;
+        default:
+          return '';
+      }
+    }
     
-    return `
-      <div style="margin-bottom: ${getSectionSpacing()}px;">
-        <h2 style="
-          font-size: ${getSectionHeadersSize()}px; 
-          font-weight: bold; 
-          margin: 0 0 0px 0;
-          font-family: ${getFontFamily()};
-          border-bottom: 1px solid #000;
-          padding-bottom: 1px;
-        ">
-          Interests
-        </h2>
-        <div style="
-          font-size: ${getBodyTextSize()}px;
-          font-family: ${getFontFamily()};
-          line-height: ${getLineSpacing()}px;
-          margin-top: 4px;
-          text-align: ${getAlignTextLeftRight() ? 'justify' : 'left'};
-        ">
-                     ${(data.interests || []).map((interest, index) => `
-             <span>
-               <span style="margin-right: 4px;">${interest.icon}</span>
-               ${interest.name}
-               ${index < (data.interests?.length || 0) - 1 ? ' • ' : ''}
-             </span>
-           `).join('')}
-        </div>
-      </div>
-    `;
+    return '';
   };
 
-  // Generate the complete HTML - matches React component structure
+  // Generate HTML for each page
+  const pagesHtml = pages.map((page, pageIndex) => {
+    return `
+      <div class="resume-page" style="
+        font-family: ${getFontFamily()}; 
+        background: #fff; 
+        color: #000; 
+        padding: ${getTopBottomMargin()}px ${getSideMargins()}px;
+        width: ${getPageWidth()}px;
+        min-height: ${getPageHeight()}px;
+        margin: 0 auto;
+        line-height: 1.2;
+        position: relative;
+        overflow: visible;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-radius: 20px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: ${pageIndex > 0 ? '20px' : '0'};
+        page-break-after: ${pageIndex > 0 ? 'always' : 'auto'};
+      ">
+        ${pageIndex === 0 ? renderHeader() : ''}
+        ${page.subsections.map(({ sectionName, subsectionId }) => {
+          const subsections = getSubsections(sectionName);
+          const subsection = subsections.find(sub => sub.id === subsectionId);
+          
+          if (!subsection) {
+            return '';
+          }
+          
+          const estimatedHeight = getEstimatedSubsectionHeight(sectionName, subsection);
+          if (estimatedHeight <= 0) {
+            return '';
+          }
+          
+          return `
+            <div style="
+              padding-bottom: ${(() => {
+                const subsections = getSubsections(sectionName);
+                const currentIndex = subsections.findIndex(sub => sub.id === subsection.id);
+                return currentIndex === subsections.length - 1 ? `${getSectionSpacing()}px` : '0px';
+              })()}
+            ">
+              ${renderSubsection(sectionName, subsection)}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  });
+
+  // Generate the complete HTML
   const html = `
     <!DOCTYPE html>
     <html>
@@ -1133,21 +2721,6 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
           width: 100%;
           background: #fff;
         }
-        .resume-page {
-          font-family: ${getFontFamily()}; 
-          background: #fff; 
-          color: #000; 
-          padding: ${getTopBottomMargin()}px ${getSideMargins()}px;
-          width: ${getPageWidth()}px;
-          height: ${getPageHeight()}px;
-          margin: 0 auto;
-          line-height: 1.2;
-          position: relative;
-          overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          border-radius: 20px;
-          border: 1px solid #e0e0e0;
-        }
         p, div, span, li {
           word-wrap: break-word;
           overflow-wrap: break-word;
@@ -1168,15 +2741,7 @@ function renderClassicTemplate(data: ResumeData, exportSettings?: ExportSettings
     </head>
     <body>
       <div class="resume-container">
-        <div class="resume-page">
-          ${renderHeader()}
-          ${personalInfo.summary ? renderProfessionalSummary() : ''}
-          ${renderTechnicalSkills()}
-          ${renderWorkExperience()}
-          ${renderEducation()}
-          ${renderCourses()}
-          ${renderInterests()}
-        </div>
+        ${pagesHtml.join('')}
       </div>
     </body>
     </html>

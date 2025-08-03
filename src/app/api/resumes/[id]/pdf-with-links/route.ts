@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { authOptions } from '../../../../../lib/auth';
+import { prisma } from '../../../../../lib/prisma';
 import puppeteer from 'puppeteer';
+import { transformResumeData } from '../../../../../lib/resumeDataTransformer';
 
 interface ResumeWithTemplate {
   template?: string;
@@ -45,8 +46,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  console.log('🎯 PDF-WITH-LINKS - Starting PDF generation');
   try {
     const { id } = await params;
+    console.log('🎯 PDF-WITH-LINKS - Resume ID:', id);
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
@@ -96,322 +99,121 @@ export async function POST(
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
 
-         // Transform work experience data
-     const workExperience = resume.workExperience.map(work => {
-       const formatDate = (date: Date | null): string => {
-         if (!date || isNaN(date.getTime())) return '';
-         try {
-           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-           const month = months[date.getMonth()];
-           const year = date.getFullYear();
-           return `${month} ${year}`;
-         } catch {
-           return '';
-         }
-       };
+    // Use shared data transformer for consistency (with formatted dates for PDF)
+    const resumeData = transformResumeData(resume, 'formatted');
 
-      return {
-        company: work.company || '',
-        position: work.position || '',
-        startDate: formatDate(work.startDate),
-        endDate: formatDate(work.endDate),
-        current: work.current || false,
-        city: '',
-        state: '',
-        bulletPoints: Array.isArray(work.bulletPoints) 
-          ? (work.bulletPoints as Array<{ description: string }>).map(bullet => ({ description: bullet.description }))
-          : []
-      };
-    });
+    // Get the section order from the resume, with fallback to default order
+    const sectionOrder = (resume.sectionOrder as string[]) || [
+      'Professional Summary',
+      'Work Experience',
+      'Projects',
+      'Education',
+      'Technical Skills',
+      'Courses',
+      'Interests',
+      'Languages',
+      'Publications',
+      'Awards',
+      'Volunteer Experience',
+      'References'
+    ];
 
-         // Transform education data
-     const education = resume.education.map(edu => {
-       const formatDate = (date: Date | null): string => {
-         if (!date || isNaN(date.getTime())) return '';
-         try {
-           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-           const month = months[date.getMonth()];
-           const year = date.getFullYear();
-           return `${month} ${year}`;
-         } catch {
-           return '';
-         }
-       };
+    // Get deleted sections
+    const deletedSections = (resume.deletedSections as string[]) || [];
 
-      return {
-        institution: edu.institution || '',
-        degree: edu.degree || '',
-        field: edu.field || '',
-        startDate: formatDate(edu.startDate),
-        endDate: formatDate(edu.endDate),
-        current: edu.current || false,
-        gpa: edu.gpa || undefined
-      };
-    });
+    // Filter out deleted sections
+    const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
 
-    // Transform courses data
-    const courses = resume.courses.map(course => ({
-      title: course.title || '',
-      provider: course.provider || '',
-      link: course.link || undefined
-    }));
+    // Phone number formatting function
+    const formatPhoneNumber = (phone: string): string => {
+      if (!phone) return '';
+      // Remove all non-digits
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length === 10) {
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+      }
+      return phone; // Return original if not 10 digits
+    };
 
-         // Transform projects data
-     const projects = resume.projects.map(project => {
-       const formatDate = (date: Date | null): string => {
-         if (!date || isNaN(date.getTime())) return '';
-         try {
-           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-           const month = months[date.getMonth()];
-           const year = date.getFullYear();
-           return `${month} ${year}`;
-         } catch {
-           return '';
-         }
-       };
+    // Debug logging to see what data we have
+    console.log('🔍 PDF DEBUG - Data Summary:');
+    console.log('🔍 Strengths count:', resumeData.strengths?.length || 0);
+    console.log('🔍 Skill Categories count:', resumeData.skillCategories?.length || 0);
+    console.log('🔍 Volunteer Experience count:', resumeData.volunteerExperience?.length || 0);
+    console.log('🔍 References count:', resumeData.references?.length || 0);
+    console.log('🔍 Section Order:', sectionOrder);
+    console.log('🔍 Active Sections:', activeSections);
 
-      return {
-        id: project.id.toString(),
-        title: project.title || '',
-        startDate: formatDate(project.startDate),
-        endDate: formatDate(project.endDate),
-        current: project.current || false,
-                 technologies: Array.isArray(project.technologies) ? project.technologies as string[] : [],
-         link: formatUrl(project.link || ''),
-        bulletPoints: Array.isArray(project.bulletPoints) 
-          ? (project.bulletPoints as Array<{ description: string }>).map(bullet => ({ id: Math.random().toString(), description: bullet.description }))
-          : []
-      };
-    });
-
-    // Transform languages data
-    const languages = resume.languages.map(lang => ({
-      id: lang.id.toString(),
-      name: lang.name || '',
-      proficiency: lang.proficiency || ''
-    }));
-
-    // Transform publications data
-    const publications = resume.publications.map(pub => ({
-      id: pub.id.toString(),
-      title: pub.title || '',
-      authors: pub.authors || '',
-      journal: pub.journal || '',
-             year: pub.year || '',
-       doi: pub.doi || '',
-       link: formatUrl(pub.link || '')
-    }));
-
-    // Transform awards data
-    const awards = resume.awards.map(award => ({
-      id: award.id.toString(),
-      title: award.title || '',
-      organization: award.organization || '',
-      year: award.year || '',
-      bulletPoints: Array.isArray(award.bulletPoints) 
-        ? (award.bulletPoints as Array<{ description: string }>).map(bullet => ({ id: Math.random().toString(), description: bullet.description }))
-        : []
-    }));
-
-         // Transform volunteer experience data
-     const volunteerExperience = resume.volunteerExperience.map(vol => {
-       const formatDate = (date: Date | null): string => {
-         if (!date || isNaN(date.getTime())) return '';
-         try {
-           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-           const month = months[date.getMonth()];
-           const year = date.getFullYear();
-           return `${month} ${year}`;
-         } catch {
-           return '';
-         }
-       };
-
-      return {
-        id: vol.id.toString(),
-        organization: vol.organization || '',
-        position: vol.position || '',
-        location: vol.location || '',
-        startDate: formatDate(vol.startDate),
-        endDate: formatDate(vol.endDate),
-        current: vol.current || false,
-        hoursPerWeek: vol.hoursPerWeek || '',
-        bulletPoints: Array.isArray(vol.bulletPoints) 
-          ? (vol.bulletPoints as Array<{ description: string }>).map(bullet => ({ id: Math.random().toString(), description: bullet.description }))
-          : []
-      };
-    });
-
-         // Parse the resume content JSON to get the actual personal info
-     const resumeContent = resume.content as { personalInfo?: { name?: string; email?: string; phone?: string; city?: string; state?: string; summary?: string; website?: string; linkedin?: string; github?: string } };
-     const personalInfo = resumeContent?.personalInfo || {};
-
-     // Get the section order from the resume, with fallback to default order
-     const sectionOrder = (resume.sectionOrder as string[]) || [
-       'Professional Summary',
-       'Work Experience',
-       'Projects',
-       'Education',
-       'Technical Skills',
-       'Courses',
-       'Interests',
-       'Languages',
-       'Publications',
-       'Awards',
-       'Volunteer Experience',
-       'References'
-     ];
-
-     // Get deleted sections
-     const deletedSections = (resume.deletedSections as string[]) || [];
-
-     // Filter out deleted sections
-     const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
-
-               // Phone number formatting function
-      const formatPhoneNumber = (phone: string): string => {
-        if (!phone) return '';
-        // Remove all non-digits
-        const digits = phone.replace(/\D/g, '');
-        if (digits.length === 10) {
-          return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-        }
-        return phone; // Return original if not 10 digits
-      };
-
-     const resumeData = {
-       title: resume.title,
-       jobTitle: (resume as ResumeWithTemplate).jobTitle || undefined,
-       profilePicture: resume.profilePicture || undefined,
-             content: {
-         personalInfo: {
-           name: personalInfo.name || resume.user.name || '',
-           email: personalInfo.email || resume.user.email || '',
-           phone: personalInfo.phone || resume.user.phone || '',
-           city: personalInfo.city || resume.user.location || '',
-           state: personalInfo.state || '',
-           summary: personalInfo.summary || '',
-           website: formatUrl(personalInfo.website || resume.user.portfolioUrl || ''),
-           linkedin: formatUrl(personalInfo.linkedin || resume.user.linkedinUrl || ''),
-           github: formatUrl(personalInfo.github || '')
-         }
-       },
-      strengths: (resume.strengths || []).map(strength => ({
-        skillName: strength.skillName || '',
-        rating: strength.rating || 0
-      })),
-      skillCategories: (resumeContent as { skillCategories?: Array<{ id: string; title: string; skills: Array<{ id: string; name: string }> }> })?.skillCategories || [],
-      workExperience,
-      education,
-      courses,
-      interests: (resume.interests || []).map(interest => ({
-        name: interest.name || '',
-        icon: interest.icon || ''
-      })),
-      projects,
-      languages,
-      publications,
-      awards,
-             volunteerExperience,
-               references: resume.references.map(ref => ({
-          id: ref.id.toString(),
-          name: ref.name || '',
-          title: ref.title || '',
-          company: ref.company || '',
-          email: ref.email || '',
-          phone: ref.phone || '',
-          relationship: ref.relationship || ''
-        }))
-      };
-
-      // Debug logging to see what data we have
-      console.log('🔍 PDF DEBUG - Data Summary:');
-      console.log('🔍 Strengths count:', resumeData.strengths?.length || 0);
-      console.log('🔍 Skill Categories count:', resumeData.skillCategories?.length || 0);
-      console.log('🔍 Volunteer Experience count:', resumeData.volunteerExperience?.length || 0);
-      console.log('🔍 References count:', resumeData.references?.length || 0);
-      console.log('🔍 Section Order:', sectionOrder);
-      console.log('🔍 Active Sections:', activeSections);
-
-
-      
-
-
-      // Function to render sections based on the active sections order
-      const renderSection = (sectionName: string): string => {
-        switch (sectionName) {
-          case 'Professional Summary':
-            return resumeData.content.personalInfo.summary ? `
-              <div class="section">
-                <div class="section-header">Professional Summary</div>
-                <div class="body-text">${resumeData.content.personalInfo.summary}</div>
-              </div>
-            ` : '';
-          
-          case 'Work Experience':
-            return resumeData.workExperience && resumeData.workExperience.length > 0 ? `
-              <div class="section">
-                <div class="section-header">Work Experience</div>
-                ${resumeData.workExperience.map(work => `
-                  <div class="entry">
-                    <div class="entry-header">
-                      <div class="entry-company">${work.company}</div>
-                      <div class="entry-date">${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
-                    </div>
-                    <div class="entry-position body-text">${work.position}</div>
-                    ${work.bulletPoints && work.bulletPoints.length > 0 ? `
-                      <div class="bullet-points">
-                        ${work.bulletPoints.map(bullet => `
-                          <div class="bullet-point">• ${bullet.description}</div>
-                        `).join('')}
-                      </div>
-                    ` : ''}
+    // Function to render sections based on the active sections order
+    const renderSection = (sectionName: string): string => {
+      switch (sectionName) {
+        case 'Professional Summary':
+          return resumeData.content.personalInfo.summary ? `
+            <div class="section">
+              <div class="section-header">Professional Summary</div>
+              <div class="body-text">${resumeData.content.personalInfo.summary}</div>
+            </div>
+          ` : '';
+        
+        case 'Work Experience':
+          return resumeData.workExperience && resumeData.workExperience.length > 0 ? `
+            <div class="section">
+              <div class="section-header">Work Experience</div>
+              ${resumeData.workExperience.map(work => `
+                <div class="entry">
+                  <div class="entry-header">
+                    <div class="entry-company">${work.company}</div>
+                    <div class="entry-date">${work.startDate} - ${work.current ? 'Present' : work.endDate}</div>
                   </div>
-                `).join('')}
-              </div>
-            ` : '';
-          
-          case 'Projects':
-            return resumeData.projects && resumeData.projects.length > 0 ? `
-              <div class="section">
-                <div class="section-header">Projects</div>
-                ${resumeData.projects.map(project => `
-                  <div class="entry">
-                    <div class="entry-header">
-                      <div class="entry-title">
-                        ${project.link ? `<a href="${project.link}" class="project-link">${project.title}</a>` : project.title}
-                      </div>
-                      <div class="entry-date">${project.startDate} - ${project.current ? 'Present' : project.endDate}</div>
+                  <div class="entry-position body-text">${work.position}</div>
+                  ${work.bulletPoints && work.bulletPoints.length > 0 ? `
+                    <div class="bullet-points">
+                      ${work.bulletPoints.map(bullet => `
+                        <div class="bullet-point">• ${bullet.description}</div>
+                      `).join('')}
                     </div>
-                    <div class="body-text">${Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}</div>
-                    ${project.bulletPoints && project.bulletPoints.length > 0 ? `
-                      <div class="bullet-points">
-                        ${project.bulletPoints.map(bullet => `
-                          <div class="bullet-point">• ${bullet.description}</div>
-                        `).join('')}
-                      </div>
-                    ` : ''}
-                  </div>
-                `).join('')}
-              </div>
-            ` : '';
-          
-          case 'Education':
-            return resumeData.education && resumeData.education.length > 0 ? `
-              <div class="section">
-                <div class="section-header">Education</div>
-                ${resumeData.education.map(edu => `
-                  <div class="entry">
-                    <div class="entry-header">
-                      <div class="entry-title">${edu.degree} in ${edu.field}</div>
-                      <div class="entry-date">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : '';
+        
+        case 'Projects':
+          return resumeData.projects && resumeData.projects.length > 0 ? `
+            <div class="section">
+              <div class="section-header">Projects</div>
+              ${resumeData.projects.map(project => `
+                <div class="entry">
+                  <div class="entry-header">
+                    <div class="entry-title">
+                      ${project.link ? `<a href="${formatUrl(project.link)}" class="project-link">${project.title}</a>` : project.title}
                     </div>
-                    <div class="body-text">${edu.institution}</div>
-                    ${edu.gpa ? `<div class="body-text">GPA: ${edu.gpa}</div>` : ''}
                   </div>
-                `).join('')}
-              </div>
-            ` : '';
+                  <div class="body-text">${project.description}</div>
+                  ${project.technologies && project.technologies.length > 0 ? `
+                    <div class="body-text">Technologies: ${project.technologies.join(', ')}</div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : '';
+        
+        case 'Education':
+          return resumeData.education && resumeData.education.length > 0 ? `
+            <div class="section">
+              <div class="section-header">Education</div>
+              ${resumeData.education.map(edu => `
+                <div class="entry">
+                  <div class="entry-header">
+                    <div class="entry-title">${edu.degree} in ${edu.field}</div>
+                    <div class="entry-date">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</div>
+                  </div>
+                  <div class="body-text">${edu.institution}</div>
+                  ${edu.gpa ? `<div class="body-text">GPA: ${edu.gpa}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : '';
           
           case 'Technical Skills':
             // Check for skillCategories first (structured format), then fall back to strengths
@@ -487,14 +289,8 @@ export async function POST(
                 ${resumeData.awards.map(award => `
                   <div class="entry">
                     <div class="entry-title">${award.title}</div>
-                    <div class="body-text">${award.organization}, ${award.year}</div>
-                    ${award.bulletPoints && award.bulletPoints.length > 0 ? `
-                      <div class="bullet-points">
-                        ${award.bulletPoints.map(bullet => `
-                          <div class="bullet-point">• ${bullet.description}</div>
-                        `).join('')}
-                      </div>
-                    ` : ''}
+                    <div class="body-text">${award.issuer}, ${award.year}</div>
+                    ${award.description ? `<div class="body-text">${award.description}</div>` : ''}
                   </div>
                 `).join('')}
               </div>
@@ -511,15 +307,7 @@ export async function POST(
                       <div class="entry-date">${vol.startDate} - ${vol.current ? 'Present' : vol.endDate}</div>
                     </div>
                     <div class="body-text">${vol.organization}</div>
-                    <div class="body-text">${vol.location}</div>
-                    ${vol.hoursPerWeek ? `<div class="body-text">${vol.hoursPerWeek} hours/week</div>` : ''}
-                    ${vol.bulletPoints && vol.bulletPoints.length > 0 ? `
-                      <div class="bullet-points">
-                        ${vol.bulletPoints.map(bullet => `
-                          <div class="bullet-point">• ${bullet.description}</div>
-                        `).join('')}
-                      </div>
-                    ` : ''}
+                    ${vol.description ? `<div class="body-text">${vol.description}</div>` : ''}
                   </div>
                 `).join('')}
               </div>
