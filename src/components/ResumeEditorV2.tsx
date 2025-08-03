@@ -6456,12 +6456,7 @@ export default function ResumeEditorV2({
     }
   };
 
-  const handleDownloadWord = async () => {
-    // TODO: Implement Word download with export settings
 
-    // For now, just close the panel
-    setExportPanelOpen(false);
-  };
 
   const handleResetFormatting = () => {
     const currentTemplate = exportSettings.template;
@@ -8276,20 +8271,7 @@ export default function ResumeEditorV2({
             >
               {pdfDownloading ? 'Generating PDF...' : 'Download by PDF'}
             </Button>
-            <Button
-              variant="contained"
-              onClick={handleDownloadWord}
-              sx={{
-                borderRadius: 6,
-                backgroundColor: '#000',
-                color: 'white',
-                textTransform: 'none',
-                fontSize: 16,
-                boxShadow: 'none',
-              }}
-            >
-              Download by Word(.docx)
-            </Button>
+
           </Stack>
         </Box>
       </Drawer>
