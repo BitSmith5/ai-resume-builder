@@ -5,7 +5,6 @@ import {
   Box,
   Typography,
   Stack,
-  Chip,
   Avatar,
   IconButton,
   Divider,
@@ -100,7 +99,7 @@ export default function ResumePage() {
     return <ArticleIcon sx={{ color: COLORS.primary }} />;
   };
 
-  const getResumeIconColor = (title: string) => {
+  const getResumeIconColor = () => {
     return 'transparent'; // Use transparent background for all resumes
   };
 
@@ -253,16 +252,16 @@ export default function ResumePage() {
                      >
                        {/* Resume Column */}
                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '35%' }}>
-                         <Avatar
-                           sx={{
-                             bgcolor: getResumeIconColor(resume.title),
-                             color: getResumeIconColor(resume.title) === COLORS.primary ? 'white' : 'white',
-                             width: 32,
-                             height: 32,
-                             fontSize: '0.9rem',
-                             fontWeight: 'bold'
-                           }}
-                         >
+                                                   <Avatar
+                            sx={{
+                              bgcolor: getResumeIconColor(),
+                              color: 'white',
+                              width: 32,
+                              height: 32,
+                              fontSize: '0.9rem',
+                              fontWeight: 'bold'
+                            }}
+                          >
                            {getResumeIcon(resume.title)}
                          </Avatar>
                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
