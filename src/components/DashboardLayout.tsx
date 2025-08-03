@@ -44,12 +44,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Get current page title based on pathname
   const getCurrentPageTitle = () => {
-    if (pathname === "/dashboard") return "Dashboard";
     if (pathname === "/dashboard/resume") return "Resume";
     if (pathname === "/dashboard/resume/new") return "Edit Resume";
-    if (pathname === "/dashboard/resumes") return "My Resumes";
     if (pathname === "/dashboard/profile") return "Profile";
-    return "Dashboard";
+    return "Resume Builder";
   };
 
   useEffect(() => {
@@ -88,9 +86,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
     { text: "Resume", icon: <ResumeIcon />, path: "/dashboard/resume" }, // New menu item for Resume section
-    { text: "My Resumes", icon: <ResumeIcon />, path: "/dashboard/resumes" },
     { text: "Profile", icon: <ProfileIcon />, path: "/dashboard/profile" },
   ];
 
@@ -187,6 +183,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
+              borderRight: 'none',
             },
           }}
         >
@@ -199,6 +196,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
+              borderRight: 'none',
             },
           }}
           open
