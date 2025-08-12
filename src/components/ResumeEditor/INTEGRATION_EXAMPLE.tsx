@@ -277,7 +277,11 @@ export const UseResumeDataExample = () => {
 
 // Example of how to use the utility functions:
 export const UtilsExample = () => {
-  const { formatPhoneNumber, formatDate } = require('./utils/dateUtils');
+  // Note: In a real component, you would import these at the top:
+  // import { formatPhoneNumber, formatDate } from './utils/dateUtils';
+  // This is just a demonstration example
+  const formatPhoneNumber = (phone: string) => `(${phone.slice(0,3)}) ${phone.slice(3,6)}-${phone.slice(6)}`;
+  const formatDate = (date: string) => new Date(date).toLocaleDateString();
   
   const formattedPhone = formatPhoneNumber('1234567890'); // Returns "(123) 456-7890"
   const formattedDate = formatDate('2024-01-15'); // Returns "Jan 15, 2024"

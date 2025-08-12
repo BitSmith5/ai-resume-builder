@@ -25,13 +25,7 @@ interface ResumeHeaderProps {
 }
 
 export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
-  resumeTitle,
-  jobTitle,
-  loading,
-  onClose,
-  onEditResumeInfo,
-  onExport,
-  onDelete,
+  resumeTitle, loading, onClose, onEditResumeInfo, onExport, onDelete,
 }) => {
   return (
     <Box

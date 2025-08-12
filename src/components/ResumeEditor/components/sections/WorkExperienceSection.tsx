@@ -27,8 +27,6 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
-  const [editingBulletId, setEditingBulletId] = useState<string | null>(null);
-
   const addWorkExperience = () => {
     const newWork = {
       id: `work-${Date.now()}`,
@@ -79,7 +77,6 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
         work.id === workId ? { ...work, bulletPoints: [...work.bulletPoints, newBullet] } : work
       )
     }));
-    setEditingBulletId(newBulletId);
   };
 
   const updateBulletPoint = (workId: string, bulletId: string, description: string) => {
