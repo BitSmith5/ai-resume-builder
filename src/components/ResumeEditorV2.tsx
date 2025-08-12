@@ -83,6 +83,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useDebouncedCallback } from 'use-debounce';
 import { COLORS } from '../lib/colorSystem';
+import { ResumeHeader } from './ResumeEditor/components/ResumeHeader';
+import { PersonalInfoSection } from './ResumeEditor/components/sections/PersonalInfoSection';
+import { ProfessionalSummarySection } from "./ResumeEditor/components/sections/ProfessionalSummarySection";
+import { TechnicalSkillsSection } from "./ResumeEditor/components/sections/TechnicalSkillsSection";
+import { WorkExperienceSection } from "./ResumeEditor/components/sections/WorkExperienceSection";
+import { EducationSection } from "./ResumeEditor/components/sections/EducationSection";
 
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
@@ -285,10 +291,10 @@ export default function ResumeEditorV2({
   const [previewHtml, setPreviewHtml] = useState<string>('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string>('');
-  
+
   // Cache for preview results to avoid unnecessary API calls
   const previewCache = useRef<Map<string, string>>(new Map());
-  
+
   // Create a cache key from export settings
   const getCacheKey = useCallback((): string => {
     return JSON.stringify(exportSettings);
@@ -309,7 +315,7 @@ export default function ResumeEditorV2({
 
   // Prevent hydration mismatch by ensuring popup state is only set on client
   const [isClient, setIsClient] = useState(false);
-  
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -330,18 +336,18 @@ export default function ResumeEditorV2({
     if (exportPanelOpen && resumeId) {
       // Create AbortController for request cancellation
       const abortController = new AbortController();
-      
+
       // Check cache first
       const cacheKey = getCacheKey();
       const cachedHtml = previewCache.current.get(cacheKey);
-      
+
       if (cachedHtml) {
         setPreviewHtml(cachedHtml);
         setPreviewLoading(false);
         setPreviewError('');
         return;
       }
-      
+
       // Debounce the API call to avoid excessive requests
       const timeoutId = setTimeout(async () => {
         try {
@@ -357,16 +363,16 @@ export default function ResumeEditorV2({
             }),
             signal: abortController.signal,
           });
-          
+
           if (!response.ok) {
             throw new Error('Failed to load preview');
           }
-          
+
           const htmlContent = await response.text();
-          
+
           // Cache the result
           previewCache.current.set(cacheKey, htmlContent);
-          
+
           // Limit cache size to prevent memory issues
           if (previewCache.current.size > 20) {
             const firstKey = previewCache.current.keys().next().value;
@@ -374,7 +380,7 @@ export default function ResumeEditorV2({
               previewCache.current.delete(firstKey);
             }
           }
-          
+
           setPreviewHtml(htmlContent);
         } catch (err) {
           if (err instanceof Error && err.name === 'AbortError') {
@@ -499,10 +505,10 @@ export default function ResumeEditorV2({
         >
           {!selectedYear ? (
             // Year Selection
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              maxHeight: 200, 
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: 200,
               overflowY: 'auto',
               overflowX: 'hidden',
               alignItems: 'flex-start',
@@ -548,10 +554,10 @@ export default function ResumeEditorV2({
             </Box>
           ) : (
             // Month Selection
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              maxHeight: 200, 
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: 200,
               overflowY: 'auto',
               overflowX: 'hidden',
               alignItems: 'flex-start',
@@ -602,17 +608,17 @@ export default function ResumeEditorV2({
               ))}
             </Box>
           )}
-          
+
           {selectedYear && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
               <Button
                 onClick={() => setSelectedYear(null)}
-                sx={{ 
-                  textTransform: 'none', 
+                sx={{
+                  textTransform: 'none',
                   fontSize: '0.8rem',
                   color: COLORS.primary,
                   '&:hover': {
-                                          backgroundColor: COLORS.overlay,
+                    backgroundColor: COLORS.overlay,
                   }
                 }}
               >
@@ -628,12 +634,12 @@ export default function ResumeEditorV2({
   useEffect(() => {
     const loadProfileData = async () => {
       try {
-    
+
         const response = await fetch('/api/profile');
-        
+
         if (response.ok) {
           const userData = await response.json();
-          
+
           setProfileData({
             name: userData.name || session?.user?.name || "",
             email: userData.email || session?.user?.email || "",
@@ -672,7 +678,7 @@ export default function ResumeEditorV2({
         setLoading(false);
       }
     };
-    
+
     if (session?.user) {
       loadProfileData();
     }
@@ -682,7 +688,7 @@ export default function ResumeEditorV2({
   useEffect(() => {
     const loadResumeData = async () => {
       if (!resumeId || !session?.user) return;
-      
+
       try {
         const response = await fetch(`/api/resumes/${resumeId}`);
         if (response.ok) {
@@ -693,8 +699,8 @@ export default function ResumeEditorV2({
             content: resume.content,
             hasSkillCategories: !!resume.skillCategories?.length
           });
-          
-          
+
+
           setResumeData({
             title: resume.title || "",
             jobTitle: resume.jobTitle || "",
@@ -724,17 +730,17 @@ export default function ResumeEditorV2({
               const dbWorkExperience = resume.workExperience || [];
               // Get work experience from content (has location but dates might be strings)
               const contentWorkExperience = (resume.content as Record<string, unknown>)?.workExperience as Array<Record<string, unknown>> || [];
-              
+
               // Merge the data, prioritizing content data for location
               const mergedWorkExperience = dbWorkExperience.map((dbWork: Record<string, unknown>, index: number) => {
                 const contentWork = contentWorkExperience[index] || {};
-                
+
                 // Convert Date objects back to "MMM YYYY" format
                 const formatDate = (date: Date | string): string => {
                   if (!date) return '';
-                  
+
                   let d: Date;
-                  
+
                   // Handle YYYY-MM-DD format (from API) to avoid timezone issues
                   if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
                     const [year, month, day] = date.split('-').map(Number);
@@ -742,7 +748,7 @@ export default function ResumeEditorV2({
                   } else {
                     d = new Date(date);
                   }
-                  
+
                   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                   return `${months[d.getMonth()]} ${d.getFullYear()}`;
                 };
@@ -772,16 +778,16 @@ export default function ResumeEditorV2({
               });
 
 
-              
+
               return deduplicatedWorkExperience;
             })(),
             education: (resume.education || []).map((edu: Record<string, unknown>) => {
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
-                
+
                 let d: Date;
-                
+
                 // Handle YYYY-MM-DD format (from API) to avoid timezone issues
                 if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
                   const [year, month, day] = date.split('-').map(Number);
@@ -789,7 +795,7 @@ export default function ResumeEditorV2({
                 } else {
                   d = new Date(date);
                 }
-                
+
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 return `${months[d.getMonth()]} ${d.getFullYear()}`;
               };
@@ -810,9 +816,9 @@ export default function ResumeEditorV2({
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
-                
+
                 let d: Date;
-                
+
                 // Handle YYYY-MM-DD format (from API) to avoid timezone issues
                 if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
                   const [year, month, day] = date.split('-').map(Number);
@@ -820,7 +826,7 @@ export default function ResumeEditorV2({
                 } else {
                   d = new Date(date);
                 }
-                
+
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 return `${months[d.getMonth()]} ${d.getFullYear()}`;
               };
@@ -856,9 +862,9 @@ export default function ResumeEditorV2({
               // Convert Date objects back to "MMM YYYY" format
               const formatDate = (date: Date | string): string => {
                 if (!date) return '';
-                
+
                 let d: Date;
-                
+
                 // Handle YYYY-MM-DD format (from API) to avoid timezone issues
                 if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
                   const [year, month, day] = date.split('-').map(Number);
@@ -866,7 +872,7 @@ export default function ResumeEditorV2({
                 } else {
                   d = new Date(date);
                 }
-                
+
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 return `${months[d.getMonth()]} ${d.getFullYear()}`;
               };
@@ -887,16 +893,16 @@ export default function ResumeEditorV2({
               id: String(reference.id || Math.random())
             })),
           });
-          
+
           // Load sectionOrder from database
           if (resume.sectionOrder && Array.isArray(resume.sectionOrder)) {
-    
+
             // Filter out deleted sections from the loaded section order
             const deletedSections = resume.deletedSections || [];
             const filteredSectionOrder = resume.sectionOrder.filter((section: string) => !deletedSections.includes(section));
-            
+
             setSectionOrder(filteredSectionOrder);
-            
+
             // Also set sectionOrder in resumeData
             setResumeData(prev => ({
               ...prev,
@@ -906,7 +912,7 @@ export default function ResumeEditorV2({
 
           // Load exportSettings from database
           if (resume.exportSettings) {
-    
+
             setExportSettings(prev => ({
               ...prev,
               ...resume.exportSettings
@@ -961,16 +967,16 @@ export default function ResumeEditorV2({
     portfolioUrl?: string;
   }, currentSectionOrder: string[]) => {
     if (!session?.user) return;
-    
-    
-    
 
-    
+
+
+
+
 
     try {
       // Save profile data first
-      if (profileData.name || profileData.email || profileData.phone || profileData.location || 
-          profileData.linkedinUrl || profileData.githubUrl || profileData.portfolioUrl) {
+      if (profileData.name || profileData.email || profileData.phone || profileData.location ||
+        profileData.linkedinUrl || profileData.githubUrl || profileData.portfolioUrl) {
         await fetch('/api/profile', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -988,8 +994,8 @@ export default function ResumeEditorV2({
 
       // Filter out data for deleted sections
       const deletedSections = data.deletedSections || [];
-  
-      
+
+
       // Sync profileData with resumeData.content.personalInfo
       const updatedContent = {
         ...data.content,
@@ -1006,8 +1012,8 @@ export default function ResumeEditorV2({
           github: profileData.githubUrl || data.content.personalInfo.github || '',
         }
       };
-      
-            const filteredData = {
+
+      const filteredData = {
         ...data,
         content: updatedContent,
         // Only include data for sections that are not deleted
@@ -1024,13 +1030,13 @@ export default function ResumeEditorV2({
         volunteerExperience: deletedSections.includes('Volunteer Experience') ? [] : (data.volunteerExperience || []),
         references: deletedSections.includes('References') ? [] : (data.references || []),
       };
-      
+
 
 
       // Save resume data
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
       const method = resumeId ? "PUT" : "POST";
-      
+
       const savePayload = {
         title: filteredData.title || "Untitled Resume",
         jobTitle: filteredData.jobTitle || "",
@@ -1053,22 +1059,22 @@ export default function ResumeEditorV2({
         volunteerExperience: filteredData.volunteerExperience || [],
         references: filteredData.references || [],
       };
-      
 
-      
 
-      
+
+
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(savePayload),
       });
 
-      
-      
+
+
       if (response.ok) {
         const savedResume = await response.json();
-        
+
         // If this was a new resume, update the URL with the new ID
         if (!resumeId && savedResume.id) {
           router.replace(`/resume/new?id=${savedResume.id}`);
@@ -1086,12 +1092,12 @@ export default function ResumeEditorV2({
   // Autosave effect
   useEffect(() => {
     if (loading || !session?.user) return;
-    
+
     // Don't save if we're still loading initial data
     if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
-    
 
-    
+
+
     debouncedSave(resumeData, profileData, sectionOrder);
   }, [resumeData, profileData, sectionOrder, exportSettings, loading, session?.user, resumeId, debouncedSave]);
 
@@ -1125,7 +1131,7 @@ export default function ResumeEditorV2({
       // Fallback: try to get from the drag update result if available
       mouseY = (result as any).clientY || 0;
     }
-    
+
     const container = scrollContainerRef.current;
     const containerRect = container.getBoundingClientRect();
     const scrollSpeed = 15; // Reduced scroll speed for smoother control
@@ -1153,20 +1159,20 @@ export default function ResumeEditorV2({
 
   // Handle drag end for section reordering
   const handleDragEnd = (result: DropResult) => {
-    
+
     // Clear any active scroll interval
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
       scrollIntervalRef.current = null;
     }
-    
+
     if (!result.destination) return;
 
-    
+
     const newOrder = Array.from(sectionOrder);
     const [removed] = newOrder.splice(result.source.index, 1);
     newOrder.splice(result.destination.index, 0, removed);
-    
+
 
     setSectionOrder(newOrder);
   };
@@ -1177,7 +1183,7 @@ export default function ResumeEditorV2({
       // Remove from deleted sections if it was previously deleted
       setResumeData(prev => {
 
-        
+
         return {
           ...prev,
           deletedSections: prev.deletedSections?.filter(section => section !== sectionName) || []
@@ -1191,19 +1197,19 @@ export default function ResumeEditorV2({
 
   const handleDeleteSection = (sectionName: string) => {
 
-    
+
     // Remove from section order
     setSectionOrder(prev => {
       const newOrder = prev.filter(section => section !== sectionName);
 
       return newOrder;
     });
-    
+
     // Add to deleted sections and clear the data for that section
     setResumeData(prev => {
       const newDeletedSections = [...(prev.deletedSections || []), sectionName];
 
-      
+
       const updatedData = {
         ...prev,
         deletedSections: newDeletedSections,
@@ -1221,7 +1227,7 @@ export default function ResumeEditorV2({
         volunteerExperience: sectionName === 'Volunteer Experience' ? [] : prev.volunteerExperience,
         references: sectionName === 'References' ? [] : prev.references,
       };
-      
+
 
       return updatedData;
     });
@@ -1249,1684 +1255,40 @@ export default function ResumeEditorV2({
 
   // Helper: map section titles to render functions
   const SECTION_COMPONENTS: Record<string, (resumeData: ResumeData, setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>) => JSX.Element> = {
-    "Personal Info": () => {
-
-      const hasProfileData = profileData.name || profileData.email || profileData.phone || profileData.location || profileData.linkedinUrl || profileData.githubUrl || profileData.portfolioUrl;
-      
-      if (!hasProfileData) {
-        return (
-          <Box sx={{ py: 2 }}>
-            <Alert severity="info" sx={{ mb: 3 }}>
-              <Typography variant="body2" fontWeight={500} gutterBottom>
-                Profile Information Required
-              </Typography>
-              <Typography variant="body2">
-                To display your contact information in this resume, please complete your profile details in the Profile section. 
-                Navigate to Dashboard → Profile to add your phone number, location, and professional links.
-              </Typography>
-            </Alert>
-            <Typography variant="h5" fontWeight={700} mb={2} sx={{ fontSize: '1.5rem' }}>
-              {profileData.name || "Your Name"}
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "row", gap: 3, mb: 3, flexWrap: "wrap" }}>
-              {profileData.email && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-                  <EmailIcon fontSize="small" color="action" />
-                  <Typography variant="body2">{profileData.email}</Typography>
-                </Box>
-              )}
-            </Box>
-          </Box>
-        );
-      }
-
-      return (
-        <Box sx={{ py: 2 }}>
-          {/* Name */}
-          <Typography variant="h5" fontWeight={700} mb={2} sx={{ fontSize: '1.5rem' }}>
-            {profileData.name || "Your Name"}
-          </Typography>
-          
-          {/* Contact Information and Links Grid */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, mb: 3, maxWidth: '900px' }}>
-            {/* Email Column */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-                <EmailIcon fontSize="small" color="action" />
-                <Typography variant="body2">{profileData.email || "Email"}</Typography>
-              </Box>
-              <Box sx={{
-                bgcolor: '#f5f5f5', 
-                borderRadius: 2,
-                overflow: 'hidden'
-              }}>
-                {/* LinkedIn */}
-                <Box sx={{ 
-                  display: "flex",
-                  direction: "row",
-                  alignItems: "center", 
-                  gap: 0.3, 
-                  p: 1,
-                }}>
-                  <LinkedInIcon fontSize="small" />
-                  <Typography variant="body2" fontWeight={500}>LinkedIn</Typography>
-                </Box>
-                <Box sx={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: 1, 
-                  borderBottom: '1px solid #e0e0e0',
-                }}/>
-                <Box sx={{ p: 1 }}>
-                  <TextField
-                    size="small"
-                    value={profileData.linkedinUrl || ""}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
-                    placeholder="https://linkedin.com/in/yourprofile"
-                    variant="standard"
-                    fullWidth
-                    InputProps={{
-                      disableUnderline: true,
-                      style: { fontSize: '0.875rem', fontWeight: 500 }
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Phone Column */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-                <PhoneIcon fontSize="small" color="action" />
-                <Typography variant="body2">{profileData.phone ? formatPhoneNumber(profileData.phone) : "Phone number"}</Typography>
-              </Box>
-              <Box sx={{ 
-                bgcolor: '#f5f5f5', 
-                borderRadius: 2,
-                overflow: 'hidden'
-              }}>
-                {/* GitHub */}
-                <Box sx={{ 
-                  display: "flex",
-                  direction: "row",
-                  alignItems: "center", 
-                  gap: 0.3, 
-                  p: 1,
-                }}>
-                  <GitHubIcon fontSize="small" />
-                  <Typography variant="body2" fontWeight={500}>GitHub</Typography>
-                </Box>
-                <Box sx={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: 1, 
-                  borderBottom: '1px solid #e0e0e0',
-                }}/>
-                <Box sx={{ p: 1 }}>
-                  <TextField
-                    size="small"
-                    value={profileData.githubUrl || ""}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, githubUrl: e.target.value }))}
-                    placeholder="https://github.com/yourusername"
-                    variant="standard"
-                    fullWidth
-                    InputProps={{
-                      disableUnderline: true,
-                      style: { fontSize: '0.875rem', fontWeight: 500 }
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Location Column */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-                <LocationIcon fontSize="small" color="action" />
-                <Typography variant="body2">{profileData.location || "Location"}</Typography>
-              </Box>
-              <Box sx={{ 
-                bgcolor: '#f5f5f5', 
-                borderRadius: 2,
-                overflow: 'hidden'
-              }}>
-                {/* Website */}
-                <Box sx={{ 
-                  display: "flex",
-                  direction: "row",
-                  alignItems: "center", 
-                  gap: 0.3, 
-                  p: 1,
-                }}>
-                  <WebsiteIcon fontSize="small" />
-                  <Typography variant="body2" fontWeight={500}>Website</Typography>
-                </Box>
-                <Box sx={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: 1, 
-                  borderBottom: '1px solid #e0e0e0',
-                }}/>
-                <Box sx={{ p: 1 }}>
-                  <TextField
-                    size="small"
-                    value={profileData.portfolioUrl || ""}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
-                    placeholder="https://yourwebsite.com"
-                    variant="standard"
-                    fullWidth
-                    InputProps={{
-                      disableUnderline: true,
-                      style: { fontSize: '0.875rem', fontWeight: 500 }
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      );
-    },
-    "Professional Summary": (resumeData, setResumeData) => (
-      <Box sx={{ py: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
-            <Typography variant="h6" fontWeight={600}>
-              Professional Summary
-            </Typography>
-                      <IconButton
-              size="small"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                handleDeleteSection('Professional Summary');
-              }}
-              sx={{ 
-                border: '1px solid #e0e0e0',
-                borderRadius: '50%',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5',
-                  borderRadius: '50%'
-                }
-              }}
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-        </Box>
-        <TextField
-          multiline
-          maxRows={15}
-          value={resumeData.content.personalInfo.summary}
-          onChange={(e) =>
-            setResumeData((prev) => ({
-              ...prev,
-              content: {
-                ...prev.content,
-                personalInfo: {
-                  ...prev.content.personalInfo,
-                  summary: e.target.value,
-                },
-              },
-            }))
-          }
-          onPaste={(e) => {
-            e.preventDefault();
-            const pastedText = e.clipboardData.getData('text');
-            
-            // Process pasted text to remove line breaks and normalize spacing
-            let processedText = pastedText;
-            
-            // Replace multiple spaces with single space
-            processedText = processedText.replace(/\s+/g, ' ');
-            
-            // Remove line breaks and replace with spaces
-            processedText = processedText.replace(/\n/g, ' ');
-            
-            // Trim extra spaces
-            processedText = processedText.trim();
-            
-            setResumeData((prev) => ({
-              ...prev,
-              content: {
-                ...prev.content,
-                personalInfo: {
-                  ...prev.content.personalInfo,
-                  summary: processedText,
-                },
-              },
-            }));
-          }}
-          placeholder="Write a compelling professional summary..."
-          variant="standard"
-          sx={{
-            width: '80%',
-            '& .MuiInputBase-root': {
-              '& fieldset': {
-                border: 'none',
-              },
-              '&:hover fieldset': {
-                border: 'none',
-              },
-              '&.Mui-focused fieldset': {
-                border: 'none',
-              },
-              '&:hover': {
-                backgroundColor: '#f5f5f5',
-                borderRadius: 2,
-              },
-              '& .MuiInputBase-input': {
-                padding: '5px 12px 5px 12px',
-                wordWrap: 'break-word',
-                whiteSpace: 'normal',
-                overflowWrap: 'break-word',
-              },
-            },
-          }}
-          InputProps={{
-            disableUnderline: true,
-            style: { fontSize: '0.875rem' }
-          }}
-        />
-      </Box>
+    "Personal Info": () => (
+      <PersonalInfoSection
+        profileData={profileData}
+        setProfileData={setProfileData}
+      />
     ),
-    "Technical Skills": (resumeData, setResumeData) => {
-
-
-
-
-      const addSkillCategory = () => {
-        const newCategory = {
-          id: `category-${Date.now()}`,
-          title: 'New Category',
-          skills: []
-        };
-  
-        setResumeData(prev => ({
-          ...prev,
-          skillCategories: [...(prev.skillCategories || []), newCategory]
-        }));
-      };
-
-      const updateSkillCategory = (categoryId: string, updates: Partial<{ title: string; skills: Array<{ id: string; name: string }> }>) => {
-        setResumeData(prev => ({
-          ...prev,
-          skillCategories: (prev.skillCategories || []).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
-            cat.id === categoryId ? { ...cat, ...updates } : cat
-          )
-        }));
-      };
-
-      const deleteSkillCategory = (categoryId: string) => {
-        setResumeData(prev => ({
-          ...prev,
-          skillCategories: (prev.skillCategories || []).filter((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) => cat.id !== categoryId)
-        }));
-      };
-
-      const addSkillToCategory = (categoryId: string, skillName: string) => {
-        if (!skillName.trim()) return;
-        const newSkill = { id: Math.random().toString(), name: skillName.trim() };
-
-        setResumeData(prev => ({
-          ...prev,
-          skillCategories: (prev.skillCategories || []).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
-            cat.id === categoryId ? { ...cat, skills: [...cat.skills, newSkill] } : cat
-          )
-        }));
-      };
-
-      const deleteSkillFromCategory = (categoryId: string, skillId: string) => {
-        setResumeData(prev => ({
-          ...prev,
-          skillCategories: (prev.skillCategories || []).map((cat: { id: string; title: string; skills: Array<{ id: string; name: string }> }) =>
-            cat.id === categoryId ? { ...cat, skills: cat.skills.filter(skill => skill.id !== skillId) } : cat
-          )
-        }));
-      };
-
-
-
-      // Custom Sortable Skill Component with real-time feedback
-      const SortableSkill = ({ skill, categoryId, onDelete }: { 
-        skill: { id: string; name: string }; 
-        categoryId: string; 
-        onDelete: (categoryId: string, skillId: string) => void; 
-      }) => {
-        const {
-          attributes,
-          listeners,
-          setNodeRef,
-          transform,
-          transition,
-          isDragging,
-        } = useSortable({ id: skill.id });
-
-        const style = {
-          transform: CSS.Transform.toString(transform),
-          transition,
-          opacity: isDragging ? 0.5 : 1,
-        };
-
-        return (
-          <Box
-            ref={setNodeRef}
-            style={style}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              bgcolor: isDragging ? '#f5f5f5' : '#f5f5f5',
-              borderRadius: 2,
-              px: 0.5,
-              py: 1,
-              border: isDragging ? '2px solid #e0e0e0' : 'none',
-              margin: 0.5,
-              flexShrink: 0,
-              transform: isDragging ? 'rotate(2deg) scale(1.05)' : 'none',
-              transition: 'all 0.2s ease',
-              boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-              zIndex: isDragging ? 1000 : 'auto',
-              cursor: 'grab',
-              '&:hover': {
-                bgcolor: '#f5f5f5',
-                transform: 'scale(1.02)',
-              },
-            }}
-          >
-            {/* Drag handle area */}
-            <Box
-              {...attributes}
-              {...listeners}
-              sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}
-            >
-              <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
-            </Box>
-            
-            {/* Skill name */}
-            <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
-              {skill.name}
-            </Typography>
-            
-            {/* Delete button - separate from drag area */}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDelete(categoryId, skill.id);
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
-              >
-                <CloseIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Box>
-          </Box>
-        );
-      };
-
-      const handleCategoryDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
-        
-        const newCategories = Array.from(resumeData.skillCategories || []);
-        const [removed] = newCategories.splice(result.source.index, 1);
-        newCategories.splice(result.destination.index, 0, removed);
-        
-        setResumeData(prev => ({ ...prev, skillCategories: newCategories }));
-      };
-
-      return (
-        <Box sx={{ py: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
-            <Typography variant="h6" fontWeight={600}>
-              Technical Skills
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleDeleteSection('Technical Skills');
-              }}
-              sx={{ 
-                border: '1px solid #e0e0e0',
-                borderRadius: '50%',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5',
-                  borderRadius: '50%'
-                }
-              }}
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Box>
-          
-          <DragDropContext onDragEnd={handleCategoryDragEnd}>
-            <Droppable droppableId="skill-categories" type="skill-category">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.skillCategories || []).length === 0 ? 10 : 100 }}>
-                  {(resumeData.skillCategories || []).map((category, categoryIndex) => (
-                    <Draggable key={category.id} draggableId={category.id} index={categoryIndex}>
-                      {(provided) => (
-                        <Box
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                                                      sx={{
-                              mb: 2,
-                              background: 'transparent',
-                              ml: -3.5,
-                            }}
-                        >
-                          {/* Category Header with Drag Handle */}
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box
-                              {...provided.dragHandleProps}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                cursor: 'grab',
-                                userSelect: 'none',
-                                color: '#bbb',
-                              }}
-                            >
-                              <DragIndicatorIcon sx={{ fontSize: 20 }} />
-                            </Box>
-                            <TextField
-                              value={category.title}
-                              onChange={(e) => updateSkillCategory(category.id, { title: e.target.value })}
-                              variant="standard"
-                              sx={{ 
-                                fontWeight: 600,
-                                px: 1,
-                                mr: 1,
-                                borderRadius: 2,
-                                '&:hover': {
-                                  backgroundColor: '#f5f5f5',
-                                }
-                              }}
-                              InputProps={{
-                                style: { fontWeight: 600, fontSize: '1rem' },
-                                disableUnderline: true,
-                              }}
-                            />
-                            <IconButton
-                              size="small"
-                              onClick={() => deleteSkillCategory(category.id)}
-                              sx={{ 
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '50%',
-                                '&:hover': {
-                                  backgroundColor: '#f5f5f5',
-                                  border: '1px solid #f5f5f5',
-                                  borderRadius: '50%'
-                                }
-                              }}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-
-                          {/* Skills in this category */}
-                          <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                                                         onDragEnd={(event: DragEndEvent) => {
-                               const { active, over } = event;
-                               
-                               if (active.id !== over?.id) {
-                                 const currentCategory = (resumeData.skillCategories || []).find(cat => cat.id === category.id);
-                                 if (!currentCategory) return;
-                                 
-                                 const oldIndex = currentCategory.skills.findIndex((skill: { id: string; name: string }) => skill.id === active.id);
-                                 const newIndex = currentCategory.skills.findIndex((skill: { id: string; name: string }) => skill.id === over?.id);
-                                 
-                                 const newSkills = arrayMove(currentCategory.skills, oldIndex, newIndex) as Array<{ id: string; name: string }>;
-                                 updateSkillCategory(category.id, { skills: newSkills });
-                               }
-                             }}
-                          >
-                            <SortableContext items={category.skills.map(skill => skill.id)} strategy={horizontalListSortingStrategy}>
-                              <Box sx={{ display: "flex", minHeight: 40, flexWrap: "wrap", pl: 3 }}>
-                                {category.skills.map((skill) => (
-                                  <SortableSkill
-                                    key={skill.id}
-                                    skill={skill}
-                                    categoryId={category.id}
-                                    onDelete={deleteSkillFromCategory}
-                                  />
-                                ))}
-                              </Box>
-                            </SortableContext>
-                          </DndContext>
-
-                          {/* Add skill input for this category */}
-                          <Box sx={{ display: "flex", alignItems: "center", width: 300, pl: 3, mx: 0.5, mt: 0.5 }}>
-                            <TextField
-                              size="small"
-                              placeholder="Add skill..."
-                              sx={{ 
-                                flex: 1, 
-                                backgroundColor: '#f5f5f5', 
-                                borderRadius: 2,
-                                '& .MuiOutlinedInput-root': {
-                                  '& fieldset': {
-                                    border: 'none',
-                                  },
-                                  '&:hover fieldset': {
-                                    border: 'none',
-                                  },
-                                  '&.Mui-focused fieldset': {
-                                    border: 'none',
-                                  },
-                                },
-                              }}
-                              onKeyPress={(e) => {
-                                const target = e.target as HTMLInputElement;
-                                if (e.key === 'Enter' && target.value.trim()) {
-                                  addSkillToCategory(category.id, target.value);
-                                  target.value = '';
-                                }
-                              }}
-                            />
-                            <IconButton 
-                              size="small"
-                              onClick={(e) => {
-                                const input = e.currentTarget.previousElementSibling?.querySelector('input') as HTMLInputElement;
-                                if (input && input.value.trim()) {
-                                  addSkillToCategory(category.id, input.value);
-                                  input.value = '';
-                                }
-                              }}
-                            >
-                              <AddIcon />
-                            </IconButton>
-                          </Box>
-                        </Box>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-
-          {/* + Skills button */}
-          <Box sx={{ ml: -1.5 }}>
-            <Button
-              startIcon={<AddIcon />}
-              onClick={addSkillCategory}
-              variant="outlined"
-              size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'flex-start',
-                borderRadius: 2,
-                border: '1px solid #e0e0e0',
-                color: 'black',
-                minWidth: 180,
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5'
-                }
-              }}
-            >
-              Skill Category
-            </Button>
-          </Box>
-        </Box>
-      );
-    },
-    "Work Experience": (resumeData, setResumeData) => {
-      // Initialize work experience if not exists
-      const workExperience = resumeData.workExperience || [
-        {
-          id: `work-${Date.now()}`,
-          company: "Playgig Inc.",
-          position: "Game Engineer (Contract)",
-          location: "",
-          startDate: "Mar 2025",
-          endDate: "May 2025",
-          current: false,
-          bulletPoints: [
-            { id: Math.random().toString(), description: "Utilized AI-driven tools to accelerate development workflows, improving iteration speed and team efficiency." },
-            { id: Math.random().toString(), description: "Optimized performance for a mobile title, significantly increasing frame rates and enhancing player experience." },
-            { id: Math.random().toString(), description: "Refactored matchmaking systems to improve reliability and scalability." },
-            { id: Math.random().toString(), description: "Implemented custom gear effects and ability systems." }
-          ]
-        },
-        {
-          id: `work-${Date.now() + 1}`,
-          company: "Battlebound Inc.",
-          position: "Game Engineer",
-          location: "",
-          startDate: "Jan 2024",
-          endDate: "Feb 2025",
-          current: false,
-          bulletPoints: [
-            { id: Math.random().toString(), description: "Enhanced gameplay systems (abilities, stats, quests, camera, AI, UI) for multiple games, including a Web3 Steam title, significantly boosting player engagement and improving game functionality." },
-            { id: Math.random().toString(), description: "Engineered hoverboard racing and turtle racing games with engaging mechanics." },
-            { id: Math.random().toString(), description: "Maintained a live online game with a large user base, submitting updates and hot fixes rapidly." }
-          ]
-        }
-      ];
-
-      const addWorkExperience = () => {
-        const newWork = {
-          id: `work-${Date.now()}`,
-          company: "",
-          position: "",
-          location: "",
-          startDate: "",
-          endDate: "",
-          current: false,
-          bulletPoints: []
-        };
-        setResumeData(prev => ({
-          ...prev,
-          workExperience: [...(prev.workExperience || workExperience), newWork]
-        }));
-      };
-
-      const updateWorkExperience = (workId: string, updates: Partial<{
-        company: string;
-        position: string;
-        location: string;
-        startDate: string;
-        endDate: string;
-        current: boolean;
-        bulletPoints: Array<{ id: string; description: string }>;
-      }>) => {
-        setResumeData(prev => ({
-          ...prev,
-          workExperience: (prev.workExperience || workExperience).map(work =>
-            work.id === workId ? { ...work, ...updates } : work
-          )
-        }));
-      };
-
-      const deleteWorkExperience = (workId: string) => {
-        setResumeData(prev => ({
-          ...prev,
-          workExperience: (prev.workExperience || workExperience).filter(work => work.id !== workId)
-        }));
-      };
-
-      const addBulletPoint = (workId: string, description: string = "") => {
-        const newBulletId = Math.random().toString();
-        const newBullet = { id: newBulletId, description: description };
-        setResumeData(prev => ({
-          ...prev,
-          workExperience: (prev.workExperience || workExperience).map(work =>
-            work.id === workId ? { ...work, bulletPoints: [...work.bulletPoints, newBullet] } : work
-          )
-        }));
-        setEditingBulletId(newBulletId);
-      };
-
-
-
-      const updateBulletPoint = (workId: string, bulletId: string, description: string) => {
-        setResumeData(prev => ({
-          ...prev,
-          workExperience: (prev.workExperience || workExperience).map(work =>
-            work.id === workId ? {
-              ...work,
-              bulletPoints: work.bulletPoints.map(bullet =>
-                bullet.id === bulletId ? { ...bullet, description } : bullet
-              )
-            } : work
-          )
-        }));
-      };
-
-      const deleteBulletPoint = (workId: string, bulletId: string) => {
-        setResumeData(prev => ({
-          ...prev,
-          workExperience: (prev.workExperience || workExperience).map(work =>
-            work.id === workId ? {
-              ...work,
-              bulletPoints: work.bulletPoints.filter(bullet => bullet.id !== bulletId)
-            } : work
-          )
-        }));
-      };
-
-
-
-      // Custom Sortable Bullet Point Component
-      const SortableBulletPoint = ({ bullet, workId, onUpdate }: {
-        bullet: { id: string; description: string };
-        workId: string;
-        onUpdate: (workId: string, bulletId: string, description: string) => void;
-      }) => {
-        const {
-          attributes,
-          listeners,
-          setNodeRef,
-          transform,
-          transition,
-          isDragging,
-        } = useSortable({ id: bullet.id });
-
-        const style = {
-          transform: CSS.Transform.toString(transform),
-          transition,
-          opacity: isDragging ? 0.5 : 1,
-        };
-
-        const isEditing = editingBulletId === bullet.id;
-        const isPlaceholder = bullet.description === "Bullet point...";
-
-        return (
-          <Box
-            ref={setNodeRef}
-            style={style}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '80%',
-            }}
-          >
-            <Box
-              {...attributes}
-              {...listeners}
-              sx={{ 
-                mr: 0.25, 
-                display: 'flex',
-                alignItems: 'center',
-                height: '100%',
-                cursor: 'grab'
-              }}
-            >
-              <DragIndicatorIcon sx={{ fontSize: 20, color: '#bbb' }} />
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                py: 0.5,
-                flex: 1,
-                cursor: isEditing ? 'text' : 'default',
-                backgroundColor: isEditing ? '#f5f5f5' : 'transparent',
-                borderRadius: isEditing ? 2 : 0,
-                '&:hover': {
-                  backgroundColor: isEditing ? '#f5f5f5' : '#f5f5f5',
-                  borderRadius: 2,
-                  '& .delete-button': {
-                    opacity: 1,
-                  },
-                },
-              }}
-            >
-              {isEditing ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                  <TextField
-                  value={bullet.description}
-                  placeholder="Enter bullet point description..."
-                  onChange={(e) => onUpdate(workId, bullet.id, e.target.value)}
-                onBlur={() => {
-                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                    setEditingBulletId(null);
-                  }
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                      setEditingBulletId(null);
-                    }
-                  }
-                }}
-                variant="standard"
-                sx={{
-                  flex: 1,
-                  '& .MuiInputBase-root': {
-                    alignItems: 'center',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    paddingLeft: '0',
-                    paddingTop: '0',
-                    paddingBottom: '0',
-                  },
-                  '& .MuiInput-underline:before': { borderBottom: 'none' },
-                  '& .MuiInput-underline:after': { borderBottom: 'none' },
-                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
-                }}
-                InputProps={{
-                  disableUnderline: true,
-                }}
-                                  autoFocus
-                />
-                </Box>
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Typography 
-                  component="span" 
-                  onClick={() => setEditingBulletId(bullet.id)}
-                  sx={{ 
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    color: isPlaceholder ? '#999' : 'black',
-                    flex: 1,
-                    cursor: 'text',
-                    display: 'flex',
-                    alignItems: 'center',
-                    '&:hover': {
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: 2,
-                      '& .delete-button': {
-                        opacity: 1,
-                      },
-                    }
-                  }}
-                >
-                  {bullet.description}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => deleteBulletPoint(workId, bullet.id)}
-                  className="delete-button"
-                  sx={{ 
-                    p: 0.5, 
-                    opacity: 0,
-                    transition: 'opacity 0.2s ease',
-                    ml: 0.5,
-                    '&:hover': { opacity: 1 }
-                  }}
-                >
-                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
-            )}
-          </Box>
-        </Box>
-        );
-      };
-
-      const handleWorkDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
-        
-        const newWorkExperience = Array.from((resumeData.workExperience || workExperience));
-        const [removed] = newWorkExperience.splice(result.source.index, 1);
-        newWorkExperience.splice(result.destination.index, 0, removed);
-        
-        setResumeData((prev: ResumeData) => ({ ...prev, workExperience: newWorkExperience }));
-      };
-
-      return (
-        <Box sx={{ py: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
-            <Typography variant="h6" fontWeight={600}>
-              Professional Experience
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                handleDeleteSection('Work Experience');
-              }}
-              sx={{ 
-                border: '1px solid #e0e0e0',
-                borderRadius: '50%',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5',
-                  borderRadius: '50%'
-                }
-              }}
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Box>
-          
-          <DragDropContext onDragEnd={handleWorkDragEnd}>
-            <Droppable droppableId="work-experience" type="work-experience">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.workExperience || workExperience).length === 0 ? 10 : 100 }}>
-                  {(resumeData.workExperience || workExperience).map((work, workIndex) => (
-                    <React.Fragment key={work.id}>
-                      <Draggable draggableId={work.id} index={workIndex}>
-                        {(provided) => (
-                          <Box
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            sx={{
-                              mb: 3,
-                              background: 'transparent',
-                              p: 2,
-                              ml: -5.5,
-                            }}
-                          >
-                            {/* Work Experience Header with Drag Handle */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
-                              <Box
-                                {...provided.dragHandleProps}
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  cursor: 'grab',
-                                  userSelect: 'none',
-                                  color: '#bbb',
-                                  mr: 0.5,
-                                }}
-                              >
-                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
-                              </Box>
-                              <TextField
-                                value={work.company || ''}
-                                onChange={(e) => updateWorkExperience(work.id, { company: e.target.value })}
-                                placeholder="New Company..."
-                                variant="standard"
-                                sx={{ 
-                                  fontWeight: 600,
-                                  px: 1,
-                                  mr: 1,
-                                  borderRadius: 2,
-                                  backgroundColor: (work.company && work.company.trim()) ? 'transparent' : '#f5f5f5',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  }
-                                }}
-                                InputProps={{
-                                  style: { fontWeight: 600, fontSize: '1rem' },
-                                  disableUnderline: true,
-                                }}
-                              />
-                              <IconButton
-                                size="small"
-                                onClick={() => deleteWorkExperience(work.id)}
-                                sx={{ 
-                                  border: '1px solid #e0e0e0',
-                                  borderRadius: '50%',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                    border: '1px solid #f5f5f5',
-                                    borderRadius: '50%'
-                                  }
-                                }}
-                              >
-                                <DeleteOutlineIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
-
-                            {/* Dates */}
-                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
-                              <TextField
-                                size="small"
-                                value={work.startDate || ''}
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setDatePickerPosition({
-                                    x: rect.left,
-                                    y: rect.bottom + 5
-                                  });
-                                  datePickerCallbackRef.current = (date: string) => {
-                                    if (date) {
-                          
-                                      updateWorkExperience(work.id, { startDate: date });
-                                    }
-                                  };
-                                  setDatePickerOpen(true);
-                                }}
-                                placeholder="Start Date"
-                                sx={{ 
-                                  width: 90,
-                                  height: 28,
-                                  backgroundColor: (work.startDate && work.startDate.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  cursor: 'pointer',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    cursor: 'pointer',
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    cursor: 'pointer',
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                                InputProps={{
-                                  readOnly: true,
-                                }}
-                              />
-                              <TrendingFlatIcon sx={{ 
-                                alignSelf: 'center', 
-                                color: '#666',
-                                fontSize: '1.2rem'
-                              }} />
-                              <TextField
-                                size="small"
-                                value={work.endDate || ''}
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setDatePickerPosition({
-                                    x: rect.left,
-                                    y: rect.bottom + 5
-                                  });
-                                  datePickerCallbackRef.current = (date: string) => {
-                                    if (date) {
-                          
-                                      updateWorkExperience(work.id, { endDate: date });
-                                    }
-                                  };
-                                  setDatePickerOpen(true);
-                                }}
-                                placeholder="End Date"
-                                sx={{ 
-                                  width: 90,
-                                  height: 28,
-                                  backgroundColor: (work.endDate && work.endDate.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  cursor: 'pointer',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    cursor: 'pointer',
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    cursor: 'pointer',
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                                InputProps={{
-                                  readOnly: true,
-                                }}
-                              />
-                            </Box>
-
-                            {/* Location */}
-                            <Box sx={{ mb: 1, pl: 3 }}>
-                              <TextField
-                                size="small"
-                                value={work.location || ''}
-                                onChange={(e) => updateWorkExperience(work.id, { location: e.target.value })}
-                                placeholder="Location..."
-                                sx={{ 
-                                  width: 240,
-                                  height: 28,
-                                  backgroundColor: (work.location && work.location.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                              />
-                            </Box>
-
-                            {/* Job Title */}
-                            <Box sx={{ mb: 1, pl: 3 }}>
-                              <TextField
-                                value={work.position || ''}
-                                onChange={(e) => updateWorkExperience(work.id, { position: e.target.value })}
-                                placeholder="Job Title..."
-                                variant="standard"
-                                sx={{ 
-                                  fontWeight: 400,
-                                  pl: 1,
-                                  height: 28,
-                                  width: 240,
-                                  backgroundColor: (work.position && work.position.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                    borderRadius: 2,
-                                  }
-                                }}
-                                InputProps={{
-                                  style: { fontWeight: 400, fontSize: '0.875rem', height: 28 },
-                                  disableUnderline: true,
-                                }}
-                              />
-                            </Box>
-
-                            {/* Bullet Points */}
-                            <DndContext
-                              sensors={sensors}
-                              collisionDetection={closestCenter}
-                              onDragEnd={(event: DragEndEvent) => {
-                                const { active, over } = event;
-                                
-                                if (active.id !== over?.id) {
-                                  const currentWork = (resumeData.workExperience || workExperience).find(w => w.id === work.id);
-                                  if (!currentWork) return;
-                                  
-                                  const oldIndex = currentWork.bulletPoints.findIndex(bullet => bullet.id === active.id);
-                                  const newIndex = currentWork.bulletPoints.findIndex(bullet => bullet.id === over?.id);
-                                  
-                                  const newBulletPoints = arrayMove(currentWork.bulletPoints, oldIndex, newIndex);
-                                  updateWorkExperience(work.id, { bulletPoints: newBulletPoints });
-                                }
-                              }}
-                            >
-                              <SortableContext items={work.bulletPoints.map(bullet => bullet.id)}>
-                                <Box sx={{ pl: 3, mb: 1 }}>
-                                  {work.bulletPoints.map((bullet) => (
-                                                                      <SortableBulletPoint
-                                    key={bullet.id}
-                                    bullet={bullet}
-                                    workId={work.id}
-                                    onUpdate={updateBulletPoint}
-                                  />
-                                  ))}
-                                </Box>
-                              </SortableContext>
-                            </DndContext>
-
-                            {/* Add bullet point button */}
-                            <Box sx={{ pl: 3 }}>
-                              <Button
-                                startIcon={<AddIcon />}
-                                onClick={() => addBulletPoint(work.id)}
-                                variant="outlined"
-                                size="small"
-                                sx={{ 
-                                  textTransform: 'none', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'flex-start',
-                                  borderRadius: 2,
-                                  border: '1px solid #e0e0e0',
-                                  color: 'black',
-                                  minWidth: 180,
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                    border: '1px solid #f5f5f5'
-                                  }
-                                }}
-                              >
-                                Bullet Points
-                              </Button>
-                            </Box>
-                          </Box>
-                        )}
-                      </Draggable>
-                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
-                    </React.Fragment>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-
-          {/* Add Work Experience button */}
-          <Box sx={{ ml: -1.5 }}>
-            <Button
-              startIcon={<AddIcon />}
-              onClick={addWorkExperience}
-              variant="outlined"
-              size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'flex-start',
-                borderRadius: 2,
-                border: '1px solid #e0e0e0',
-                color: 'black',
-                minWidth: 180,
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5'
-                }
-              }}
-            >
-              Work Experience
-            </Button>
-          </Box>
-        </Box>
-      );
-    },
-    "Education": (resumeData, setResumeData) => {
-      // Initialize education if not exists
-      const education = resumeData.education || [
-        {
-          institution: "University of Technology",
-          degree: "Bachelor's Degree",
-          field: "Computer Science",
-          startDate: "Sep 2020",
-          endDate: "May 2024",
-          current: false,
-          gpa: 3.8,
-        }
-      ];
-
-      const addEducation = () => {
-        const newEducation = {
-          institution: "",
-          degree: "",
-          field: "",
-          startDate: "",
-          endDate: "",
-          current: false,
-          gpa: undefined,
-        };
-        setResumeData(prev => ({
-          ...prev,
-          education: [...(prev.education || education), newEducation]
-        }));
-      };
-
-      const updateEducation = (index: number, updates: Partial<{
-        institution: string;
-        degree: string;
-        field: string;
-        startDate: string;
-        endDate: string;
-        current: boolean;
-        gpa?: number;
-      }>) => {
-        setResumeData(prev => ({
-          ...prev,
-          education: (prev.education || education).map((edu, i) =>
-            i === index ? { ...edu, ...updates } : edu
-          )
-        }));
-      };
-
-      const deleteEducation = (index: number) => {
-        setResumeData(prev => ({
-          ...prev,
-          education: (prev.education || education).filter((_, i) => i !== index)
-        }));
-      };
-
-      const handleEducationDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
-        
-        const newEducation = Array.from((resumeData.education || education));
-        const [removed] = newEducation.splice(result.source.index, 1);
-        newEducation.splice(result.destination.index, 0, removed);
-        
-        setResumeData(prev => ({ ...prev, education: newEducation }));
-      };
-
-      return (
-        <Box sx={{ py: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
-            <Typography variant="h6" fontWeight={600}>
-              Education
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                handleDeleteSection('Education');
-              }}
-              sx={{ 
-                border: '1px solid #e0e0e0',
-                borderRadius: '50%',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5',
-                  borderRadius: '50%'
-                }
-              }}
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Box>
-          
-          <DragDropContext onDragEnd={handleEducationDragEnd}>
-            <Droppable droppableId="education" type="education">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.education || education).length === 0 ? 10 : 100 }}>
-                  {(resumeData.education || education).map((edu, eduIndex) => (
-                    <React.Fragment key={eduIndex}>
-                      <Draggable draggableId={`education-${eduIndex}`} index={eduIndex}>
-                        {(provided) => (
-                          <Box
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            sx={{
-                              mb: 3,
-                              background: 'transparent',
-                              p: 2,
-                              ml: -5.5,
-                            }}
-                          >
-                            {/* Education Header with Drag Handle */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 600 }}>
-                              <Box
-                                {...provided.dragHandleProps}
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  cursor: 'grab',
-                                  userSelect: 'none',
-                                  color: '#bbb',
-                                  mr: 0.5,
-                                }}
-                              >
-                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
-                              </Box>
-                              <TextField
-                                value={edu.institution || ''}
-                                onChange={(e) => updateEducation(eduIndex, { institution: e.target.value })}
-                                placeholder="Institution..."
-                                variant="standard"
-                                sx={{ 
-                                  fontWeight: 600,
-                                  width: 380,
-                                  px: 1,
-                                  mr: 1,
-                                  borderRadius: 2,
-                                  backgroundColor: (edu.institution && edu.institution.trim()) ? 'transparent' : '#f5f5f5',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  }
-                                }}
-                                InputProps={{
-                                  style: { fontWeight: 600, fontSize: '1rem' },
-                                  disableUnderline: true,
-                                }}
-                              />
-                              <IconButton
-                                size="small"
-                                onClick={() => deleteEducation(eduIndex)}
-                                sx={{ 
-                                  border: '1px solid #e0e0e0',
-                                  borderRadius: '50%',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                    border: '1px solid #f5f5f5',
-                                    borderRadius: '50%'
-                                  }
-                                }}
-                              >
-                                <DeleteOutlineIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
-
-                            {/* Degree and Field */}
-                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
-                              <TextField
-                                size="small"
-                                value={edu.degree || ''}
-                                onChange={(e) => updateEducation(eduIndex, { degree: e.target.value })}
-                                placeholder="Degree"
-                                sx={{ 
-                                  width: 150,
-                                  height: 28,
-                                  backgroundColor: (edu.degree && edu.degree.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                              />
-                              <TextField
-                                size="small"
-                                value={edu.field || ''}
-                                onChange={(e) => updateEducation(eduIndex, { field: e.target.value })}
-                                placeholder="Field of Study"
-                                sx={{ 
-                                  width: 180,
-                                  height: 28,
-                                  backgroundColor: (edu.field && edu.field.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                              />
-                            </Box>
-
-                            {/* Dates */}
-                            <Box sx={{ display: 'flex', gap: 2, mb: 1, pl: 3 }}>
-                              <TextField
-                                size="small"
-                                value={edu.startDate || ''}
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setDatePickerPosition({
-                                    x: rect.left,
-                                    y: rect.bottom + 5
-                                  });
-                                  datePickerCallbackRef.current = (date: string) => {
-                                    if (date) {
-                                      updateEducation(eduIndex, { startDate: date });
-                                    }
-                                  };
-                                  setDatePickerOpen(true);
-                                }}
-                                placeholder="Start Date"
-                                sx={{ 
-                                  width: 90,
-                                  height: 28,
-                                  backgroundColor: (edu.startDate && edu.startDate.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  cursor: 'pointer',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    cursor: 'pointer',
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    cursor: 'pointer',
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                                InputProps={{
-                                  readOnly: true,
-                                }}
-                              />
-                              <TrendingFlatIcon sx={{ 
-                                alignSelf: 'center', 
-                                color: '#666',
-                                fontSize: '1.2rem'
-                              }} />
-                              <TextField
-                                size="small"
-                                value={edu.endDate || ''}
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setDatePickerPosition({
-                                    x: rect.left,
-                                    y: rect.bottom + 5
-                                  });
-                                  datePickerCallbackRef.current = (date: string) => {
-                                    if (date) {
-                                      updateEducation(eduIndex, { endDate: date });
-                                    }
-                                  };
-                                  setDatePickerOpen(true);
-                                }}
-                                placeholder="End Date"
-                                sx={{ 
-                                  width: 90,
-                                  height: 28,
-                                  backgroundColor: (edu.endDate && edu.endDate.trim()) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  cursor: 'pointer',
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    cursor: 'pointer',
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    cursor: 'pointer',
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                                InputProps={{
-                                  readOnly: true,
-                                }}
-                              />
-                            </Box>
-
-                            {/* GPA */}
-                            <Box sx={{ pl: 3 }}>
-                              <TextField
-                                size="small"
-                                value={typeof edu.gpa === 'string' ? edu.gpa : (edu.gpa || '')}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  // Allow typing decimal numbers more freely
-                                  if (value === '') {
-                                    updateEducation(eduIndex, { gpa: undefined });
-                                  } else if (/^\d*\.?\d*$/.test(value)) {
-                                    // Allow partial decimal input during typing
-                                    if (value.endsWith('.') || value === '.') {
-                                      // Store as string temporarily during typing
-                                      updateEducation(eduIndex, { gpa: value as unknown as number });
-                                    } else {
-                                      const numValue = parseFloat(value);
-                                      if (!isNaN(numValue) && numValue >= 0 && numValue <= 4.0) {
-                                        updateEducation(eduIndex, { gpa: numValue });
-                                      }
-                                    }
-                                  }
-                                }}
-                                placeholder="GPA (optional)"
-                                sx={{ 
-                                  width: 120,
-                                  height: 28,
-                                  backgroundColor: (edu.gpa !== undefined && edu.gpa !== null) ? 'transparent' : '#f5f5f5',
-                                  borderRadius: 2,
-                                  '&:hover': {
-                                    backgroundColor: '#f5f5f5',
-                                  },
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 28,
-                                    fontSize: '0.875rem',
-                                    '& fieldset': { border: 'none' },
-                                    '&:hover fieldset': { border: 'none' },
-                                    '&.Mui-focused fieldset': { border: 'none' },
-                                  },
-                                  '& .MuiInputBase-input': {
-                                    paddingLeft: '8px',
-                                    fontSize: '0.875rem',
-                                    height: 28,
-                                  },
-                                }}
-                              />
-                            </Box>
-                          </Box>
-                        )}
-                      </Draggable>
-                      <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
-                    </React.Fragment>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-
-          {/* Add Education button */}
-          <Box sx={{ ml: -1.5 }}>
-            <Button
-              startIcon={<AddIcon />}
-              onClick={addEducation}
-              variant="outlined"
-              size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'flex-start',
-                borderRadius: 2,
-                border: '1px solid #e0e0e0',
-                color: 'black',
-                minWidth: 180,
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5'
-                }
-              }}
-            >
-              Education
-            </Button>
-          </Box>
-        </Box>
-      );
-    },
+    "Professional Summary": (resumeData, setResumeData) => (
+      <ProfessionalSummarySection
+        resumeData={resumeData}
+        setResumeData={setResumeData}
+        onDeleteSection={handleDeleteSection}
+      />
+    ),
+    "Technical Skills": (resumeData, setResumeData) => (
+      <TechnicalSkillsSection
+        resumeData={resumeData}
+        setResumeData={setResumeData}
+        onDeleteSection={handleDeleteSection}
+      />
+    ),
+    "Work Experience": (resumeData, setResumeData) => (
+      <WorkExperienceSection
+        resumeData={resumeData}
+        setResumeData={setResumeData}
+        onDeleteSection={handleDeleteSection}
+      />
+    ),
+    "Education": (resumeData, setResumeData) => (
+      <EducationSection
+        resumeData={resumeData}
+        setResumeData={setResumeData}
+        onDeleteSection={handleDeleteSection}
+      />
+    ),
     "Courses": (resumeData, setResumeData) => {
       // Initialize courses if not exists
       const courses = resumeData.courses || [
@@ -2971,11 +1333,11 @@ export default function ResumeEditorV2({
 
       const handleCourseDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newCourses = Array.from((resumeData.courses || courses));
         const [removed] = newCourses.splice(result.source.index, 1);
         newCourses.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, courses: newCourses }));
       };
 
@@ -2993,7 +1355,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('Courses');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -3006,7 +1368,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handleCourseDragEnd}>
             <Droppable droppableId="courses" type="course">
               {(provided) => (
@@ -3045,7 +1407,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updateCourse(courseIndex, { title: e.target.value })}
                                 placeholder="Course Title..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -3063,7 +1425,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deleteCourse(courseIndex)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -3084,7 +1446,7 @@ export default function ResumeEditorV2({
                                 value={course.provider || ''}
                                 onChange={(e) => updateCourse(courseIndex, { provider: e.target.value })}
                                 placeholder="Provider (e.g., Udemy, Coursera)"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (course.provider && course.provider.trim()) ? 'transparent' : '#f5f5f5',
@@ -3114,7 +1476,7 @@ export default function ResumeEditorV2({
                                 value={course.link || ''}
                                 onChange={(e) => updateCourse(courseIndex, { link: e.target.value })}
                                 placeholder="Course Link (optional)"
-                                sx={{ 
+                                sx={{
                                   width: 300,
                                   height: 28,
                                   backgroundColor: (course.link && course.link.trim()) ? 'transparent' : '#f5f5f5',
@@ -3156,10 +1518,10 @@ export default function ResumeEditorV2({
               onClick={addCourse}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -3264,11 +1626,11 @@ export default function ResumeEditorV2({
 
       const handleInterestDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newInterests = Array.from((resumeData.interests || interests));
         const [removed] = newInterests.splice(result.source.index, 1);
         newInterests.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, interests: newInterests }));
       };
 
@@ -3286,7 +1648,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('Interests');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -3299,7 +1661,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handleInterestDragEnd}>
             <Droppable droppableId="interests" type="interest">
               {(provided) => (
@@ -3338,7 +1700,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updateInterest(interestIndex, { name: e.target.value })}
                                 placeholder="Interest Name..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -3356,7 +1718,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deleteInterest(interestIndex)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -3456,10 +1818,10 @@ export default function ResumeEditorV2({
               onClick={addInterest}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -3542,7 +1904,7 @@ export default function ResumeEditorV2({
         if (!technology.trim()) return;
         const project = (resumeData.projects || projects).find(p => p.id === projectId);
         if (!project) return;
-        
+
         const newTechnologies = [...project.technologies, technology.trim()];
         updateProject(projectId, { technologies: newTechnologies });
       };
@@ -3550,21 +1912,21 @@ export default function ResumeEditorV2({
       const removeTechnology = (projectId: string, technologyIndex: number) => {
         const project = (resumeData.projects || projects).find(p => p.id === projectId);
         if (!project) return;
-        
+
         const newTechnologies = project.technologies.filter((_, index) => index !== technologyIndex);
         updateProject(projectId, { technologies: newTechnologies });
       };
 
       const handleTechnologyDragEnd = (event: DragEndEvent, projectId: string) => {
         const { active, over } = event;
-        
+
         if (active.id !== over?.id) {
           const project = (resumeData.projects || projects).find(p => p.id === projectId);
           if (!project) return;
-          
+
           const oldIndex = project.technologies.findIndex((_, index) => `${projectId}-tech-${index}` === active.id);
           const newIndex = project.technologies.findIndex((_, index) => `${projectId}-tech-${index}` === over?.id);
-          
+
           if (oldIndex !== -1 && newIndex !== -1) {
             const newTechnologies = arrayMove(project.technologies, oldIndex, newIndex);
             updateProject(projectId, { technologies: newTechnologies });
@@ -3626,27 +1988,27 @@ export default function ResumeEditorV2({
             >
               <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
             </Box>
-            
+
             {/* Technology name */}
             <Typography variant="body2" sx={{ mr: 1, flex: 1, fontSize: '0.8rem' }}>
               {technology}
             </Typography>
-            
+
             {/* Delete button - separate from drag area */}
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <IconButton
-              size="small"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onRemove(projectId, index);
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
-            >
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onRemove(projectId, index);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
+              >
                 <CloseIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Box>
@@ -3661,7 +2023,7 @@ export default function ResumeEditorV2({
         };
         const project = (resumeData.projects || projects).find(p => p.id === projectId);
         if (!project) return;
-        
+
         const newBulletPoints = [...(project.bulletPoints || []), newBulletPoint];
         updateProject(projectId, { bulletPoints: newBulletPoints });
         setEditingBulletId(newBulletPoint.id);
@@ -3670,7 +2032,7 @@ export default function ResumeEditorV2({
       const updateProjectBulletPoint = (projectId: string, bulletId: string, description: string) => {
         const project = (resumeData.projects || projects).find(p => p.id === projectId);
         if (!project) return;
-        
+
         const newBulletPoints = (project.bulletPoints || []).map(bullet =>
           bullet.id === bulletId ? { ...bullet, description } : bullet
         );
@@ -3680,7 +2042,7 @@ export default function ResumeEditorV2({
       const deleteProjectBulletPoint = (projectId: string, bulletId: string) => {
         const project = (resumeData.projects || projects).find(p => p.id === projectId);
         if (!project) return;
-        
+
         const newBulletPoints = (project.bulletPoints || []).filter(bullet => bullet.id !== bulletId);
         updateProject(projectId, { bulletPoints: newBulletPoints });
       };
@@ -3721,8 +2083,8 @@ export default function ResumeEditorV2({
             <Box
               {...attributes}
               {...listeners}
-              sx={{ 
-                mr: 0.25, 
+              sx={{
+                mr: 0.25,
                 display: 'flex',
                 alignItems: 'center',
                 height: '100%',
@@ -3750,102 +2112,102 @@ export default function ResumeEditorV2({
               }}
             >
               {isEditing ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                  <TextField
-                  value={bullet.description}
-                  placeholder="Enter bullet point description..."
-                  onChange={(e) => onUpdate(projectId, bullet.id, e.target.value)}
-                onBlur={() => {
-                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                    setEditingBulletId(null);
-                  }
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                      setEditingBulletId(null);
-                    }
-                  }
-                }}
-                variant="standard"
-                sx={{
-                  flex: 1,
-                  '& .MuiInputBase-root': {
-                    alignItems: 'center',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    paddingLeft: '0',
-                    paddingTop: '0',
-                    paddingBottom: '0',
-                  },
-                  '& .MuiInput-underline:before': { borderBottom: 'none' },
-                  '& .MuiInput-underline:after': { borderBottom: 'none' },
-                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
-                }}
-                InputProps={{
-                  disableUnderline: true,
-                }}
-                                  autoFocus
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                  <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <TextField
+                      value={bullet.description}
+                      placeholder="Enter bullet point description..."
+                      onChange={(e) => onUpdate(projectId, bullet.id, e.target.value)}
+                      onBlur={() => {
+                        if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                          setEditingBulletId(null);
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                            setEditingBulletId(null);
+                          }
+                        }
+                      }}
+                      variant="standard"
+                      sx={{
+                        flex: 1,
+                        '& .MuiInputBase-root': {
+                          alignItems: 'center',
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: '0.875rem',
+                          lineHeight: 1.4,
+                          paddingLeft: '0',
+                          paddingTop: '0',
+                          paddingBottom: '0',
+                        },
+                        '& .MuiInput-underline:before': { borderBottom: 'none' },
+                        '& .MuiInput-underline:after': { borderBottom: 'none' },
+                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
+                      }}
+                      InputProps={{
+                        disableUnderline: true,
+                      }}
+                      autoFocus
+                    />
+                  </Box>
                 </Box>
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Typography 
-                  component="span" 
-                  onClick={() => setEditingBulletId(bullet.id)}
-                  sx={{ 
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    color: isPlaceholder ? '#999' : 'black',
-                    flex: 1,
-                    cursor: 'text',
-                    display: 'flex',
-                    alignItems: 'center',
-                    '&:hover': {
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: 2,
-                      '& .delete-button': {
-                        opacity: 1,
-                      },
-                    }
-                  }}
-                >
-                  {bullet.description}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => deleteProjectBulletPoint(projectId, bullet.id)}
-                  className="delete-button"
-                  sx={{ 
-                    p: 0.5, 
-                    opacity: 0,
-                    transition: 'opacity 0.2s ease',
-                    ml: 0.5,
-                    '&:hover': { opacity: 1 }
-                  }}
-                >
-                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
-            )}
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                  <Typography
+                    component="span"
+                    onClick={() => setEditingBulletId(bullet.id)}
+                    sx={{
+                      fontSize: '0.875rem',
+                      lineHeight: 1.4,
+                      color: isPlaceholder ? '#999' : 'black',
+                      flex: 1,
+                      cursor: 'text',
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:hover': {
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: 2,
+                        '& .delete-button': {
+                          opacity: 1,
+                        },
+                      }
+                    }}
+                  >
+                    {bullet.description}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => deleteProjectBulletPoint(projectId, bullet.id)}
+                    className="delete-button"
+                    sx={{
+                      p: 0.5,
+                      opacity: 0,
+                      transition: 'opacity 0.2s ease',
+                      ml: 0.5,
+                      '&:hover': { opacity: 1 }
+                    }}
+                  >
+                    <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
           </Box>
-        </Box>
         );
       };
 
       const handleProjectDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newProjects = Array.from((resumeData.projects || projects));
         const [removed] = newProjects.splice(result.source.index, 1);
         newProjects.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, projects: newProjects }));
       };
 
@@ -3863,7 +2225,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('Projects');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -3876,7 +2238,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handleProjectDragEnd}>
             <Droppable droppableId="projects" type="project">
               {(provided) => (
@@ -3915,7 +2277,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updateProject(project.id, { title: e.target.value })}
                                 placeholder="Project Title..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -3933,7 +2295,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deleteProject(project.id)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -3958,7 +2320,7 @@ export default function ResumeEditorV2({
                                   if (active && over && active.id !== over.id) {
                                     const oldIndex = project.bulletPoints.findIndex(bullet => bullet.id === active.id);
                                     const newIndex = project.bulletPoints.findIndex(bullet => bullet.id === over.id);
-                                    
+
                                     const newBulletPoints = arrayMove(project.bulletPoints, oldIndex, newIndex);
                                     updateProject(project.id, { bulletPoints: newBulletPoints });
                                   }
@@ -3982,10 +2344,10 @@ export default function ResumeEditorV2({
                                 onClick={() => addProjectBulletPoint(project.id)}
                                 variant="outlined"
                                 size="small"
-                                sx={{ 
-                                  textTransform: 'none', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
+                                sx={{
+                                  textTransform: 'none',
+                                  display: 'flex',
+                                  alignItems: 'center',
                                   justifyContent: 'flex-start',
                                   borderRadius: 2,
                                   border: '1px solid #e0e0e0',
@@ -4033,9 +2395,9 @@ export default function ResumeEditorV2({
                                 <TextField
                                   size="small"
                                   placeholder="Add technology..."
-                                  sx={{ 
-                                    flex: 1, 
-                                    backgroundColor: '#f5f5f5', 
+                                  sx={{
+                                    flex: 1,
+                                    backgroundColor: '#f5f5f5',
                                     borderRadius: 2,
                                     '& .MuiOutlinedInput-root': {
                                       '& fieldset': { border: 'none' },
@@ -4051,7 +2413,7 @@ export default function ResumeEditorV2({
                                     }
                                   }}
                                 />
-                                <IconButton 
+                                <IconButton
                                   size="small"
                                   onClick={(e) => {
                                     const input = e.currentTarget.previousElementSibling?.querySelector('input') as HTMLInputElement;
@@ -4073,7 +2435,7 @@ export default function ResumeEditorV2({
                                 value={project.link || ''}
                                 onChange={(e) => updateProject(project.id, { link: e.target.value })}
                                 placeholder="Project Link (optional)"
-                                sx={{ 
+                                sx={{
                                   width: 300,
                                   height: 28,
                                   backgroundColor: (project.link && project.link.trim()) ? 'transparent' : '#f5f5f5',
@@ -4116,7 +2478,7 @@ export default function ResumeEditorV2({
                                   setDatePickerOpen(true);
                                 }}
                                 placeholder="Start Date"
-                                sx={{ 
+                                sx={{
                                   width: 90,
                                   height: 28,
                                   backgroundColor: (project.startDate && project.startDate.trim()) ? 'transparent' : '#f5f5f5',
@@ -4144,8 +2506,8 @@ export default function ResumeEditorV2({
                                   readOnly: true,
                                 }}
                               />
-                              <TrendingFlatIcon sx={{ 
-                                alignSelf: 'center', 
+                              <TrendingFlatIcon sx={{
+                                alignSelf: 'center',
                                 color: '#666',
                                 fontSize: '1.2rem'
                               }} />
@@ -4166,7 +2528,7 @@ export default function ResumeEditorV2({
                                   setDatePickerOpen(true);
                                 }}
                                 placeholder="End Date"
-                                sx={{ 
+                                sx={{
                                   width: 90,
                                   height: 28,
                                   backgroundColor: (project.endDate && project.endDate.trim()) ? 'transparent' : '#f5f5f5',
@@ -4214,10 +2576,10 @@ export default function ResumeEditorV2({
               onClick={addProject}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -4278,11 +2640,11 @@ export default function ResumeEditorV2({
 
       const handleLanguageDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newLanguages = Array.from((resumeData.languages || languages));
         const [removed] = newLanguages.splice(result.source.index, 1);
         newLanguages.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, languages: newLanguages }));
       };
 
@@ -4302,7 +2664,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('Languages');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -4315,7 +2677,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handleLanguageDragEnd}>
             <Droppable droppableId="languages" type="language">
               {(provided) => (
@@ -4354,7 +2716,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updateLanguage(language.id, { name: e.target.value })}
                                 placeholder="Language..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -4372,7 +2734,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deleteLanguage(language.id)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -4438,10 +2800,10 @@ export default function ResumeEditorV2({
               onClick={addLanguage}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -4514,11 +2876,11 @@ export default function ResumeEditorV2({
 
       const handlePublicationDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newPublications = Array.from((resumeData.publications || publications));
         const [removed] = newPublications.splice(result.source.index, 1);
         newPublications.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, publications: newPublications }));
       };
 
@@ -4536,7 +2898,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('Publications');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -4549,7 +2911,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handlePublicationDragEnd}>
             <Droppable droppableId="publications" type="publication">
               {(provided) => (
@@ -4588,7 +2950,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updatePublication(publication.id, { title: e.target.value })}
                                 placeholder="Publication Title..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -4606,7 +2968,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deletePublication(publication.id)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -4627,7 +2989,7 @@ export default function ResumeEditorV2({
                                 value={publication.authors || ''}
                                 onChange={(e) => updatePublication(publication.id, { authors: e.target.value })}
                                 placeholder="Authors..."
-                                sx={{ 
+                                sx={{
                                   width: 300,
                                   height: 28,
                                   backgroundColor: (publication.authors && publication.authors.trim()) ? 'transparent' : '#f5f5f5',
@@ -4658,7 +3020,7 @@ export default function ResumeEditorV2({
                                 value={publication.journal || ''}
                                 onChange={(e) => updatePublication(publication.id, { journal: e.target.value })}
                                 placeholder="Journal/Conference"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (publication.journal && publication.journal.trim()) ? 'transparent' : '#f5f5f5',
@@ -4685,7 +3047,7 @@ export default function ResumeEditorV2({
                                 value={publication.year || ''}
                                 onChange={(e) => updatePublication(publication.id, { year: e.target.value })}
                                 placeholder="Year"
-                                sx={{ 
+                                sx={{
                                   width: 80,
                                   height: 28,
                                   backgroundColor: (publication.year && publication.year.trim()) ? 'transparent' : '#f5f5f5',
@@ -4716,7 +3078,7 @@ export default function ResumeEditorV2({
                                 value={publication.doi || ''}
                                 onChange={(e) => updatePublication(publication.id, { doi: e.target.value })}
                                 placeholder="DOI (optional)"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (publication.doi && publication.doi.trim()) ? 'transparent' : '#f5f5f5',
@@ -4743,7 +3105,7 @@ export default function ResumeEditorV2({
                                 value={publication.link || ''}
                                 onChange={(e) => updatePublication(publication.id, { link: e.target.value })}
                                 placeholder="Link (optional)"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (publication.link && publication.link.trim()) ? 'transparent' : '#f5f5f5',
@@ -4785,10 +3147,10 @@ export default function ResumeEditorV2({
               onClick={addPublication}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -4865,7 +3227,7 @@ export default function ResumeEditorV2({
         };
         const award = (resumeData.awards || awards).find(a => a.id === awardId);
         if (!award) return;
-        
+
         const newBulletPoints = [...(award.bulletPoints || []), newBulletPoint];
         updateAward(awardId, { bulletPoints: newBulletPoints });
         setEditingBulletId(newBulletPoint.id);
@@ -4874,7 +3236,7 @@ export default function ResumeEditorV2({
       const updateAwardBulletPoint = (awardId: string, bulletId: string, description: string) => {
         const award = (resumeData.awards || awards).find(a => a.id === awardId);
         if (!award) return;
-        
+
         const newBulletPoints = (award.bulletPoints || []).map(bullet =>
           bullet.id === bulletId ? { ...bullet, description } : bullet
         );
@@ -4884,7 +3246,7 @@ export default function ResumeEditorV2({
       const deleteAwardBulletPoint = (awardId: string, bulletId: string) => {
         const award = (resumeData.awards || awards).find(a => a.id === awardId);
         if (!award) return;
-        
+
         const newBulletPoints = (award.bulletPoints || []).filter(bullet => bullet.id !== bulletId);
         updateAward(awardId, { bulletPoints: newBulletPoints });
       };
@@ -4925,8 +3287,8 @@ export default function ResumeEditorV2({
             <Box
               {...attributes}
               {...listeners}
-              sx={{ 
-                mr: 0.25, 
+              sx={{
+                mr: 0.25,
                 display: 'flex',
                 alignItems: 'center',
                 height: '100%',
@@ -4954,102 +3316,102 @@ export default function ResumeEditorV2({
               }}
             >
               {isEditing ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                  <TextField
-                  value={bullet.description}
-                  placeholder="Enter bullet point description..."
-                  onChange={(e) => onUpdate(awardId, bullet.id, e.target.value)}
-                onBlur={() => {
-                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                    setEditingBulletId(null);
-                  }
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                      setEditingBulletId(null);
-                    }
-                  }
-                }}
-                variant="standard"
-                sx={{
-                  flex: 1,
-                  '& .MuiInputBase-root': {
-                    alignItems: 'center',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    paddingLeft: '0',
-                    paddingTop: '0',
-                    paddingBottom: '0',
-                  },
-                  '& .MuiInput-underline:before': { borderBottom: 'none' },
-                  '& .MuiInput-underline:after': { borderBottom: 'none' },
-                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
-                }}
-                InputProps={{
-                  disableUnderline: true,
-                }}
-                                  autoFocus
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                  <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <TextField
+                      value={bullet.description}
+                      placeholder="Enter bullet point description..."
+                      onChange={(e) => onUpdate(awardId, bullet.id, e.target.value)}
+                      onBlur={() => {
+                        if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                          setEditingBulletId(null);
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                            setEditingBulletId(null);
+                          }
+                        }
+                      }}
+                      variant="standard"
+                      sx={{
+                        flex: 1,
+                        '& .MuiInputBase-root': {
+                          alignItems: 'center',
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: '0.875rem',
+                          lineHeight: 1.4,
+                          paddingLeft: '0',
+                          paddingTop: '0',
+                          paddingBottom: '0',
+                        },
+                        '& .MuiInput-underline:before': { borderBottom: 'none' },
+                        '& .MuiInput-underline:after': { borderBottom: 'none' },
+                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
+                      }}
+                      InputProps={{
+                        disableUnderline: true,
+                      }}
+                      autoFocus
+                    />
+                  </Box>
                 </Box>
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Typography 
-                  component="span" 
-                  onClick={() => setEditingBulletId(bullet.id)}
-                  sx={{ 
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    color: isPlaceholder ? '#999' : 'black',
-                    flex: 1,
-                    cursor: 'text',
-                    display: 'flex',
-                    alignItems: 'center',
-                    '&:hover': {
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: 2,
-                      '& .delete-button': {
-                        opacity: 1,
-                      },
-                    }
-                  }}
-                >
-                  {bullet.description}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => deleteAwardBulletPoint(awardId, bullet.id)}
-                  className="delete-button"
-                  sx={{ 
-                    p: 0.5, 
-                    opacity: 0,
-                    transition: 'opacity 0.2s ease',
-                    ml: 0.5,
-                    '&:hover': { opacity: 1 }
-                  }}
-                >
-                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
-            )}
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                  <Typography
+                    component="span"
+                    onClick={() => setEditingBulletId(bullet.id)}
+                    sx={{
+                      fontSize: '0.875rem',
+                      lineHeight: 1.4,
+                      color: isPlaceholder ? '#999' : 'black',
+                      flex: 1,
+                      cursor: 'text',
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:hover': {
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: 2,
+                        '& .delete-button': {
+                          opacity: 1,
+                        },
+                      }
+                    }}
+                  >
+                    {bullet.description}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => deleteAwardBulletPoint(awardId, bullet.id)}
+                    className="delete-button"
+                    sx={{
+                      p: 0.5,
+                      opacity: 0,
+                      transition: 'opacity 0.2s ease',
+                      ml: 0.5,
+                      '&:hover': { opacity: 1 }
+                    }}
+                  >
+                    <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
           </Box>
-        </Box>
         );
       };
 
       const handleAwardDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newAwards = Array.from((resumeData.awards || awards));
         const [removed] = newAwards.splice(result.source.index, 1);
         newAwards.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, awards: newAwards }));
       };
 
@@ -5067,7 +3429,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('Awards');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -5080,7 +3442,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handleAwardDragEnd}>
             <Droppable droppableId="awards" type="award">
               {(provided) => (
@@ -5119,7 +3481,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updateAward(award.id, { title: e.target.value })}
                                 placeholder="Award Title..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -5137,7 +3499,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deleteAward(award.id)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -5158,7 +3520,7 @@ export default function ResumeEditorV2({
                                 value={award.organization || ''}
                                 onChange={(e) => updateAward(award.id, { organization: e.target.value })}
                                 placeholder="Organization"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (award.organization && award.organization.trim()) ? 'transparent' : '#f5f5f5',
@@ -5185,7 +3547,7 @@ export default function ResumeEditorV2({
                                 value={award.year || ''}
                                 onChange={(e) => updateAward(award.id, { year: e.target.value })}
                                 placeholder="Year"
-                                sx={{ 
+                                sx={{
                                   width: 80,
                                   height: 28,
                                   backgroundColor: (award.year && award.year.trim()) ? 'transparent' : '#f5f5f5',
@@ -5220,7 +3582,7 @@ export default function ResumeEditorV2({
                                   if (active && over && active.id !== over.id) {
                                     const oldIndex = award.bulletPoints.findIndex(bullet => bullet.id === active.id);
                                     const newIndex = award.bulletPoints.findIndex(bullet => bullet.id === over.id);
-                                    
+
                                     const newBulletPoints = arrayMove(award.bulletPoints, oldIndex, newIndex);
                                     updateAward(award.id, { bulletPoints: newBulletPoints });
                                   }
@@ -5244,10 +3606,10 @@ export default function ResumeEditorV2({
                                 onClick={() => addAwardBulletPoint(award.id)}
                                 variant="outlined"
                                 size="small"
-                                sx={{ 
-                                  textTransform: 'none', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
+                                sx={{
+                                  textTransform: 'none',
+                                  display: 'flex',
+                                  alignItems: 'center',
                                   justifyContent: 'flex-start',
                                   borderRadius: 2,
                                   border: '1px solid #e0e0e0',
@@ -5282,10 +3644,10 @@ export default function ResumeEditorV2({
               onClick={addAward}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -5374,7 +3736,7 @@ export default function ResumeEditorV2({
         };
         const volunteer = (resumeData.volunteerExperience || volunteerExperience).find(v => v.id === volunteerId);
         if (!volunteer) return;
-        
+
         const newBulletPoints = [...(volunteer.bulletPoints || []), newBulletPoint];
         updateVolunteerExperience(volunteerId, { bulletPoints: newBulletPoints });
         setEditingBulletId(newBulletPoint.id);
@@ -5383,7 +3745,7 @@ export default function ResumeEditorV2({
       const updateVolunteerBulletPoint = (volunteerId: string, bulletId: string, description: string) => {
         const volunteer = (resumeData.volunteerExperience || volunteerExperience).find(v => v.id === volunteerId);
         if (!volunteer) return;
-        
+
         const newBulletPoints = (volunteer.bulletPoints || []).map(bullet =>
           bullet.id === bulletId ? { ...bullet, description } : bullet
         );
@@ -5393,7 +3755,7 @@ export default function ResumeEditorV2({
       const deleteVolunteerBulletPoint = (volunteerId: string, bulletId: string) => {
         const volunteer = (resumeData.volunteerExperience || volunteerExperience).find(v => v.id === volunteerId);
         if (!volunteer) return;
-        
+
         const newBulletPoints = (volunteer.bulletPoints || []).filter(bullet => bullet.id !== bulletId);
         updateVolunteerExperience(volunteerId, { bulletPoints: newBulletPoints });
       };
@@ -5434,8 +3796,8 @@ export default function ResumeEditorV2({
             <Box
               {...attributes}
               {...listeners}
-              sx={{ 
-                mr: 0.25, 
+              sx={{
+                mr: 0.25,
                 display: 'flex',
                 alignItems: 'center',
                 height: '100%',
@@ -5463,102 +3825,102 @@ export default function ResumeEditorV2({
               }}
             >
               {isEditing ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                  <TextField
-                  value={bullet.description}
-                  placeholder="Enter bullet point description..."
-                  onChange={(e) => onUpdate(volunteerId, bullet.id, e.target.value)}
-                onBlur={() => {
-                  if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                    setEditingBulletId(null);
-                  }
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    if (bullet.description.trim() && bullet.description !== "Bullet point...") {
-                      setEditingBulletId(null);
-                    }
-                  }
-                }}
-                variant="standard"
-                sx={{
-                  flex: 1,
-                  '& .MuiInputBase-root': {
-                    alignItems: 'center',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    paddingLeft: '0',
-                    paddingTop: '0',
-                    paddingBottom: '0',
-                  },
-                  '& .MuiInput-underline:before': { borderBottom: 'none' },
-                  '& .MuiInput-underline:after': { borderBottom: 'none' },
-                  '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
-                }}
-                InputProps={{
-                  disableUnderline: true,
-                }}
-                                  autoFocus
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                  <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <TextField
+                      value={bullet.description}
+                      placeholder="Enter bullet point description..."
+                      onChange={(e) => onUpdate(volunteerId, bullet.id, e.target.value)}
+                      onBlur={() => {
+                        if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                          setEditingBulletId(null);
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          if (bullet.description.trim() && bullet.description !== "Bullet point...") {
+                            setEditingBulletId(null);
+                          }
+                        }
+                      }}
+                      variant="standard"
+                      sx={{
+                        flex: 1,
+                        '& .MuiInputBase-root': {
+                          alignItems: 'center',
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: '0.875rem',
+                          lineHeight: 1.4,
+                          paddingLeft: '0',
+                          paddingTop: '0',
+                          paddingBottom: '0',
+                        },
+                        '& .MuiInput-underline:before': { borderBottom: 'none' },
+                        '& .MuiInput-underline:after': { borderBottom: 'none' },
+                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
+                      }}
+                      InputProps={{
+                        disableUnderline: true,
+                      }}
+                      autoFocus
+                    />
+                  </Box>
                 </Box>
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
-                <Typography 
-                  component="span" 
-                  onClick={() => setEditingBulletId(bullet.id)}
-                  sx={{ 
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    color: isPlaceholder ? '#999' : 'black',
-                    flex: 1,
-                    cursor: 'text',
-                    display: 'flex',
-                    alignItems: 'center',
-                    '&:hover': {
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: 2,
-                      '& .delete-button': {
-                        opacity: 1,
-                      },
-                    }
-                  }}
-                >
-                  {bullet.description}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => deleteVolunteerBulletPoint(volunteerId, bullet.id)}
-                  className="delete-button"
-                  sx={{ 
-                    p: 0.5, 
-                    opacity: 0,
-                    transition: 'opacity 0.2s ease',
-                    ml: 0.5,
-                    '&:hover': { opacity: 1 }
-                  }}
-                >
-                  <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
-            )}
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Typography sx={{ ml: 1, mr: 0.5, color: 'black', fontSize: '0.875rem', flexShrink: 0, lineHeight: 1 }}>•</Typography>
+                  <Typography
+                    component="span"
+                    onClick={() => setEditingBulletId(bullet.id)}
+                    sx={{
+                      fontSize: '0.875rem',
+                      lineHeight: 1.4,
+                      color: isPlaceholder ? '#999' : 'black',
+                      flex: 1,
+                      cursor: 'text',
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:hover': {
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: 2,
+                        '& .delete-button': {
+                          opacity: 1,
+                        },
+                      }
+                    }}
+                  >
+                    {bullet.description}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => deleteVolunteerBulletPoint(volunteerId, bullet.id)}
+                    className="delete-button"
+                    sx={{
+                      p: 0.5,
+                      opacity: 0,
+                      transition: 'opacity 0.2s ease',
+                      ml: 0.5,
+                      '&:hover': { opacity: 1 }
+                    }}
+                  >
+                    <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
           </Box>
-        </Box>
         );
       };
 
       const handleVolunteerDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newVolunteerExperience = Array.from((resumeData.volunteerExperience || volunteerExperience));
         const [removed] = newVolunteerExperience.splice(result.source.index, 1);
         newVolunteerExperience.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, volunteerExperience: newVolunteerExperience }));
       };
 
@@ -5576,7 +3938,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('Volunteer Experience');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -5589,7 +3951,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handleVolunteerDragEnd}>
             <Droppable droppableId="volunteerExperience" type="volunteer">
               {(provided) => (
@@ -5628,7 +3990,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updateVolunteerExperience(volunteer.id, { organization: e.target.value })}
                                 placeholder="Organization..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -5646,7 +4008,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deleteVolunteerExperience(volunteer.id)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -5667,7 +4029,7 @@ export default function ResumeEditorV2({
                                 value={volunteer.position || ''}
                                 onChange={(e) => updateVolunteerExperience(volunteer.id, { position: e.target.value })}
                                 placeholder="Position"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (volunteer.position && volunteer.position.trim()) ? 'transparent' : '#f5f5f5',
@@ -5694,7 +4056,7 @@ export default function ResumeEditorV2({
                                 value={volunteer.location || ''}
                                 onChange={(e) => updateVolunteerExperience(volunteer.id, { location: e.target.value })}
                                 placeholder="Location"
-                                sx={{ 
+                                sx={{
                                   width: 150,
                                   height: 28,
                                   backgroundColor: (volunteer.location && volunteer.location.trim()) ? 'transparent' : '#f5f5f5',
@@ -5729,7 +4091,7 @@ export default function ResumeEditorV2({
                                   if (active && over && active.id !== over.id) {
                                     const oldIndex = volunteer.bulletPoints.findIndex(bullet => bullet.id === active.id);
                                     const newIndex = volunteer.bulletPoints.findIndex(bullet => bullet.id === over.id);
-                                    
+
                                     const newBulletPoints = arrayMove(volunteer.bulletPoints, oldIndex, newIndex);
                                     updateVolunteerExperience(volunteer.id, { bulletPoints: newBulletPoints });
                                   }
@@ -5753,10 +4115,10 @@ export default function ResumeEditorV2({
                                 onClick={() => addVolunteerBulletPoint(volunteer.id)}
                                 variant="outlined"
                                 size="small"
-                                sx={{ 
-                                  textTransform: 'none', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
+                                sx={{
+                                  textTransform: 'none',
+                                  display: 'flex',
+                                  alignItems: 'center',
                                   justifyContent: 'flex-start',
                                   borderRadius: 2,
                                   border: '1px solid #e0e0e0',
@@ -5780,7 +4142,7 @@ export default function ResumeEditorV2({
                                 value={volunteer.hoursPerWeek || ''}
                                 onChange={(e) => updateVolunteerExperience(volunteer.id, { hoursPerWeek: e.target.value })}
                                 placeholder="Hours per week (optional)"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (volunteer.hoursPerWeek && volunteer.hoursPerWeek.trim()) ? 'transparent' : '#f5f5f5',
@@ -5823,7 +4185,7 @@ export default function ResumeEditorV2({
                                   setDatePickerOpen(true);
                                 }}
                                 placeholder="Start Date"
-                                sx={{ 
+                                sx={{
                                   width: 90,
                                   height: 28,
                                   backgroundColor: (volunteer.startDate && volunteer.startDate.trim()) ? 'transparent' : '#f5f5f5',
@@ -5851,8 +4213,8 @@ export default function ResumeEditorV2({
                                   readOnly: true,
                                 }}
                               />
-                              <TrendingFlatIcon sx={{ 
-                                alignSelf: 'center', 
+                              <TrendingFlatIcon sx={{
+                                alignSelf: 'center',
                                 color: '#666',
                                 fontSize: '1.2rem'
                               }} />
@@ -5873,7 +4235,7 @@ export default function ResumeEditorV2({
                                   setDatePickerOpen(true);
                                 }}
                                 placeholder="End Date"
-                                sx={{ 
+                                sx={{
                                   width: 90,
                                   height: 28,
                                   backgroundColor: (volunteer.endDate && volunteer.endDate.trim()) ? 'transparent' : '#f5f5f5',
@@ -5921,10 +4283,10 @@ export default function ResumeEditorV2({
               onClick={addVolunteerExperience}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -5997,11 +4359,11 @@ export default function ResumeEditorV2({
 
       const handleReferenceDragEnd = (result: DropResult) => {
         if (!result.destination) return;
-        
+
         const newReferences = Array.from((resumeData.references || references));
         const [removed] = newReferences.splice(result.source.index, 1);
         newReferences.splice(result.destination.index, 0, removed);
-        
+
         setResumeData(prev => ({ ...prev, references: newReferences }));
       };
 
@@ -6019,7 +4381,7 @@ export default function ResumeEditorV2({
 
                 handleDeleteSection('References');
               }}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 '&:hover': {
@@ -6032,7 +4394,7 @@ export default function ResumeEditorV2({
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Box>
-          
+
           <DragDropContext onDragEnd={handleReferenceDragEnd}>
             <Droppable droppableId="references" type="reference">
               {(provided) => (
@@ -6071,7 +4433,7 @@ export default function ResumeEditorV2({
                                 onChange={(e) => updateReference(reference.id, { name: e.target.value })}
                                 placeholder="Reference Name..."
                                 variant="standard"
-                                sx={{ 
+                                sx={{
                                   fontWeight: 600,
                                   px: 1,
                                   mr: 1,
@@ -6089,7 +4451,7 @@ export default function ResumeEditorV2({
                               <IconButton
                                 size="small"
                                 onClick={() => deleteReference(reference.id)}
-                                sx={{ 
+                                sx={{
                                   border: '1px solid #e0e0e0',
                                   borderRadius: '50%',
                                   '&:hover': {
@@ -6110,7 +4472,7 @@ export default function ResumeEditorV2({
                                 value={reference.title || ''}
                                 onChange={(e) => updateReference(reference.id, { title: e.target.value })}
                                 placeholder="Title"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (reference.title && reference.title.trim()) ? 'transparent' : '#f5f5f5',
@@ -6137,7 +4499,7 @@ export default function ResumeEditorV2({
                                 value={reference.company || ''}
                                 onChange={(e) => updateReference(reference.id, { company: e.target.value })}
                                 placeholder="Company"
-                                sx={{ 
+                                sx={{
                                   width: 200,
                                   height: 28,
                                   backgroundColor: (reference.company && reference.company.trim()) ? 'transparent' : '#f5f5f5',
@@ -6168,7 +4530,7 @@ export default function ResumeEditorV2({
                                 value={reference.email || ''}
                                 onChange={(e) => updateReference(reference.id, { email: e.target.value })}
                                 placeholder="Email"
-                                sx={{ 
+                                sx={{
                                   width: 250,
                                   height: 28,
                                   backgroundColor: (reference.email && reference.email.trim()) ? 'transparent' : '#f5f5f5',
@@ -6195,7 +4557,7 @@ export default function ResumeEditorV2({
                                 value={reference.phone || ''}
                                 onChange={(e) => updateReference(reference.id, { phone: e.target.value })}
                                 placeholder="Phone"
-                                sx={{ 
+                                sx={{
                                   width: 150,
                                   height: 28,
                                   backgroundColor: (reference.phone && reference.phone.trim()) ? 'transparent' : '#f5f5f5',
@@ -6226,7 +4588,7 @@ export default function ResumeEditorV2({
                                 value={reference.relationship || ''}
                                 onChange={(e) => updateReference(reference.id, { relationship: e.target.value })}
                                 placeholder="Relationship (e.g., Former Supervisor, Colleague)"
-                                sx={{ 
+                                sx={{
                                   width: 300,
                                   height: 28,
                                   backgroundColor: (reference.relationship && reference.relationship.trim()) ? 'transparent' : '#f5f5f5',
@@ -6268,10 +4630,10 @@ export default function ResumeEditorV2({
               onClick={addReference}
               variant="outlined"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
                 borderRadius: 2,
                 border: '1px solid #e0e0e0',
@@ -6348,7 +4710,7 @@ export default function ResumeEditorV2({
 
       // Get the PDF blob
       const pdfBlob = await response.blob();
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -6361,7 +4723,7 @@ export default function ResumeEditorV2({
 
       // Show success message
       setSuccess('PDF downloaded successfully!');
-      
+
       // Close the export panel
       setExportPanelOpen(false);
 
@@ -6379,7 +4741,7 @@ export default function ResumeEditorV2({
 
   const handleResetFormatting = () => {
     const currentTemplate = exportSettings.template;
-    
+
     if (currentTemplate === 'standard') {
       setExportSettings(prev => ({
         ...prev,
@@ -6426,7 +4788,7 @@ export default function ResumeEditorV2({
     try {
       setLoading(true);
       setDeleteConfirmOpen(false);
-      
+
       const response = await fetch(`/api/resumes/${resumeId}`, {
         method: "DELETE",
       });
@@ -6452,8 +4814,8 @@ export default function ResumeEditorV2({
 
 
   return (
-    <Box sx={{ 
-      mr: {xs: 0, md: 20},
+    <Box sx={{
+      mr: { xs: 0, md: 20 },
       display: "flex",
       flexDirection: "column",
       backgroundColor: "#f5f5f5",
@@ -6474,292 +4836,167 @@ export default function ResumeEditorV2({
         </Alert>
       )}
 
-      {/* Resume Tab Bar */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 2,
+      {/* Resume Header */}
+      <ResumeHeader
+        resumeTitle={resumeData.title || 'Resume Title'}
+        loading={loading}
+        onClose={() => router.push('/resume')}
+        onEditResumeInfo={() => {
+          setEditFormData({
+            title: resumeData.title,
+            jobTitle: resumeData.jobTitle || "",
+          });
+          setEditResumeInfoOpen(true);
         }}
-      >
-        {/* Left: Close, PRIMARY badge, Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <IconButton 
-            size="small" 
-            sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-            onClick={() => router.push('/resume')}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#e0e0e0',
-                borderRadius: 2,
-                px: 0.2,
-                py: 0.1,
-                minHeight: 28,
-              }}
-            >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 24,
-                height: 24,
-                borderRadius: 1.5,
-                background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
-                mr: 1,
-              }}
-            >
-              <StarIcon sx={{ fontSize: 14, color: 'black' }} />
-            </Box>
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#1a1a1a',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                pr: 1,
-              }}
-            >
-              {resumeData.title || 'Resume Title'}
-            </Typography>
-                      </Box>
-        </Box>
-        {/* Right: Action buttons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Button
-                variant="text"
-                size="small"
-                startIcon={<EditIcon />}
-                onClick={() => {
-                  setEditFormData({
-                    title: resumeData.title,
-                    jobTitle: resumeData.jobTitle || "",
-                  });
-                  setEditResumeInfoOpen(true);
-                }}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 500,
-                backgroundColor: 'white',
-                border: 'none',
-                color: 'black',
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                px: 2,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                '&:hover': {
-                  backgroundColor: '#fafafa',
-                }
-              }}
-            >
-            Edit Resume Info
-          </Button>
-            <Button
-              variant="text"
-              size="small"
-              startIcon={<DownloadIcon />}
-              onClick={handleExportClick}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 500,
-                backgroundColor: 'white',
-                border: 'none',
-                color: 'black',
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                px: 2,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                '&:hover': {
-                  backgroundColor: '#fafafa',
-                }
-              }}
-            >
-              Export
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              startIcon={<DeleteIcon />}
-              onClick={handleDeleteResume}
-              disabled={loading}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 500,
-                backgroundColor: 'white',
-                border: 'none',
-                color: loading ? '#ccc' : '#d32f2f',
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                px: 2,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                '&:hover': {
-                  backgroundColor: loading ? '#fafafa' : '#ffebee',
-                }
-              }}
-            >
-            {loading ? 'Deleting...' : 'Delete'}
-          </Button>
-        </Box>
-      </Box>
+        onExport={handleExportClick}
+        onDelete={handleDeleteResume}
+      />
       {/* Main Content Area */}
 
-        <Box sx={{ 
-          display: "flex", 
-          flexDirection: "column",
-          flex: 1,
-          marginX: 2,
-          backgroundColor: "white",
-          borderTopLeftRadius: 20, 
-          borderTopRightRadius: 20,
-          borderBottomLeftRadius: 0,
-          borderBottomRightRadius: 0,
-          overflow: 'hidden',
+      <Box sx={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        marginX: 2,
+        backgroundColor: "white",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+        overflow: 'hidden',
+      }}>
+        {/* Fixed Header */}
+        <Box sx={{
+          padding: 3,
+          borderBottom: '1px solid #e0e0e0',
+          background: `linear-gradient(90deg, ${COLORS.primary} 0%, #ffffff 100%)`,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
         }}>
-          {/* Fixed Header */}
-          <Box sx={{
-            padding: 3,
-            borderBottom: '1px solid #e0e0e0',
-            background: `linear-gradient(90deg, ${COLORS.primary} 0%, #ffffff 100%)`,
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
+          <Typography variant="h5" fontWeight={600} sx={{ color: 'black' }}>
+            Resume Content
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1, color: 'rgba(0, 0, 0, 0.7)' }}>
+            Edit and organize your resume sections below
+          </Typography>
+        </Box>
+
+        {/* Scrollable Content Area */}
+        <Box
+          ref={scrollContainerRef}
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#cccccc',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: '#aaaaaa',
+            },
           }}>
-            <Typography variant="h5" fontWeight={600} sx={{ color: 'black' }}>
-              Resume Content
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1, color: 'rgba(0, 0, 0, 0.7)' }}>
-              Edit and organize your resume sections below
-            </Typography>
-          </Box>
-
-          {/* Scrollable Content Area */}
-          <Box 
-            ref={scrollContainerRef}
-            sx={{
-              flex: 1,
-              overflowY: 'auto',
-              '&::-webkit-scrollbar': {
-                width: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                background: 'transparent',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: '#cccccc',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb:hover': {
-                background: '#aaaaaa',
-              },
-            }}>
-            <DragDropContext 
-              onDragStart={handleDragStart}
-              onDragUpdate={handleDragUpdate}
-              onDragEnd={handleDragEnd}
-            >
-              <Droppable droppableId="main-section-list" type="main-section">
-                {(provided) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps}>
-                    {sectionOrder.map((section, idx) => (
-                      <React.Fragment key={section}>
-                        {section === "Personal Info" ? (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'stretch',
-                              background: 'none',
-                              borderRadius: 2,
-                              mb: 0,
-                            }}
-                          >
-                            {/* Section content */}
-                            <Box sx={{ flex: 1, pl: 3 }}>
-                              {SECTION_COMPONENTS[section]
-                                ? SECTION_COMPONENTS[section](resumeData, setResumeData)
-                                : (
-                                  <Box sx={{ py: 2, textAlign: "center" }}>
-                                    <Typography color="text.secondary">
-                                      {section} section coming soon...
-                                    </Typography>
-                                  </Box>
-                                )}
-                            </Box>
-
+          <DragDropContext
+            onDragStart={handleDragStart}
+            onDragUpdate={handleDragUpdate}
+            onDragEnd={handleDragEnd}
+          >
+            <Droppable droppableId="main-section-list" type="main-section">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {sectionOrder.map((section, idx) => (
+                    <React.Fragment key={section}>
+                      {section === "Personal Info" ? (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'stretch',
+                            background: 'none',
+                            borderRadius: 2,
+                            mb: 0,
+                          }}
+                        >
+                          {/* Section content */}
+                          <Box sx={{ flex: 1, pl: 3 }}>
+                            {SECTION_COMPONENTS[section]
+                              ? SECTION_COMPONENTS[section](resumeData, setResumeData)
+                              : (
+                                <Box sx={{ py: 2, textAlign: "center" }}>
+                                  <Typography color="text.secondary">
+                                    {section} section coming soon...
+                                  </Typography>
+                                </Box>
+                              )}
                           </Box>
-                        ) : (
-                          <Draggable draggableId={section} index={idx}>
-                            {(provided) => (
+
+                        </Box>
+                      ) : (
+                        <Draggable draggableId={section} index={idx}>
+                          {(provided) => (
+                            <Box
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'stretch',
+                                background: 'none',
+                                border: 'none',
+                                borderRadius: 2,
+                                mb: 0,
+                                zIndex: 'auto',
+                              }}
+                            >
+                              {/* Drag handle */}
                               <Box
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
                                 sx={{
                                   display: 'flex',
-                                  alignItems: 'stretch',
-                                  background: 'none',
-                                  border: 'none',
-                                  borderRadius: 2,
-                                  mb: 0,
-                                  zIndex: 'auto',
+                                  alignItems: 'center',
+                                  px: 1,
+                                  cursor: 'grab',
+                                  userSelect: 'none',
+                                  color: '#bbb',
+                                  alignSelf: 'flex-start',
+                                  pt: 2.7,
                                 }}
                               >
-                                {/* Drag handle */}
-                                <Box
-                                  {...provided.dragHandleProps}
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    px: 1,
-                                    cursor: 'grab',
-                                    userSelect: 'none',
-                                    color: '#bbb',
-                                    alignSelf: 'flex-start',
-                                    pt: 2.7,
-                                  }}
-                                >
-                                  <DragIndicatorIcon sx={{ fontSize: 20 }} />
-                                </Box>
-                                {/* Section content */}
-                                <Box sx={{ flex: 1 }}>
-                                  {SECTION_COMPONENTS[section]
-                                    ? SECTION_COMPONENTS[section](resumeData, setResumeData)
-                                    : (
-                                      <Box sx={{ py: 2, textAlign: "center" }}>
-                                        <Typography color="text.secondary">
-                                          {section} section coming soon...
-                                        </Typography>
-                                      </Box>
-                                    )}
-                                </Box>
-
+                                <DragIndicatorIcon sx={{ fontSize: 20 }} />
                               </Box>
-                            )}
-                          </Draggable>
-                        )}
-                        {idx < sectionOrder.length - 1 && (
-                          <Divider sx={{ borderColor: '#e0e0e0', my: 0 }} />
-                        )}
-                      </React.Fragment>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </Box>
+                              {/* Section content */}
+                              <Box sx={{ flex: 1 }}>
+                                {SECTION_COMPONENTS[section]
+                                  ? SECTION_COMPONENTS[section](resumeData, setResumeData)
+                                  : (
+                                    <Box sx={{ py: 2, textAlign: "center" }}>
+                                      <Typography color="text.secondary">
+                                        {section} section coming soon...
+                                      </Typography>
+                                    </Box>
+                                  )}
+                              </Box>
+
+                            </Box>
+                          )}
+                        </Draggable>
+                      )}
+                      {idx < sectionOrder.length - 1 && (
+                        <Divider sx={{ borderColor: '#e0e0e0', my: 0 }} />
+                      )}
+                    </React.Fragment>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </Box>
+      </Box>
 
       {/* Floating Edit Resume Layout Button */}
       {exportPanelFullyClosed && !exportPanelOpen && (
@@ -6773,10 +5010,10 @@ export default function ResumeEditorV2({
         >
           <Button
             variant="contained"
-            sx={{ 
-              borderRadius: "50%", 
-              width: 60, 
-              height: 60, 
+            sx={{
+              borderRadius: "50%",
+              width: 60,
+              height: 60,
               minWidth: 60,
               minHeight: 60,
               maxWidth: 60,
@@ -6843,8 +5080,8 @@ export default function ResumeEditorV2({
               <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="section-order" type="section">
                   {(provided) => (
-                    <List 
-                      ref={provided.innerRef} 
+                    <List
+                      ref={provided.innerRef}
                       {...provided.droppableProps}
                       sx={{ px: 0, pt: 0, pb: 0 }}
                     >
@@ -6874,12 +5111,12 @@ export default function ResumeEditorV2({
                                 </IconButton>
                               }
                             >
-                              <Box 
+                              <Box
                                 {...provided.dragHandleProps}
-                                sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  mr: 0.2, 
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  mr: 0.2,
                                   cursor: 'grab',
                                   '&:active': { cursor: 'grabbing' }
                                 }}
@@ -6933,95 +5170,95 @@ export default function ResumeEditorV2({
 
       {/* Add New Section Popup - Independent Modal */}
       {isClient && addSectionPopupOpen && layoutModalOpen && (
-                  <Box
-            sx={{
-              position: 'absolute',
-              bottom: 180,
-              right: 45,
-              background: '#fff',
-              borderRadius: '18px',
-              boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
-              width: 320,
-              zIndex: 1003,
-              maxHeight: '600px',
-              overflowY: 'auto',
-            }}
-          >
-            <List sx={{ px: 0, pt: 0, pb: 0 }}>
-              {(() => {
-                const availableSections = [
-                  // Original default sections (except Personal Info)
-                  'Professional Summary',
-                  'Technical Skills',
-                  'Work Experience',
-                  'Education',
-                  // Additional sections
-                  'Projects',
-                  'Languages',
-                  'Publications',
-                  'Awards',
-                  'Volunteer Experience',
-                  'Interests',
-                  'Courses',
-                  'References'
-                ];
-                const filteredSections = availableSections.filter(section => 
-                  !sectionOrder.includes(section)
-                );
-                
-                return filteredSections;
-              })().map((section) => (
-                <ListItem
-                  key={section}
-                  component="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddSection(section);
-                  }}
-                  sx={{
-                    px: 2,
-                    py: 1.2,
-                    minHeight: 44,
-                    width: '100%',
-                    textAlign: 'left',
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      backgroundColor: '#f5f5f5',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 24 }}>
-                    <AddIcon sx={{ fontSize: 20, color: '#666' }} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={section}
-                    primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 180,
+            right: 45,
+            background: '#fff',
+            borderRadius: '18px',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+            width: 320,
+            zIndex: 1003,
+            maxHeight: '600px',
+            overflowY: 'auto',
+          }}
+        >
+          <List sx={{ px: 0, pt: 0, pb: 0 }}>
+            {(() => {
+              const availableSections = [
+                // Original default sections (except Personal Info)
+                'Professional Summary',
+                'Technical Skills',
+                'Work Experience',
+                'Education',
+                // Additional sections
+                'Projects',
+                'Languages',
+                'Publications',
+                'Awards',
+                'Volunteer Experience',
+                'Interests',
+                'Courses',
+                'References'
+              ];
+              const filteredSections = availableSections.filter(section =>
+                !sectionOrder.includes(section)
+              );
+
+              return filteredSections;
+            })().map((section) => (
+              <ListItem
+                key={section}
+                component="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddSection(section);
+                }}
+                sx={{
+                  px: 2,
+                  py: 1.2,
+                  minHeight: 44,
+                  width: '100%',
+                  textAlign: 'left',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 24 }}>
+                  <AddIcon sx={{ fontSize: 20, color: '#666' }} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={section}
+                  primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
       )}
 
       {/* Date Picker */}
       <DatePicker
         isOpen={datePickerOpen}
         onClose={() => {
-      
+
           setDatePickerOpen(false);
           // Don't clear the callback at all - let onSelect handle it
         }}
         onSelect={(date: string) => {
-          
-          
+
+
           if (datePickerCallbackRef.current) {
-            
+
             datePickerCallbackRef.current(date);
-            
+
           } else {
-            
+
           }
           setDatePickerOpen(false);
         }}
@@ -7154,7 +5391,7 @@ export default function ResumeEditorV2({
                   };
                   setResumeData(updatedResumeData);
                   setEditResumeInfoOpen(false);
-                  
+
                   // Force immediate save
                   try {
                     await debouncedSave(updatedResumeData, profileData, sectionOrder);
@@ -7209,10 +5446,10 @@ export default function ResumeEditorV2({
       >
         <Box sx={{ py: 2, px: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             mb: 3,
             pb: 2,
             borderBottom: '1px solid #e0e0e0'
@@ -7228,9 +5465,9 @@ export default function ResumeEditorV2({
           {/* Content - Two Column Layout */}
           <Box sx={{ flex: 1, display: 'flex', gap: 3, overflow: 'hidden' }}>
             {/* Left Column - Resume Preview */}
-            <Box sx={{ 
-              flex: 1, 
-              overflowY: 'auto', 
+            <Box sx={{
+              flex: 1,
+              overflowY: 'auto',
               overflowX: 'hidden',
               pr: 1,
               // Webkit scrollbar styling - more specific
@@ -7263,11 +5500,11 @@ export default function ResumeEditorV2({
               scrollbarColor: '#cccccc transparent',
             }}>
 
-              
+
 
 
               {/* Resume Preview */}
-              <Box sx={{ 
+              <Box sx={{
                 overflowY: 'visible',
                 overflowX: 'hidden',
                 height: '100%',
@@ -7289,16 +5526,16 @@ export default function ResumeEditorV2({
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    transform: 'scale(0.80)', 
+                    transform: 'scale(0.80)',
                     transformOrigin: 'top left',
                     minHeight: 'fit-content',
                     width: '100%',
                   }}>
-                    <div 
+                    <div
                       dangerouslySetInnerHTML={{ __html: previewHtml }}
-                      style={{ 
-                        width: '100%', 
-                        margin: 0, 
+                      style={{
+                        width: '100%',
+                        margin: 0,
                         padding: 0,
                       }}
                     />
@@ -7308,9 +5545,9 @@ export default function ResumeEditorV2({
             </Box>
 
             {/* Right Column - Resume Template Settings */}
-            <Box sx={{ 
+            <Box sx={{
               width: '35%',
-              overflowY: 'auto', 
+              overflowY: 'auto',
               px: 0.5,
               // Webkit scrollbar styling
               '&::-webkit-scrollbar': {
@@ -7340,10 +5577,10 @@ export default function ResumeEditorV2({
               scrollbarColor: '#cccccc transparent',
             }}>
               {/* Resume Template Section */}
-              <Box sx={{ 
-                mb: 4, 
-                border: '1px solid #e0e0e0', 
-                borderRadius: 2, 
+              <Box sx={{
+                mb: 4,
+                border: '1px solid #e0e0e0',
+                borderRadius: 2,
                 p: 2,
                 backgroundColor: 'white'
               }}>
@@ -7404,13 +5641,13 @@ export default function ResumeEditorV2({
                     <MenuItem value="a4" sx={{ fontSize: 14 }}>A4 (210mm x 297mm)</MenuItem>
                   </Select>
                 </FormControl>
-                
+
                 {/* Template Previews */}
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Box sx={{ 
-                    flex: 1, 
-                    height: 80, 
-                    border: '2px solid #e0e0e0', 
+                  <Box sx={{
+                    flex: 1,
+                    height: 80,
+                    border: '2px solid #e0e0e0',
                     borderRadius: 2,
                     display: 'flex',
                     alignItems: 'center',
@@ -7424,21 +5661,21 @@ export default function ResumeEditorV2({
                       color: 'black',
                     })
                   }}
-                  onClick={() => setExportSettings(prev => ({ 
-                    ...prev, 
-                    template: 'standard',
-                    fontFamily: 'Times New Roman',
-                    nameSize: 40,
-                    sectionHeadersSize: 14,
-                    subHeadersSize: 10.5,
-                    bodyTextSize: 11,
-                    sectionSpacing: 12,
-                    entrySpacing: 9,
-                    lineSpacing: 12,
-                    topBottomMargin: 33,
-                    sideMargins: 33,
-                    alignTextLeftRight: false
-                  }))}
+                    onClick={() => setExportSettings(prev => ({
+                      ...prev,
+                      template: 'standard',
+                      fontFamily: 'Times New Roman',
+                      nameSize: 40,
+                      sectionHeadersSize: 14,
+                      subHeadersSize: 10.5,
+                      bodyTextSize: 11,
+                      sectionSpacing: 12,
+                      entrySpacing: 9,
+                      lineSpacing: 12,
+                      topBottomMargin: 33,
+                      sideMargins: 33,
+                      alignTextLeftRight: false
+                    }))}
                   >
                     <Typography variant="body2" fontWeight={500}>Standard</Typography>
                     {exportSettings.template === 'standard' && (
@@ -7450,11 +5687,11 @@ export default function ResumeEditorV2({
                       <StarIcon sx={{ color: '#ffd700', fontSize: 14 }} />
                     </Box>
                   </Box>
-                  
-                  <Box sx={{ 
-                    flex: 1, 
-                    height: 80, 
-                    border: '2px solid #e0e0e0', 
+
+                  <Box sx={{
+                    flex: 1,
+                    height: 80,
+                    border: '2px solid #e0e0e0',
                     borderRadius: 2,
                     display: 'flex',
                     alignItems: 'center',
@@ -7468,21 +5705,21 @@ export default function ResumeEditorV2({
                       color: 'black',
                     })
                   }}
-                  onClick={() => setExportSettings(prev => ({ 
-                    ...prev, 
-                    template: 'compact',
-                    fontFamily: 'Times New Roman',
-                    nameSize: 36,
-                    sectionHeadersSize: 12,
-                    subHeadersSize: 10,
-                    bodyTextSize: 10,
-                    sectionSpacing: 10,
-                    entrySpacing: 6,
-                    lineSpacing: 10,
-                    topBottomMargin: 25,
-                    sideMargins: 25,
-                    alignTextLeftRight: false
-                  }))}
+                    onClick={() => setExportSettings(prev => ({
+                      ...prev,
+                      template: 'compact',
+                      fontFamily: 'Times New Roman',
+                      nameSize: 36,
+                      sectionHeadersSize: 12,
+                      subHeadersSize: 10,
+                      bodyTextSize: 10,
+                      sectionSpacing: 10,
+                      entrySpacing: 6,
+                      lineSpacing: 10,
+                      topBottomMargin: 25,
+                      sideMargins: 25,
+                      alignTextLeftRight: false
+                    }))}
                   >
                     <Typography variant="body2" fontWeight={500}>Compact</Typography>
                     {exportSettings.template === 'compact' && (
@@ -7492,7 +5729,7 @@ export default function ResumeEditorV2({
                     )}
                   </Box>
                 </Box>
-                
+
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                   <StarIcon sx={{ color: '#ffd700', fontSize: 14 }} />
                   <Typography variant="caption" color="text.secondary">Recommended</Typography>
@@ -7503,17 +5740,17 @@ export default function ResumeEditorV2({
               </Box>
 
               {/* Font Section */}
-              <Box sx={{ 
-                mb: 4, 
-                border: '1px solid #e0e0e0', 
-                borderRadius: 2, 
+              <Box sx={{
+                mb: 4,
+                border: '1px solid #e0e0e0',
+                borderRadius: 2,
                 p: 2,
                 backgroundColor: 'white'
               }}>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                   Font
                 </Typography>
-                
+
                 <FormControl fullWidth sx={{ mb: 2 }}>
                   <InputLabel sx={{ position: 'static', transform: 'none', marginBottom: 1, fontSize: 14, fontWeight: 600, color: "black" }}>Font Family</InputLabel>
                   <Select
@@ -7562,41 +5799,41 @@ export default function ResumeEditorV2({
                 </FormControl>
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
-                                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Name</Typography>
-                      <Select
-                        value={exportSettings.nameSize}
-                        onChange={(e) => setExportSettings(prev => ({ ...prev, nameSize: Number(e.target.value) }))}
-                        sx={{
-                          height: 33,
-                          fontSize: 14,
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Name</Typography>
+                    <Select
+                      value={exportSettings.nameSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, nameSize: Number(e.target.value) }))}
+                      sx={{
+                        height: 33,
+                        fontSize: 14,
+                        backgroundColor: '#f5f5f5',
+                        '& .MuiOutlinedInput-root': {
                           backgroundColor: '#f5f5f5',
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: '#f5f5f5',
-                            '& fieldset': {
-                              border: 'none',
-                            },
-                            '&:hover fieldset': {
-                              border: 'none',
-                            },
-                            '&.Mui-focused fieldset': {
-                              border: `2px solid ${COLORS.primary} !important`,
-                            },
-                            '&.Mui-focused': {
-                              border: `2px solid ${COLORS.primary} !important`,
-                              outline: 'none',
-                            },
-                          },
-                          '& .MuiOutlinedInput-notchedOutline': {
+                          '& fieldset': {
                             border: 'none',
                           },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                          '&:hover fieldset': {
                             border: 'none',
                           },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          '&.Mui-focused fieldset': {
                             border: `2px solid ${COLORS.primary} !important`,
                           },
-                        }}
+                          '&.Mui-focused': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                            outline: 'none',
+                          },
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          border: `2px solid ${COLORS.primary} !important`,
+                        },
+                      }}
                       MenuProps={{
                         PaperProps: {
                           sx: {
@@ -7632,67 +5869,67 @@ export default function ResumeEditorV2({
                         <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
                       ))}
                     </Select>
-                    </Box>
-                  
-                                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Section Headers</Typography>
-                      <Select
-                        value={exportSettings.sectionHeadersSize}
-                        onChange={(e) => setExportSettings(prev => ({ ...prev, sectionHeadersSize: Number(e.target.value) }))}
-                        MenuProps={{
-                          PaperProps: {
-                            sx: {
-                              '& .MuiMenuItem-root': {
-                                '&:hover': {
-                                  backgroundColor: COLORS.selected,
-                                },
-                              },
-                              '& .MuiMenuItem-root.Mui-selected': {
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Section Headers</Typography>
+                    <Select
+                      value={exportSettings.sectionHeadersSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, sectionHeadersSize: Number(e.target.value) }))}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            '& .MuiMenuItem-root': {
+                              '&:hover': {
                                 backgroundColor: COLORS.selected,
-                                '&:hover': {
-                                  backgroundColor: COLORS.selected,
-                                },
+                              },
+                            },
+                            '& .MuiMenuItem-root.Mui-selected': {
+                              backgroundColor: COLORS.selected,
+                              '&:hover': {
+                                backgroundColor: COLORS.selected,
                               },
                             },
                           },
-                        }}
-                        sx={{
-                          height: 33,
-                          fontSize: 14,
+                        },
+                      }}
+                      sx={{
+                        height: 33,
+                        fontSize: 14,
+                        backgroundColor: '#f5f5f5',
+                        '& .MuiOutlinedInput-root': {
                           backgroundColor: '#f5f5f5',
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: '#f5f5f5',
-                            '& fieldset': {
-                              border: 'none',
-                            },
-                            '&:hover fieldset': {
-                              border: 'none',
-                            },
-                            '&.Mui-focused fieldset': {
-                              border: `2px solid ${COLORS.primary} !important`,
-                            },
-                            '&.Mui-focused': {
-                              border: `2px solid ${COLORS.primary} !important`,
-                              outline: 'none',
-                            },
-                          },
-                          '& .MuiOutlinedInput-notchedOutline': {
+                          '& fieldset': {
                             border: 'none',
                           },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                          '&:hover fieldset': {
                             border: 'none',
                           },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          '&.Mui-focused fieldset': {
                             border: `2px solid ${COLORS.primary} !important`,
                           },
-                        }}
-                      >
-                        {[10, 11, 12, 13, 14, 15].map((size) => (
-                          <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
-                        ))}
-                      </Select>
-                    </Box>
-                  
+                          '&.Mui-focused': {
+                            border: `2px solid ${COLORS.primary} !important`,
+                            outline: 'none',
+                          },
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          border: 'none',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          border: `2px solid ${COLORS.primary} !important`,
+                        },
+                      }}
+                    >
+                      {[10, 11, 12, 13, 14, 15].map((size) => (
+                        <MenuItem key={size} value={size} sx={{ fontSize: 14 }}>{size}</MenuItem>
+                      ))}
+                    </Select>
+                  </Box>
+
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Sub-Headers</Typography>
@@ -7700,30 +5937,30 @@ export default function ResumeEditorV2({
                         <InfoIcon sx={{ color: '#666', fontSize: 16 }} />
                       </Tooltip>
                     </Box>
-                                                                                    <Select
-                        value={exportSettings.subHeadersSize}
-                        onChange={(e) => setExportSettings(prev => ({ ...prev, subHeadersSize: Number(e.target.value) }))}
-                        MenuProps={{
-                          PaperProps: {
-                            sx: {
-                              '& .MuiMenuItem-root': {
-                                '&:hover': {
-                                  backgroundColor: COLORS.selected,
-                                },
-                              },
-                              '& .MuiMenuItem-root.Mui-selected': {
+                    <Select
+                      value={exportSettings.subHeadersSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, subHeadersSize: Number(e.target.value) }))}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            '& .MuiMenuItem-root': {
+                              '&:hover': {
                                 backgroundColor: COLORS.selected,
-                                '&:hover': {
-                                  backgroundColor: COLORS.selected,
-                                },
+                              },
+                            },
+                            '& .MuiMenuItem-root.Mui-selected': {
+                              backgroundColor: COLORS.selected,
+                              '&:hover': {
+                                backgroundColor: COLORS.selected,
                               },
                             },
                           },
-                        }}
-                        sx={{
-                          height: 33,
-                          fontSize: 14,
-                          backgroundColor: '#f5f5f5',
+                        },
+                      }}
+                      sx={{
+                        height: 33,
+                        fontSize: 14,
+                        backgroundColor: '#f5f5f5',
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: '#f5f5f5',
                           '& fieldset': {
@@ -7756,33 +5993,33 @@ export default function ResumeEditorV2({
                       ))}
                     </Select>
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 600, color: "black" }}>Body Text</Typography>
-                                                                                    <Select
-                        value={exportSettings.bodyTextSize}
-                        onChange={(e) => setExportSettings(prev => ({ ...prev, bodyTextSize: Number(e.target.value) }))}
-                        MenuProps={{
-                          PaperProps: {
-                            sx: {
-                              '& .MuiMenuItem-root': {
-                                '&:hover': {
-                                  backgroundColor: COLORS.selected,
-                                },
-                              },
-                              '& .MuiMenuItem-root.Mui-selected': {
+                    <Select
+                      value={exportSettings.bodyTextSize}
+                      onChange={(e) => setExportSettings(prev => ({ ...prev, bodyTextSize: Number(e.target.value) }))}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            '& .MuiMenuItem-root': {
+                              '&:hover': {
                                 backgroundColor: COLORS.selected,
-                                '&:hover': {
-                                  backgroundColor: COLORS.selected,
-                                },
+                              },
+                            },
+                            '& .MuiMenuItem-root.Mui-selected': {
+                              backgroundColor: COLORS.selected,
+                              '&:hover': {
+                                backgroundColor: COLORS.selected,
                               },
                             },
                           },
-                        }}
-                        sx={{
-                          height: 33,
-                          fontSize: 14,
-                          backgroundColor: '#f5f5f5',
+                        },
+                      }}
+                      sx={{
+                        height: 33,
+                        fontSize: 14,
+                        backgroundColor: '#f5f5f5',
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: '#f5f5f5',
                           '& fieldset': {
@@ -7819,17 +6056,17 @@ export default function ResumeEditorV2({
               </Box>
 
               {/* Spacing & Margin Section */}
-              <Box sx={{ 
-                mb: 4, 
-                border: '1px solid #e0e0e0', 
-                borderRadius: 2, 
+              <Box sx={{
+                mb: 4,
+                border: '1px solid #e0e0e0',
+                borderRadius: 2,
                 p: 2,
                 backgroundColor: 'white'
               }}>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                   Spacing & Margin
                 </Typography>
-                
+
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -7890,7 +6127,7 @@ export default function ResumeEditorV2({
                       }}
                     />
                   </Box>
-                  
+
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Entry Spacing</Typography>
@@ -7950,7 +6187,7 @@ export default function ResumeEditorV2({
                       }}
                     />
                   </Box>
-                  
+
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Line Spacing</Typography>
@@ -8010,7 +6247,7 @@ export default function ResumeEditorV2({
                       }}
                     />
                   </Box>
-                  
+
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Top & Bottom Margin</Typography>
@@ -8070,7 +6307,7 @@ export default function ResumeEditorV2({
                       }}
                     />
                   </Box>
-                  
+
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">Side Margins</Typography>
@@ -8130,7 +6367,7 @@ export default function ResumeEditorV2({
                       }}
                     />
                   </Box>
-                  
+
                   <FormControlLabel
                     control={
                       <ToggleButton
@@ -8170,9 +6407,9 @@ export default function ResumeEditorV2({
                     }
                     label="Align Text Left & Right"
                     labelPlacement="start"
-                    sx={{ 
-                      justifyContent: 'space-between', 
-                      width: '100%', 
+                    sx={{
+                      justifyContent: 'space-between',
+                      width: '100%',
                       ml: 0,
                       '& .MuiFormControlLabel-label': {
                         fontSize: '0.875rem'
@@ -8246,9 +6483,9 @@ export default function ResumeEditorV2({
           }
         }}
       >
-        <DialogTitle 
-          sx={{ 
-            pb: 1, 
+        <DialogTitle
+          sx={{
+            pb: 1,
             fontWeight: 600,
             background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
             color: 'white',
@@ -8262,9 +6499,9 @@ export default function ResumeEditorV2({
           <Typography variant="body1" sx={{ my: 3, color: '#333', lineHeight: 1.6 }}>
             Are you sure you want to delete this resume? This action cannot be undone and will permanently remove all associated data including:
           </Typography>
-          <Box 
-            component="ul" 
-            sx={{ 
+          <Box
+            component="ul"
+            sx={{
               px: 4,
               py: 2,
               mb: 3,
@@ -8286,8 +6523,8 @@ export default function ResumeEditorV2({
               Profile picture and all other resume data
             </Typography>
           </Box>
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               backgroundColor: '#fff3cd',
               border: '1px solid #ffeaa7',
               borderRadius: 2,
@@ -8304,7 +6541,7 @@ export default function ResumeEditorV2({
           <Button
             onClick={() => setDeleteConfirmOpen(false)}
             variant="outlined"
-            sx={{ 
+            sx={{
               textTransform: 'none',
               borderColor: COLORS.primary,
               color: COLORS.primary,
@@ -8321,7 +6558,7 @@ export default function ResumeEditorV2({
             variant="contained"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
-            sx={{ 
+            sx={{
               textTransform: 'none',
               backgroundColor: '#dc3545',
               '&:hover': {
@@ -8337,6 +6574,6 @@ export default function ResumeEditorV2({
         </DialogActions>
       </Dialog>
     </Box>
-);
-} 
+  );
+}
 

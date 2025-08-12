@@ -112,6 +112,7 @@ export interface ResumeData {
       id: string;
       description: string;
     }>;
+    hoursPerWeek: string;
   }>;
   references?: Array<{
     id: string;
@@ -120,6 +121,7 @@ export interface ResumeData {
     company: string;
     email: string;
     phone: string;
+    relationship: string;
   }>;
 }
 
