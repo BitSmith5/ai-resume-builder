@@ -41,15 +41,7 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   DeleteOutline as DeleteOutlineIcon,
-  Edit as EditIcon,
-  Download as DownloadIcon,
   Close as CloseIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  LocationOn as LocationIcon,
-  LinkedIn as LinkedInIcon,
-  GitHub as GitHubIcon,
-  Language as WebsiteIcon,
   Star as StarIcon,
   List as ListIcon,
   TrendingFlat as TrendingFlatIcon,
@@ -90,21 +82,7 @@ import { TechnicalSkillsSection } from "./ResumeEditor/components/sections/Techn
 import { WorkExperienceSection } from "./ResumeEditor/components/sections/WorkExperienceSection";
 import { EducationSection } from "./ResumeEditor/components/sections/EducationSection";
 
-// Phone number formatting function
-const formatPhoneNumber = (value: string): string => {
-  // Remove all non-digit characters
-  const phoneNumber = value.replace(/\D/g, "");
 
-  // Limit to 10 digits
-  const trimmed = phoneNumber.slice(0, 10);
-
-  // Format as (XXX) XXX-XXXX
-  if (trimmed.length === 0) return "";
-  if (trimmed.length <= 3) return `(${trimmed}`;
-  if (trimmed.length <= 6)
-    return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3)}`;
-  return `(${trimmed.slice(0, 3)}) ${trimmed.slice(3, 6)}-${trimmed.slice(6)}`;
-};
 
 interface ResumeData {
   title: string;
@@ -399,7 +377,7 @@ export default function ResumeEditorV2({
         abortController.abort(); // Cancel any pending request
       };
     }
-  }, [exportPanelOpen, resumeId, getCacheKey]);
+  }, [exportPanelOpen, resumeId, getCacheKey, exportSettings]);
 
   const [sectionOrder, setSectionOrder] = useState([
     "Personal Info",
