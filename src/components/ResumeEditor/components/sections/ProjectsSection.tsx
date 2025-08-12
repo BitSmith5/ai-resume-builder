@@ -7,7 +7,6 @@ import {
   IconButton,
   Chip,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
 } from '@mui/material';
@@ -33,7 +32,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
-  const [editingBulletId, setEditingBulletId] = useState<string | null>(null);
+
 
   // Initialize projects if not exists
   const projects = resumeData.projects || [
@@ -416,7 +415,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                               Description:
                             </Typography>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                              {project.bulletPoints.map((bullet, bulletIndex) => (
+                              {project.bulletPoints.map((bullet) => (
                                 <Box key={bullet.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                                   <Typography variant="body2" sx={{ mt: 0.5 }}>•</Typography>
                                   <TextField

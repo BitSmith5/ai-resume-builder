@@ -44,7 +44,7 @@ import {
   Close as CloseIcon,
   Star as StarIcon,
   List as ListIcon,
-  TrendingFlat as TrendingFlatIcon,
+
   Info as InfoIcon,
   Check as CheckIcon,
   DragIndicator as DragIndicatorIcon,
@@ -54,15 +54,8 @@ import { ToggleButton } from "@mui/material";
 
 
 import { DragDropContext, Droppable, Draggable, DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
+
+
 import {
   arrayMove,
   SortableContext,
@@ -72,7 +65,7 @@ import {
 import {
   useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+
 import { useDebouncedCallback } from 'use-debounce';
 import { COLORS } from '../lib/colorSystem';
 import { ResumeHeader } from './ResumeEditor/components/ResumeHeader';
@@ -243,7 +236,7 @@ export default function ResumeEditorV2({
   });
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
-  const [editingBulletId, setEditingBulletId] = useState<string | null>(null);
+
   const datePickerCallbackRef = React.useRef<((date: string) => void) | null>(null);
 
   // Export panel state
@@ -427,13 +420,7 @@ export default function ResumeEditorV2({
     references: [],
   });
 
-  // DnD sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+
 
   // Custom Date Picker Component
   const DatePicker = ({ isOpen, onClose, onSelect }: {

@@ -12,7 +12,7 @@ import {
   DragIndicator as DragIndicatorIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, sortableKeyboardCoordinates, horizontalListSortingStrategy } from '@dnd-kit/core';
+import { DndContext } from '@dnd-kit/core';
 import { SortableContext, useSortable, arrayMove as arrayMoveSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ResumeData } from '../../types';
