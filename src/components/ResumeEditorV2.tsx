@@ -56,15 +56,7 @@ import { ToggleButton } from "@mui/material";
 import { DragDropContext, Droppable, Draggable, DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
 
 
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
+
 
 import { useDebouncedCallback } from 'use-debounce';
 import { COLORS } from '../lib/colorSystem';
