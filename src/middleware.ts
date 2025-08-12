@@ -4,5 +4,5 @@ export function middleware() {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/profile/:path*", "/resume/:path*"],
 }; 

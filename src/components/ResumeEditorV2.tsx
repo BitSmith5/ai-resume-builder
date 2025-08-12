@@ -1071,7 +1071,7 @@ export default function ResumeEditorV2({
         
         // If this was a new resume, update the URL with the new ID
         if (!resumeId && savedResume.id) {
-          router.replace(`/dashboard/resume/new?id=${savedResume.id}`);
+          router.replace(`/resume/new?id=${savedResume.id}`);
         }
       } else {
         console.error('Save failed:', response.status, response.statusText);
@@ -6435,7 +6435,7 @@ export default function ResumeEditorV2({
         setSuccess("Resume deleted successfully");
         // Redirect to resume page after a short delay
         setTimeout(() => {
-          router.push("/dashboard/resume");
+          router.push("/resume");
         }, 1000);
       } else {
         const errorData = await response.json();
@@ -6488,7 +6488,7 @@ export default function ResumeEditorV2({
           <IconButton 
             size="small" 
             sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-            onClick={() => router.push('/dashboard/resume')}
+            onClick={() => router.push('/resume')}
           >
             <CloseIcon fontSize="small" />
           </IconButton>

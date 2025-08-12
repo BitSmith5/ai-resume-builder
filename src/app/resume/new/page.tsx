@@ -12,7 +12,7 @@ function NewResumeContent() {
 
   const handleSave = () => {
     // Redirect to resume list after successful save
-    router.push('/dashboard/resume');
+          router.push('/resume');
   };
 
   return (
