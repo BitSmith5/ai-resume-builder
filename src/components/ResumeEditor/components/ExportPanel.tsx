@@ -45,7 +45,7 @@ interface ExportPanelProps {
   exportSettings: ExportSettings;
   setExportSettings: React.Dispatch<React.SetStateAction<ExportSettings>>;
   resumeId: string;
-  resumeData: any;
+
   onDownloadPDF: () => Promise<void>;
   pdfDownloading: boolean;
 }
@@ -56,11 +56,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   exportSettings,
   setExportSettings,
   resumeId,
-  resumeData,
+
   onDownloadPDF,
   pdfDownloading,
 }) => {
-  const [exportPanelFullyClosed, setExportPanelFullyClosed] = useState(true);
+
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // PDF Preview state
@@ -153,7 +153,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     onClose();
     // Set a fallback timeout in case onTransitionEnd doesn't fire
     exportPanelFallbackTimeoutRef.current = setTimeout(() => {
-      setExportPanelFullyClosed(true);
+      // Fallback timeout for transition end
     }, 300); // 300ms should be enough for the transition
   };
 
@@ -200,7 +200,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       onClose={handleClose}
       onTransitionEnd={() => {
         if (!open) {
-          setExportPanelFullyClosed(true);
           // Clear the fallback timeout if it exists
           if (exportPanelFallbackTimeoutRef.current) {
             clearTimeout(exportPanelFallbackTimeoutRef.current);
@@ -412,7 +411,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     },
                   }}
                 >
-                  <MenuItem value="letter">Letter (8.5" × 11")</MenuItem>
+                  <MenuItem value="letter">Letter (8.5&quot; × 11&quot;)</MenuItem>
                   <MenuItem value="a4">A4 (210 × 297 mm)</MenuItem>
                 </Select>
               </FormControl>

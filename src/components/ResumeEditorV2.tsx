@@ -1307,10 +1307,6 @@ export default function ResumeEditorV2({
     }
   };
 
-
-
-
-
   const handleDeleteResume = async () => {
     if (!resumeId) {
       setError("No resume ID found");
@@ -1960,7 +1956,6 @@ export default function ResumeEditorV2({
         exportSettings={exportSettings}
         setExportSettings={setExportSettings}
         resumeId={resumeId || ''}
-        resumeData={resumeData}
         onDownloadPDF={handleDownloadPDF}
         pdfDownloading={pdfDownloading}
       />
