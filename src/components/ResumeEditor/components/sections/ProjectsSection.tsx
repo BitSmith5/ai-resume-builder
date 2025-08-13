@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   TextField,
@@ -139,7 +139,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
     const newBulletPoints = [...project.bulletPoints, newBulletPoint];
     updateProject(projectId, { bulletPoints: newBulletPoints });
-    setEditingBulletId(newBulletPoint.id);
   };
 
   const updateBulletPoint = (projectId: string, bulletId: string, description: string) => {
@@ -379,7 +378,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                               <TextField
                                 size="small"
                                 placeholder="Add technology..."
-                                onKeyPress={(e) => {
+                                onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
                                   if (e.key === 'Enter') {
                                     addTechnology(project.id, e.currentTarget.value);
                                     e.currentTarget.value = '';
