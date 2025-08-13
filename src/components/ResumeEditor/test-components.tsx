@@ -2,73 +2,24 @@
 // This file is for testing purposes only
 
 import React from 'react';
-import { 
-  ResumeHeader, 
-  PersonalInfoSection, 
-  ProfessionalSummarySection,
-  TechnicalSkillsSection,
-  WorkExperienceSection,
-  EducationSection,
-  useResumeData, 
-  ResumeData, 
-  ProfileData 
-} from './index';
+import { ResumeHeader } from './components/ResumeHeader';
+import { PersonalInfoSection } from './components/sections/PersonalInfoSection';
+import { ProfessionalSummarySection } from './components/sections/ProfessionalSummarySection';
+import { TechnicalSkillsSection } from './components/sections/TechnicalSkillsSection';
+import { WorkExperienceSection } from './components/sections/WorkExperienceSection';
+import { EducationSection } from './components/sections/EducationSection';
+import { useResumeData } from './hooks/useResumeData';
 
-// Test data
-const testResumeData: ResumeData = {
-  title: "Test Resume",
-  jobTitle: "Test Engineer",
-  content: { 
-    personalInfo: { 
-      name: "Test User", 
-      email: "test@example.com", 
-      phone: "1234567890", 
-      city: "Test City", 
-      state: "TS", 
-      summary: "Test summary" 
-    } 
-  },
-  strengths: [],
-  workExperience: [
-    {
-      id: "work-1",
-      company: "Test Company",
-      position: "Test Position",
-      location: "Test Location",
-      startDate: "Jan 2024",
-      endDate: "Dec 2024",
-      current: false,
-      bulletPoints: [
-        { id: "bullet-1", description: "Test bullet point 1" },
-        { id: "bullet-2", description: "Test bullet point 2" }
-      ]
-    }
-  ],
-  education: [
-    {
-      institution: "Test University",
-      degree: "Bachelor's",
-      field: "Computer Science",
-      startDate: "2018",
-      endDate: "2022",
-      current: false,
-      gpa: 3.8
-    }
-  ],
-  courses: [],
-  interests: [],
-  skillCategories: [
-    {
-      id: "cat-1",
-      title: "Programming Languages",
-      skills: [
-        { id: "skill-1", name: "JavaScript" },
-        { id: "skill-2", name: "TypeScript" },
-        { id: "skill-3", name: "React" }
-      ]
-    }
-  ]
-};
+// Define the types we need
+interface ProfileData {
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedinUrl: string;
+  githubUrl: string;
+  portfolioUrl: string;
+}
 
 const testProfileData: ProfileData = {
   name: "Test User",
@@ -82,12 +33,7 @@ const testProfileData: ProfileData = {
 
 // Test component that renders all our extracted components
 export const TestAllComponents: React.FC = () => {
-  const { resumeData, loading, error, success, setResumeData } = useResumeData({
-    initialData: testResumeData,
-    onSave: async (data) => {
-      console.log('Test save:', data);
-    }
-  });
+  const { resumeData, loading, error, success, setResumeData } = useResumeData("test-resume-id");
 
   const handleDeleteSection = (sectionName: string) => {
     console.log('Delete section:', sectionName);

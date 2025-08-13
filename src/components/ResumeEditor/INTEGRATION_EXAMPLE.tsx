@@ -185,32 +185,17 @@ export const EducationSectionExample = () => {
 
 // Example of how to use the useResumeData hook:
 export const UseResumeDataExample = () => {
-  const initialResumeData: ResumeData = {
-    title: "Sample Resume",
-    jobTitle: "Software Engineer",
-    content: { personalInfo: { name: "", email: "", phone: "", city: "", state: "", summary: "" } },
-    strengths: [],
-    workExperience: [],
-    education: [],
-    courses: [],
-    interests: []
-  };
-
-  const { 
+  const {
     resumeData, 
+    profileData,
+    sectionOrder,
+    exportSettings,
     loading, 
     error, 
     success, 
     setResumeData,
     saveResume 
-  } = useResumeData({
-    initialData: initialResumeData,
-    onSave: async (data) => {
-      // Your save logic here
-      console.log('Saving resume:', data);
-      // await saveResumeToDatabase(data);
-    }
-  });
+  } = useResumeData("example-resume-id"); // Updated to match new hook signature
 
   const handleDeleteSection = (sectionName: string) => {
     console.log('Delete section:', sectionName);
@@ -270,7 +255,10 @@ export const UseResumeDataExample = () => {
       {error && <p>Error: {error}</p>}
       {success && <p>Success: {success}</p>}
       
-      <button onClick={saveResume}>Save Resume</button>
+      <button onClick={() => {
+        // Example of how to call saveResume with the required parameters
+        saveResume(resumeData, profileData, sectionOrder, exportSettings);
+      }}>Save Resume</button>
     </div>
   );
 };
