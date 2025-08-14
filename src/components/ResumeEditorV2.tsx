@@ -1175,12 +1175,28 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
                   // Force immediate save
                   try {
-                    // debouncedSave is no longer imported, so this will cause an error
-                    // Assuming debouncedSave is meant to be removed or replaced
-                    // For now, commenting out the call to avoid immediate errors
-                    // await debouncedSave(updatedResumeData, profileData, sectionOrder);
+                    // Save the updated resume data immediately
+                    if (resumeId) {
+                      const response = await fetch(`/api/resumes/${resumeId}`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          ...updatedResumeData,
+                          sectionOrder: sectionOrder,
+                        }),
+                      });
+                      
+                      if (!response.ok) {
+                        throw new Error('Failed to save resume');
+                      }
+                      
+                      setSuccess('Resume updated successfully');
+                    }
                   } catch (error) {
                     console.error('Error saving resume info:', error);
+                    setError('Failed to save resume changes');
                   }
                 }}
                 sx={{
