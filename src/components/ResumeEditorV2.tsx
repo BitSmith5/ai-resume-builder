@@ -401,23 +401,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     setSectionOrder(newOrder);
   };
 
-  const handleAddSection = (sectionName: string) => {
-    if (!sectionOrder.includes(sectionName)) {
-      setSectionOrder(prev => [...prev, sectionName]);
-      // Remove from deleted sections if it was previously deleted
-      setResumeData(prev => {
-
-
-        return {
-          ...prev,
-          deletedSections: prev.deletedSections?.filter(section => section !== sectionName) || []
-          // Note: When re-adding a section, the data will be empty arrays which is correct
-          // since the data was cleared when the section was deleted
-        };
-      });
-    }
-  };
-
   const handleDeleteSection = (sectionName: string) => {
 
 

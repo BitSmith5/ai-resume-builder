@@ -197,11 +197,6 @@ export const UseResumeDataExample = () => {
     saveResume 
   } = useResumeData("example-resume-id"); // Updated to match new hook signature
 
-  const {
-    exportSettings,
-    setExportSettings,
-  } = useExportSettings("example-resume-id", resumeData.title);
-
   const handleDeleteSection = (sectionName: string) => {
     console.log('Delete section:', sectionName);
   };

@@ -10,11 +10,6 @@ function NewResumeContent() {
   const searchParams = useSearchParams();
   const resumeId = searchParams?.get('id');
 
-  const handleSave = () => {
-    // Redirect to resume list after successful save
-          router.push('/resume');
-  };
-
   return (
     <ResumeEditorV2 
       resumeId={resumeId || undefined}
