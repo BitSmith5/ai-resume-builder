@@ -1,25 +1,10 @@
 "use client";
 
-// ResumeEditorV2 - Enhanced with section deletion persistence
-// Features:
-// - Sections can be deleted and this state is persisted to the database
-// - Deleted sections are remembered and won't show up when the page is reloaded
-// - Users can re-add deleted sections through the "Add Section" button
-// - Section order and deletion state are saved automatically
-
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Box
-} from "@mui/material";
-
-
-
-
+import { Box } from "@mui/material";
 import { DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
-
 import { ResumeHeader } from './ResumeEditor/components/ResumeHeader';
-
 import { ExportPanel } from "./ResumeEditor/components/ExportPanel";
 import { DatePicker } from "./ResumeEditor/components/DatePicker";
 import { EditResumeInfoModal } from "./ResumeEditor/components/EditResumeInfoModal";
@@ -37,8 +22,6 @@ import { useExportSettings } from "./ResumeEditor/hooks/useExportSettings";
 interface ResumeEditorV2Props {
   resumeId?: string;
 }
-
-
 
 export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   const router = useRouter();
@@ -116,7 +99,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     }
     setAddSectionPopupOpen(false);
   };
-  
+
   // Real-time preview update effect
   useEffect(() => {
     // This effect ensures the preview updates when export settings change
@@ -195,7 +178,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
   const handleDeleteSection = (sectionName: string) => {
 
-
     // Remove from section order
     setSectionOrder(prev => {
       const newOrder = prev.filter(section => section !== sectionName);
@@ -226,12 +208,9 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         references: sectionName === 'References' ? [] : prev.references,
       };
 
-
       return updatedData;
     });
   };
-
-
 
   if (loading) {
     return <LoadingComponent />;
@@ -268,8 +247,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     }
   };
 
-
-
   return (
     <Box sx={{
       mr: { xs: 0, md: 20 },
@@ -289,13 +266,13 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         resumeTitle={resumeData.title || 'Resume Title'}
         loading={loading}
         onClose={() => router.push('/resume')}
-                onEditResumeInfo={() => {
-                  setEditResumeInfoOpen(true);
-                }}
+        onEditResumeInfo={() => {
+          setEditResumeInfoOpen(true);
+        }}
         onExport={handleExportClick}
         onDelete={handleDeleteResume}
       />
-            {/* Main Content Area */}
+      {/* Main Content Area */}
       <MainContentArea
         sectionOrder={sectionOrder}
         sectionComponents={SECTION_COMPONENTS}
@@ -305,10 +282,10 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         scrollContainerRef={scrollContainerRef}
       />
 
-            {/* Floating Edit Resume Layout Button */}
+      {/* Floating Edit Resume Layout Button */}
       <FloatingActionButton onClick={() => setLayoutModalOpen(true)} />
 
-            {/* Edit Resume Layout Modal */}
+      {/* Edit Resume Layout Modal */}
       <LayoutModal
         open={layoutModalOpen}
         onClose={() => setLayoutModalOpen(false)}
@@ -318,14 +295,14 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         onDeleteSection={handleDeleteSection}
       />
 
-            {/* Add New Section Popup */}
+      {/* Add New Section Popup */}
       <AddSectionPopup
         open={addSectionPopupOpen && layoutModalOpen}
         sectionOrder={sectionOrder}
         onAddSection={handleAddSection}
       />
 
-            {/* Date Picker */}
+      {/* Date Picker */}
       <DatePicker
         isOpen={datePickerOpen}
         onClose={() => {
@@ -336,7 +313,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
           if (datePickerCallbackRef.current) {
             datePickerCallbackRef.current(date);
           } else {
-            
+
           }
           setDatePickerOpen(false);
         }}
@@ -350,7 +327,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         resumeData={resumeData}
         onSave={async (updatedData) => {
           setResumeData(updatedData);
-          
+
           // Force immediate save
           try {
             // Save the updated resume data immediately
@@ -365,11 +342,11 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
                   sectionOrder: sectionOrder,
                 }),
               });
-              
+
               if (!response.ok) {
                 throw new Error('Failed to save resume');
               }
-              
+
               setSuccess('Resume updated successfully');
             }
           } catch (error) {
@@ -388,8 +365,8 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         onDownloadPDF={handlePDFDownload}
         pdfDownloading={pdfDownloading}
       />
-      
-            {/* Delete Confirmation Dialog */}
+
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
