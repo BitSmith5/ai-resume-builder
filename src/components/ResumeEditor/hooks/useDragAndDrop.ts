@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { DragStart, DragUpdate, DropResult } from '@hello-pangea/dnd';
+import { DropResult } from '@hello-pangea/dnd';
 
 interface UseDragAndDropProps {
   sectionOrder: string[];
@@ -14,11 +14,11 @@ export const useDragAndDrop = ({
 }: UseDragAndDropProps) => {
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleDragStart = useCallback((result: DragStart) => {
+  const handleDragStart = useCallback(() => {
     setIsDragging(true);
   }, []);
 
-  const handleDragUpdate = useCallback((result: DragUpdate) => {
+  const handleDragUpdate = useCallback(() => {
     // Optional: Add any drag update logic here
   }, []);
 
