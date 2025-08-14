@@ -29,5 +29,8 @@ export { useDragAndDrop } from './hooks/useDragAndDrop';
 export { useSectionManagement } from './hooks/useSectionManagement';
 export { useModalState } from './hooks/useModalState';
 export { useResumeSave } from './hooks/useResumeSave';
+export { useResumeDelete } from './hooks/useResumeDelete';
+export { useDatePicker } from './hooks/useDatePicker';
+export { useScrollManagement } from './hooks/useScrollManagement';
 export { formatPhoneNumber, formatDate, isDateInFuture } from './utils/dateUtils';
 export type { ResumeData, ProfileData } from './types';

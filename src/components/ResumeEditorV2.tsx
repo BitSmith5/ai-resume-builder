@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Box } from "@mui/material";
-import { DragUpdate } from '@hello-pangea/dnd';
+
 import { ResumeHeader } from './ResumeEditor/components/ResumeHeader';
 import { ExportPanel } from "./ResumeEditor/components/ExportPanel";
 import { DatePicker } from "./ResumeEditor/components/DatePicker";
@@ -22,6 +22,9 @@ import { useDragAndDrop } from "./ResumeEditor/hooks/useDragAndDrop";
 import { useSectionManagement } from "./ResumeEditor/hooks/useSectionManagement";
 import { useModalState } from "./ResumeEditor/hooks/useModalState";
 import { useResumeSave } from "./ResumeEditor/hooks/useResumeSave";
+import { useResumeDelete } from "./ResumeEditor/hooks/useResumeDelete";
+import { useDatePicker } from "./ResumeEditor/hooks/useDatePicker";
+import { useScrollManagement } from "./ResumeEditor/hooks/useScrollManagement";
 
 interface ResumeEditorV2Props {
   resumeId?: string;
@@ -72,7 +75,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     layoutModalOpen,
     addSectionPopupOpen,
     deleteConfirmOpen,
-    datePickerOpen,
     setDatePickerOpen,
     setEditResumeInfoOpen,
     setLayoutModalOpen,
@@ -80,13 +82,23 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     setDeleteConfirmOpen
   } = modalState;
 
-  // Date picker state
-  const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
-  const datePickerCallbackRef = useRef<((date: string) => void) | null>(null);
+  // Date picker state management
+  const datePicker = useDatePicker();
+  const {
+    datePickerOpen: datePickerOpenFromHook,
+    datePickerPosition,
+    datePickerCallbackRef,
+    handleDateSelect,
+    setDatePickerPosition
+  } = datePicker;
 
-  // Scroll and layout refs
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Scroll management
+  const scrollManagement = useScrollManagement();
+  const {
+    scrollContainerRef,
+    scrollIntervalRef,
+    handleDragUpdateWithScroll
+  } = scrollManagement;
 
   // Cleanup effect for export timeouts
   useEffect(() => {
@@ -95,15 +107,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     };
   }, [cleanupExport]);
 
-  // Cleanup effect for scroll intervals
-  useEffect(() => {
-    return () => {
-      if (scrollIntervalRef.current) {
-        clearInterval(scrollIntervalRef.current);
-        scrollIntervalRef.current = null;
-      }
-    };
-  }, []);
+
 
   // Section management functionality
   const { handleAddSection, handleDeleteSection: handleDeleteSectionFromHook } = useSectionManagement({
@@ -119,6 +123,14 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     resumeId,
     setSuccess,
     setError
+  });
+
+  // Resume deletion functionality
+  const { handleDeleteResume, confirmDelete } = useResumeDelete({
+    resumeId,
+    deleteResume,
+    setError,
+    setDeleteConfirmOpen
   });
 
   // Real-time preview update effect
@@ -146,52 +158,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     baseHandleDragEnd(result);
   };
 
-  // Enhanced drag update with auto-scroll
-  const handleDragUpdateWithScroll = (result: DragUpdate) => {
-    if (!scrollContainerRef.current) return;
 
-    // Clear any existing scroll interval
-    if (scrollIntervalRef.current) {
-      clearInterval(scrollIntervalRef.current);
-      scrollIntervalRef.current = null;
-    }
-
-    // Get current mouse position from the document
-    let mouseY = 0;
-    if (window.event && window.event instanceof MouseEvent) {
-      mouseY = window.event.clientY;
-    } else {
-      // Fallback: try to get from the drag update result if available
-      mouseY = (result as any).clientY || 0;
-    }
-
-    const container = scrollContainerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const scrollSpeed = 15; // Reduced scroll speed for smoother control
-    const scrollThreshold = 250; // Increased threshold for better detection
-
-    // Only start scrolling if we're near the edges and not already scrolling
-    if (!scrollIntervalRef.current) {
-      // Check if dragging near the top edge
-      if (mouseY - containerRect.top < scrollThreshold) {
-        // Start continuous scrolling up
-        scrollIntervalRef.current = setInterval(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop -= scrollSpeed;
-          }
-        }, 16); // ~60fps
-      }
-      // Check if dragging near the bottom edge
-      else if (containerRect.bottom - mouseY < scrollThreshold) {
-        // Start continuous scrolling down
-        scrollIntervalRef.current = setInterval(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop += scrollSpeed;
-          }
-        }, 16); // ~60fps
-      }
-    }
-  };
 
   // Use the hook's delete function
   const handleDeleteSection = handleDeleteSectionFromHook;
@@ -212,24 +179,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     datePickerCallbackRef
   });
 
-  const handleDeleteResume = async () => {
-    if (!resumeId) {
-      setError("No resume ID found");
-      return;
-    }
 
-    setDeleteConfirmOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    try {
-      setDeleteConfirmOpen(false);
-      await deleteResume();
-    } catch (error) {
-      console.error("Error deleting resume:", error);
-      setError("An error occurred while deleting the resume");
-    }
-  };
 
   return (
     <Box sx={{
@@ -288,19 +238,9 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
       {/* Date Picker */}
       <DatePicker
-        isOpen={datePickerOpen}
-        onClose={() => {
-          setDatePickerOpen(false);
-          // Don't clear the callback at all - let onSelect handle it
-        }}
-        onSelect={(date: string) => {
-          if (datePickerCallbackRef.current) {
-            datePickerCallbackRef.current(date);
-          } else {
-
-          }
-          setDatePickerOpen(false);
-        }}
+        isOpen={datePickerOpenFromHook}
+        onClose={() => datePicker.closeDatePicker()}
+        onSelect={handleDateSelect}
         position={datePickerPosition}
       />
 
