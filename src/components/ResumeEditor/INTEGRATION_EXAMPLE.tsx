@@ -11,8 +11,7 @@ import {
   EducationSection,
   useResumeData, 
   ResumeData, 
-  ProfileData,
-  useExportSettings
+  ProfileData 
 } from './index';
 
 // Example of how to replace the header section in ResumeEditorV2
