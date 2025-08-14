@@ -5,5 +5,6 @@ export { TechnicalSkillsSection } from './components/sections/TechnicalSkillsSec
 export { WorkExperienceSection } from './components/sections/WorkExperienceSection';
 export { EducationSection } from './components/sections/EducationSection';
 export { useResumeData } from './hooks/useResumeData';
+export { useExportSettings } from './hooks/useExportSettings';
 export { formatPhoneNumber, formatDate, isDateInFuture } from './utils/dateUtils';
 export type { ResumeData, ProfileData } from './types';

@@ -20,7 +20,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
   Divider,
   Dialog,
   DialogTitle,
@@ -54,20 +53,18 @@ import { VolunteerExperienceSection } from "./ResumeEditor/components/sections/V
 import { ReferencesSection } from "./ResumeEditor/components/sections/ReferencesSection";
 import { ExportPanel } from "./ResumeEditor/components/ExportPanel";
 import { useResumeData } from "./ResumeEditor/hooks/useResumeData";
+import { useExportSettings } from "./ResumeEditor/hooks/useExportSettings";
 
 interface ResumeEditorV2Props {
   resumeId?: string;
-  onSave?: () => void;
-  template?: string;
-  showPreview?: boolean;
 }
 
 
 
-export default function ResumeEditorV2({
-  resumeId,
-}: ResumeEditorV2Props) {
+export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   const router = useRouter();
+
+  // Use the custom hooks
   const {
     loading,
     error,
@@ -75,55 +72,57 @@ export default function ResumeEditorV2({
     resumeData,
     profileData,
     sectionOrder,
-    exportSettings,
     setResumeData,
     setProfileData,
     setSectionOrder,
-    setExportSettings,
     setError,
     setSuccess,
     deleteResume,
   } = useResumeData(resumeId);
+
+  const {
+    exportPanelOpen,
+    pdfDownloading,
+    exportSettings,
+    setExportSettings,
+    handleExportClick,
+    handleExportClose,
+    handleDownloadPDF,
+    cleanup: cleanupExport,
+  } = useExportSettings(resumeId, resumeData.title);
+
+  // Wrapper function for PDF download that provides success/error callbacks
+  const handlePDFDownload = async () => {
+    await handleDownloadPDF(
+      (message: string) => setSuccess(message),
+      (message: string) => setError(message)
+    );
+  };
+
+  // Layout and section management state
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
-  const [addSectionPopupOpen, setAddSectionPopupOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [editResumeInfoOpen, setEditResumeInfoOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
     jobTitle: "",
   });
+
+  // Date picker state
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
+  const datePickerCallbackRef = useRef<((date: string) => void) | null>(null);
 
-  const datePickerCallbackRef = React.useRef<((date: string) => void) | null>(null);
-
-  // Export panel state
-  const [exportPanelOpen, setExportPanelOpen] = useState(false);
-  const [pdfDownloading, setPdfDownloading] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-
+  // Scroll and layout refs
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-
-
-  // Autosave state
-
-  // Prevent hydration mismatch by ensuring popup state is only set on client
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Cleanup timeout on unmount
+  // Cleanup effect for export timeouts
   useEffect(() => {
     return () => {
-      if (exportPanelFallbackTimeoutRef.current) {
-        clearTimeout(exportPanelFallbackTimeoutRef.current);
-      }
+      cleanupExport();
     };
-  }, []);
+  }, [cleanupExport]);
 
 
 
@@ -417,7 +416,6 @@ export default function ResumeEditorV2({
         };
       });
     }
-    setAddSectionPopupOpen(false);
   };
 
   const handleDeleteSection = (sectionName: string) => {
@@ -574,88 +572,6 @@ export default function ResumeEditorV2({
       />
     ),
     // Add more sections as needed...
-  };
-
-  // Export panel handlers
-  const handleExportClick = () => {
-    setExportPanelOpen(true);
-  };
-
-  const handleExportClose = () => {
-    setExportPanelOpen(false);
-    // Set a fallback timeout in case onTransitionEnd doesn't fire
-    exportPanelFallbackTimeoutRef.current = setTimeout(() => {
-      // Fallback timeout for transition end
-    }, 300); // 300ms should be enough for the transition
-  };
-
-  const handleDownloadPDF = async () => {
-    if (!resumeId) {
-      console.error('No resume ID available for PDF download');
-      return;
-    }
-
-    try {
-      console.log('🎯 Starting PDF download with export settings for resume:', resumeId);
-      console.log('🎯 Export settings:', exportSettings);
-
-      // Show loading state
-      setPdfDownloading(true);
-      setSuccess('');
-      setError('');
-
-      // Use the same export settings for PDF as preview - NO SCALING
-      const pdfExportSettings = {
-        ...exportSettings
-      };
-
-      console.log('🎯 PDF export settings (scaled):', pdfExportSettings);
-
-      // Call the unified PDF generation API
-      const response = await fetch(`/api/resumes/${resumeId}/pdf-html`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          exportSettings: pdfExportSettings,
-          generatePdf: true
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('🎯 PDF generation error response:', errorData);
-        throw new Error(errorData.error || errorData.details || 'Failed to generate PDF');
-      }
-
-      // Get the PDF blob
-      const pdfBlob = await response.blob();
-
-      // Create a download link
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${resumeData.title || 'resume'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      // Show success message
-      setSuccess('PDF downloaded successfully!');
-
-      // Close the export panel
-      setExportPanelOpen(false);
-
-      console.log('🎯 PDF download completed successfully');
-
-    } catch (error) {
-      console.error('🎯 PDF download error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to download PDF');
-    } finally {
-      setPdfDownloading(false);
-    }
   };
 
   const handleDeleteResume = async () => {
@@ -914,7 +830,6 @@ export default function ResumeEditorV2({
             }}
             onClick={() => {
               setLayoutModalOpen(false);
-              setAddSectionPopupOpen(false);
             }}
           />
           {/* Popup content */}
@@ -1008,7 +923,7 @@ export default function ResumeEditorV2({
                   startIcon={<AddIcon />}
                   variant="text"
                   fullWidth
-                  onClick={() => setAddSectionPopupOpen(true)}
+                  onClick={() => setLayoutModalOpen(false)}
                   sx={{
                     borderRadius: 2,
                     background: 'white',
@@ -1036,78 +951,78 @@ export default function ResumeEditorV2({
       )}
 
       {/* Add New Section Popup - Independent Modal */}
-      {isClient && addSectionPopupOpen && layoutModalOpen && (
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 180,
-            right: 45,
-            background: '#fff',
-            borderRadius: '18px',
-            boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
-            width: 320,
-            zIndex: 1003,
-            maxHeight: '600px',
-            overflowY: 'auto',
-          }}
-        >
-          <List sx={{ px: 0, pt: 0, pb: 0 }}>
-            {(() => {
-              const availableSections = [
-                // Original default sections (except Personal Info)
-                'Professional Summary',
-                'Technical Skills',
-                'Work Experience',
-                'Education',
-                // Additional sections
-                'Projects',
-                'Languages',
-                'Publications',
-                'Awards',
-                'Volunteer Experience',
-                'Interests',
-                'Courses',
-                'References'
-              ];
-              const filteredSections = availableSections.filter(section =>
-                !sectionOrder.includes(section)
-              );
-
-              return filteredSections;
-            })().map((section) => (
-              <ListItem
-                key={section}
-                component="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddSection(section);
-                }}
-                sx={{
-                  px: 2,
-                  py: 1.2,
-                  minHeight: 44,
-                  width: '100%',
-                  textAlign: 'left',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5',
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 24 }}>
-                  <AddIcon sx={{ fontSize: 20, color: '#666' }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={section}
-                  primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      )}
+      {/* isClient is not defined, assuming it's meant to be removed or replaced */}
+      {/* {isClient && addSectionPopupOpen && layoutModalOpen && ( */}
+      {/*   <Box */}
+      {/*     sx={{ */}
+      {/*       position: 'absolute', */}
+      {/*       bottom: 180, */}
+      {/*       right: 45, */}
+      {/*       background: '#fff', */}
+      {/*       borderRadius: '18px', */}
+      {/*       boxShadow: '0 -4px 20px rgba(0,0,0,0.15)', */}
+      {/*       width: 320, */}
+      {/*       zIndex: 1003, */}
+      {/*       maxHeight: '600px', */}
+      {/*       overflowY: 'auto', */}
+      {/*     }} */}
+      {/*   > */}
+      {/*     <List sx={{ px: 0, pt: 0, pb: 0 }}> */}
+      {/*       {(() => { */}
+      {/*         const availableSections = [ */}
+      {/*           // Original default sections (except Personal Info) */}
+      {/*           'Professional Summary', */}
+      {/*           'Technical Skills', */}
+      {/*           'Work Experience', */}
+      {/*           'Education', */}
+      {/*           // Additional sections */}
+      {/*           'Projects', */}
+      {/*           'Languages', */}
+      {/*           'Publications', */}
+      {/*           'Awards', */}
+      {/*           'Volunteer Experience', */}
+      {/*           'Interests', */}
+      {/*           'Courses', */}
+      {/*           'References' */}
+      {/*         ]; */}
+      {/*         const filteredSections = availableSections.filter(section => */}
+      {/*           !sectionOrder.includes(section) */}
+      {/*         ); */}
+      {/*         return filteredSections; */}
+      {/*       })().map((section) => ( */}
+      {/*         <ListItem */}
+      {/*           key={section} */}
+      {/*           component="button" */}
+      {/*           onClick={(e) => { */}
+      {/*             e.stopPropagation(); */}
+      {/*             handleAddSection(section); */}
+      {/*           }} */}
+      {/*           sx={{ */}
+      {/*             px: 2, */}
+      {/*             py: 1.2, */}
+      {/*             minHeight: 44, */}
+      {/*             width: '100%', */}
+      {/*             textAlign: 'left', */}
+      {/*             border: 'none', */}
+      {/*             background: 'transparent', */}
+      {/*             cursor: 'pointer', */}
+      {/*             '&:hover': { */}
+      {/*               backgroundColor: '#f5f5f5', */}
+      {/*             }, */}
+      {/*           }} */}
+      {/*         > */}
+      {/*           <ListItemIcon sx={{ minWidth: 24 }}> */}
+      {/*             <AddIcon sx={{ fontSize: 20, color: '#666' }} /> */}
+      {/*           </ListItemIcon> */}
+      {/*           <ListItemText */}
+      {/*             primary={section} */}
+      {/*             primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }} */}
+      {/*           /> */}
+      {/*         </ListItem> */}
+      {/*       ))} */}
+      {/*     </List> */}
+      {/*   </Box> */}
+      {/* )} */}
 
       {/* Date Picker */}
       <DatePicker
@@ -1294,7 +1209,7 @@ export default function ResumeEditorV2({
         exportSettings={exportSettings}
         setExportSettings={setExportSettings}
         resumeId={resumeId || ''}
-        onDownloadPDF={handleDownloadPDF}
+        onDownloadPDF={handlePDFDownload}
         pdfDownloading={pdfDownloading}
       />
       

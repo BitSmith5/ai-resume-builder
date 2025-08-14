@@ -18,8 +18,6 @@ function NewResumeContent() {
   return (
     <ResumeEditorV2 
       resumeId={resumeId || undefined}
-      onSave={handleSave} 
-      template="modern"
     />
   );
 }

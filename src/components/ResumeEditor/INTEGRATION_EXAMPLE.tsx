@@ -11,7 +11,8 @@ import {
   EducationSection,
   useResumeData, 
   ResumeData, 
-  ProfileData 
+  ProfileData,
+  useExportSettings
 } from './index';
 
 // Example of how to replace the header section in ResumeEditorV2
@@ -189,13 +190,17 @@ export const UseResumeDataExample = () => {
     resumeData, 
     profileData,
     sectionOrder,
-    exportSettings,
     loading, 
     error, 
     success, 
     setResumeData,
     saveResume 
   } = useResumeData("example-resume-id"); // Updated to match new hook signature
+
+  const {
+    exportSettings,
+    setExportSettings,
+  } = useExportSettings("example-resume-id", resumeData.title);
 
   const handleDeleteSection = (sectionName: string) => {
     console.log('Delete section:', sectionName);
@@ -257,7 +262,7 @@ export const UseResumeDataExample = () => {
       
       <button onClick={() => {
         // Example of how to call saveResume with the required parameters
-        saveResume(resumeData, profileData, sectionOrder, exportSettings);
+        saveResume(resumeData, profileData, sectionOrder);
       }}>Save Resume</button>
     </div>
   );

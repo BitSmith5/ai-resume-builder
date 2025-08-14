@@ -138,28 +138,10 @@ interface ProfileData {
   portfolioUrl: string;
 }
 
-interface ExportSettings {
-  template: string;
-  pageSize: string;
-  fontFamily: string;
-  nameSize: number;
-  sectionHeadersSize: number;
-  subHeadersSize: number;
-  bodyTextSize: number;
-  sectionSpacing: number;
-  entrySpacing: number;
-  lineSpacing: number;
-  topBottomMargin: number;
-  sideMargins: number;
-  alignTextLeftRight: boolean;
-  pageWidth: number;
-  pageHeight: number;
-}
-
 export const useResumeData = (resumeId?: string) => {
   const router = useRouter();
   const { data: session } = useSession();
-  
+
   // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -213,24 +195,6 @@ export const useResumeData = (resumeId?: string) => {
     "Work Experience",
     "Education",
   ]);
-
-  const [exportSettings, setExportSettings] = useState<ExportSettings>({
-    template: 'standard',
-    pageSize: 'letter',
-    fontFamily: 'Times New Roman',
-    nameSize: 40,
-    sectionHeadersSize: 14,
-    subHeadersSize: 10.5,
-    bodyTextSize: 11,
-    sectionSpacing: 12,
-    entrySpacing: 9,
-    lineSpacing: 12,
-    topBottomMargin: 33,
-    sideMargins: 33,
-    alignTextLeftRight: false,
-    pageWidth: 850,
-    pageHeight: 1100,
-  });
 
   // Helper function to format dates
   const formatDate = useCallback((date: Date | string): string => {
@@ -439,14 +403,6 @@ export const useResumeData = (resumeId?: string) => {
             sectionOrder: filteredSectionOrder
           }));
         }
-
-        // Load exportSettings from database
-        if (resume.exportSettings) {
-          setExportSettings(prev => ({
-            ...prev,
-            ...resume.exportSettings
-          }));
-        }
       } else {
         console.error('Failed to load resume:', response.status);
       }
@@ -458,7 +414,7 @@ export const useResumeData = (resumeId?: string) => {
   }, [resumeId, session, formatDate]);
 
   // Save resume data
-  const saveResume = useCallback(async (data: ResumeData, profileData: ProfileData, currentSectionOrder: string[], currentExportSettings: ExportSettings) => {
+  const saveResume = useCallback(async (data: ResumeData, profileData: ProfileData, currentSectionOrder: string[]) => {
     if (!session?.user) return;
 
     try {
@@ -530,7 +486,6 @@ export const useResumeData = (resumeId?: string) => {
         profilePicture: filteredData.profilePicture || "",
         deletedSections: filteredData.deletedSections || [],
         sectionOrder: currentSectionOrder,
-        exportSettings: currentExportSettings,
         strengths: filteredData.strengths || [],
         skillCategories: filteredData.skillCategories || [],
         workExperience: filteredData.workExperience || [],
@@ -623,8 +578,8 @@ export const useResumeData = (resumeId?: string) => {
     // Don't save if we're still loading initial data
     if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
 
-    debouncedSave(resumeData, profileData, sectionOrder, exportSettings);
-  }, [resumeData, profileData, sectionOrder, exportSettings, loading, session?.user, resumeId, debouncedSave]);
+    debouncedSave(resumeData, profileData, sectionOrder);
+  }, [resumeData, profileData, sectionOrder, loading, session?.user, resumeId, debouncedSave]);
 
   return {
     // State
@@ -634,16 +589,14 @@ export const useResumeData = (resumeId?: string) => {
     resumeData,
     profileData,
     sectionOrder,
-    exportSettings,
-    
+
     // Setters
     setResumeData,
     setProfileData,
     setSectionOrder,
-    setExportSettings,
     setError,
     setSuccess,
-    
+
     // Actions
     loadProfileData,
     loadResumeData,
