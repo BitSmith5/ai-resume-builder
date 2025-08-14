@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Box } from "@mui/material";
-import { DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
+import { DragUpdate } from '@hello-pangea/dnd';
 import { ResumeHeader } from './ResumeEditor/components/ResumeHeader';
 import { ExportPanel } from "./ResumeEditor/components/ExportPanel";
 import { DatePicker } from "./ResumeEditor/components/DatePicker";
@@ -18,6 +18,10 @@ import { AlertMessages } from "./ResumeEditor/components/AlertMessages";
 import { createSectionComponents } from "./ResumeEditor/components/SectionComponents";
 import { useResumeData } from "./ResumeEditor/hooks/useResumeData";
 import { useExportSettings } from "./ResumeEditor/hooks/useExportSettings";
+import { useDragAndDrop } from "./ResumeEditor/hooks/useDragAndDrop";
+import { useSectionManagement } from "./ResumeEditor/hooks/useSectionManagement";
+import { useModalState } from "./ResumeEditor/hooks/useModalState";
+import { useResumeSave } from "./ResumeEditor/hooks/useResumeSave";
 
 interface ResumeEditorV2Props {
   resumeId?: string;
@@ -61,14 +65,22 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     );
   };
 
-  // Layout and section management state
-  const [layoutModalOpen, setLayoutModalOpen] = useState(false);
-  const [addSectionPopupOpen, setAddSectionPopupOpen] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [editResumeInfoOpen, setEditResumeInfoOpen] = useState(false);
+  // Modal state management
+  const modalState = useModalState();
+  const {
+    editResumeInfoOpen,
+    layoutModalOpen,
+    addSectionPopupOpen,
+    deleteConfirmOpen,
+    datePickerOpen,
+    setDatePickerOpen,
+    setEditResumeInfoOpen,
+    setLayoutModalOpen,
+    setAddSectionPopupOpen,
+    setDeleteConfirmOpen
+  } = modalState;
 
   // Date picker state
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerPosition, setDatePickerPosition] = useState({ x: 0, y: 0 });
   const datePickerCallbackRef = useRef<((date: string) => void) | null>(null);
 
@@ -83,22 +95,31 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     };
   }, [cleanupExport]);
 
-  // Section management functions
-  const handleAddSection = (sectionName: string) => {
-    if (!sectionOrder.includes(sectionName)) {
-      setSectionOrder(prev => [...prev, sectionName]);
-      // Remove from deleted sections if it was previously deleted
-      setResumeData(prev => {
-        return {
-          ...prev,
-          deletedSections: prev.deletedSections?.filter(section => section !== sectionName) || []
-          // Note: When re-adding a section, the data will be empty arrays which is correct
-          // since the data was cleared when the section was deleted
-        };
-      });
-    }
-    setAddSectionPopupOpen(false);
-  };
+  // Cleanup effect for scroll intervals
+  useEffect(() => {
+    return () => {
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+      }
+    };
+  }, []);
+
+  // Section management functionality
+  const { handleAddSection, handleDeleteSection: handleDeleteSectionFromHook } = useSectionManagement({
+    sectionOrder,
+    setSectionOrder,
+    setResumeData,
+    setAddSectionPopupOpen,
+    setLayoutModalOpen
+  });
+
+  // Resume save functionality
+  const { saveResumeInfo } = useResumeSave({
+    resumeId,
+    setSuccess,
+    setError
+  });
 
   // Real-time preview update effect
   useEffect(() => {
@@ -107,13 +128,26 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   }, [exportSettings]);
 
 
-  // Auto-scroll handlers for drag and drop
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDragStart = (result: DragStart) => {
-    // Drag start handler
+  // Drag and drop functionality
+  const { handleDragStart, handleDragEnd: baseHandleDragEnd } = useDragAndDrop({
+    sectionOrder,
+    setSectionOrder
+  });
+
+  // Enhanced drag end that ensures scroll cleanup
+  const handleDragEnd = (result: any) => {
+    // Always clear any active scroll interval
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+    
+    // Call the base handler
+    baseHandleDragEnd(result);
   };
 
-  const handleDragUpdate = (result: DragUpdate) => {
+  // Enhanced drag update with auto-scroll
+  const handleDragUpdateWithScroll = (result: DragUpdate) => {
     if (!scrollContainerRef.current) return;
 
     // Clear any existing scroll interval
@@ -136,81 +170,31 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     const scrollSpeed = 15; // Reduced scroll speed for smoother control
     const scrollThreshold = 250; // Increased threshold for better detection
 
-    // Check if dragging near the top edge
-    if (mouseY - containerRect.top < scrollThreshold) {
-      // Start continuous scrolling up
-      scrollIntervalRef.current = setInterval(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop -= scrollSpeed;
-        }
-      }, 16); // ~60fps
-    }
-    // Check if dragging near the bottom edge
-    else if (containerRect.bottom - mouseY < scrollThreshold) {
-      // Start continuous scrolling down
-      scrollIntervalRef.current = setInterval(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop += scrollSpeed;
-        }
-      }, 16); // ~60fps
+    // Only start scrolling if we're near the edges and not already scrolling
+    if (!scrollIntervalRef.current) {
+      // Check if dragging near the top edge
+      if (mouseY - containerRect.top < scrollThreshold) {
+        // Start continuous scrolling up
+        scrollIntervalRef.current = setInterval(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop -= scrollSpeed;
+          }
+        }, 16); // ~60fps
+      }
+      // Check if dragging near the bottom edge
+      else if (containerRect.bottom - mouseY < scrollThreshold) {
+        // Start continuous scrolling down
+        scrollIntervalRef.current = setInterval(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop += scrollSpeed;
+          }
+        }, 16); // ~60fps
+      }
     }
   };
 
-  // Handle drag end for section reordering
-  const handleDragEnd = (result: DropResult) => {
-
-    // Clear any active scroll interval
-    if (scrollIntervalRef.current) {
-      clearInterval(scrollIntervalRef.current);
-      scrollIntervalRef.current = null;
-    }
-
-    if (!result.destination) return;
-
-
-    const newOrder = Array.from(sectionOrder);
-    const [removed] = newOrder.splice(result.source.index, 1);
-    newOrder.splice(result.destination.index, 0, removed);
-
-
-    setSectionOrder(newOrder);
-  };
-
-  const handleDeleteSection = (sectionName: string) => {
-
-    // Remove from section order
-    setSectionOrder(prev => {
-      const newOrder = prev.filter(section => section !== sectionName);
-
-      return newOrder;
-    });
-
-    // Add to deleted sections and clear the data for that section
-    setResumeData(prev => {
-      const newDeletedSections = [...(prev.deletedSections || []), sectionName];
-
-
-      const updatedData = {
-        ...prev,
-        deletedSections: newDeletedSections,
-        // Clear data for the deleted section
-        strengths: sectionName === 'Technical Skills' ? [] : prev.strengths,
-        skillCategories: sectionName === 'Technical Skills' ? [] : prev.skillCategories,
-        workExperience: sectionName === 'Work Experience' ? [] : prev.workExperience,
-        education: sectionName === 'Education' ? [] : prev.education,
-        courses: sectionName === 'Courses' ? [] : prev.courses,
-        interests: sectionName === 'Interests' ? [] : prev.interests,
-        projects: sectionName === 'Projects' ? [] : prev.projects,
-        languages: sectionName === 'Languages' ? [] : prev.languages,
-        publications: sectionName === 'Publications' ? [] : prev.publications,
-        awards: sectionName === 'Awards' ? [] : prev.awards,
-        volunteerExperience: sectionName === 'Volunteer Experience' ? [] : prev.volunteerExperience,
-        references: sectionName === 'References' ? [] : prev.references,
-      };
-
-      return updatedData;
-    });
-  };
+  // Use the hook's delete function
+  const handleDeleteSection = handleDeleteSectionFromHook;
 
   if (loading) {
     return <LoadingComponent />;
@@ -277,7 +261,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         sectionOrder={sectionOrder}
         sectionComponents={SECTION_COMPONENTS}
         onDragStart={handleDragStart}
-        onDragUpdate={handleDragUpdate}
+        onDragUpdate={handleDragUpdateWithScroll}
         onDragEnd={handleDragEnd}
         scrollContainerRef={scrollContainerRef}
       />
@@ -325,34 +309,9 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         open={editResumeInfoOpen}
         onClose={() => setEditResumeInfoOpen(false)}
         resumeData={resumeData}
-        onSave={async (updatedData) => {
+                onSave={async (updatedData) => {
           setResumeData(updatedData);
-
-          // Force immediate save
-          try {
-            // Save the updated resume data immediately
-            if (resumeId) {
-              const response = await fetch(`/api/resumes/${resumeId}`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  ...updatedData,
-                  sectionOrder: sectionOrder,
-                }),
-              });
-
-              if (!response.ok) {
-                throw new Error('Failed to save resume');
-              }
-
-              setSuccess('Resume updated successfully');
-            }
-          } catch (error) {
-            console.error('Error saving resume info:', error);
-            setError('Failed to save resume changes');
-          }
+          await saveResumeInfo(updatedData, sectionOrder);
         }}
       />
 
