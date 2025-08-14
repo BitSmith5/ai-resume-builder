@@ -20,6 +20,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemIcon,
   Divider,
   Dialog,
   DialogTitle,
@@ -32,6 +33,7 @@ import {
   DeleteOutline as DeleteOutlineIcon,
   Close as CloseIcon,
   DragIndicator as DragIndicatorIcon,
+  List as ListIcon,
 } from "@mui/icons-material";
 
 import { DragDropContext, Droppable, Draggable, DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
@@ -101,6 +103,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
   // Layout and section management state
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
+  const [addSectionPopupOpen, setAddSectionPopupOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [editResumeInfoOpen, setEditResumeInfoOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -123,6 +126,23 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
       cleanupExport();
     };
   }, [cleanupExport]);
+
+  // Section management functions
+  const handleAddSection = (sectionName: string) => {
+    if (!sectionOrder.includes(sectionName)) {
+      setSectionOrder(prev => [...prev, sectionName]);
+      // Remove from deleted sections if it was previously deleted
+      setResumeData(prev => {
+        return {
+          ...prev,
+          deletedSections: prev.deletedSections?.filter(section => section !== sectionName) || []
+          // Note: When re-adding a section, the data will be empty arrays which is correct
+          // since the data was cleared when the section was deleted
+        };
+      });
+    }
+    setAddSectionPopupOpen(false);
+  };
 
 
 
@@ -764,39 +784,36 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
       </Box>
 
       {/* Floating Edit Resume Layout Button */}
-      {/* This block is no longer needed as exportPanelFullyClosed is removed */}
-      {/* {exportPanelFullyClosed && !exportPanelOpen && ( */}
-      {/*   <Box */}
-      {/*     sx={{ */}
-      {/*       position: "absolute", */}
-      {/*       bottom: 100, */}
-      {/*       right: 50, */}
-      {/*       zIndex: 1300, */}
-      {/*     }} */}
-      {/*   > */}
-      {/*     <Button */}
-      {/*       variant="contained" */}
-      {/*       sx={{ */}
-      {/*         borderRadius: "50%", */}
-      {/*         width: 60, */}
-      {/*         height: 60, */}
-      {/*         minWidth: 60, */}
-      {/*         minHeight: 60, */}
-      {/*         maxWidth: 60, */}
-      {/*         maxHeight: 60, */}
-      {/*         padding: 0, */}
-      {/*         background: COLORS.primary, */}
-      {/*         boxShadow: 'none', */}
-      {/*         '&:hover': { */}
-      {/*           background: COLORS.hover, */}
-      {/*         } */}
-      {/*       }} */}
-      {/*       onClick={() => setLayoutModalOpen(true)} */}
-      {/*     > */}
-      {/*       <ListIcon sx={{ fontSize: 28, color: 'black', fontWeight: 500 }} /> */}
-      {/*     </Button> */}
-      {/*   </Box> */}
-      {/* )} */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 100,
+          right: 50,
+          zIndex: 1300,
+        }}
+      >
+        <Button
+          variant="contained"
+          sx={{
+            borderRadius: "50%",
+            width: 60,
+            height: 60,
+            minWidth: 60,
+            minHeight: 60,
+            maxWidth: 60,
+            maxHeight: 60,
+            padding: 0,
+            background: COLORS.primary,
+            boxShadow: 'none',
+            '&:hover': {
+              background: COLORS.hover,
+            }
+          }}
+          onClick={() => setLayoutModalOpen(true)}
+        >
+          <ListIcon sx={{ fontSize: 28, color: 'black', fontWeight: 500 }} />
+        </Button>
+      </Box>
 
       {/* Edit Resume Layout Modal */}
       {layoutModalOpen && (
@@ -906,7 +923,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
                   startIcon={<AddIcon />}
                   variant="text"
                   fullWidth
-                  onClick={() => setLayoutModalOpen(false)}
+                  onClick={() => setAddSectionPopupOpen(true)}
                   sx={{
                     borderRadius: 2,
                     background: 'white',
@@ -934,78 +951,77 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
       )}
 
       {/* Add New Section Popup - Independent Modal */}
-      {/* isClient is not defined, assuming it's meant to be removed or replaced */}
-      {/* {isClient && addSectionPopupOpen && layoutModalOpen && ( */}
-      {/*   <Box */}
-      {/*     sx={{ */}
-      {/*       position: 'absolute', */}
-      {/*       bottom: 180, */}
-      {/*       right: 45, */}
-      {/*       background: '#fff', */}
-      {/*       borderRadius: '18px', */}
-      {/*       boxShadow: '0 -4px 20px rgba(0,0,0,0.15)', */}
-      {/*       width: 320, */}
-      {/*       zIndex: 1003, */}
-      {/*       maxHeight: '600px', */}
-      {/*       overflowY: 'auto', */}
-      {/*     }} */}
-      {/*   > */}
-      {/*     <List sx={{ px: 0, pt: 0, pb: 0 }}> */}
-      {/*       {(() => { */}
-      {/*         const availableSections = [ */}
-      {/*           // Original default sections (except Personal Info) */}
-      {/*           'Professional Summary', */}
-      {/*           'Technical Skills', */}
-      {/*           'Work Experience', */}
-      {/*           'Education', */}
-      {/*           // Additional sections */}
-      {/*           'Projects', */}
-      {/*           'Languages', */}
-      {/*           'Publications', */}
-      {/*           'Awards', */}
-      {/*           'Volunteer Experience', */}
-      {/*           'Interests', */}
-      {/*           'Courses', */}
-      {/*           'References' */}
-      {/*         ]; */}
-      {/*         const filteredSections = availableSections.filter(section => */}
-      {/*           !sectionOrder.includes(section) */}
-      {/*         ); */}
-      {/*         return filteredSections; */}
-      {/*       })().map((section) => ( */}
-      {/*         <ListItem */}
-      {/*           key={section} */}
-      {/*           component="button" */}
-      {/*           onClick={(e) => { */}
-      {/*             e.stopPropagation(); */}
-      {/*             handleAddSection(section); */}
-      {/*           }} */}
-      {/*           sx={{ */}
-      {/*             px: 2, */}
-      {/*             py: 1.2, */}
-      {/*             minHeight: 44, */}
-      {/*             width: '100%', */}
-      {/*             textAlign: 'left', */}
-      {/*             border: 'none', */}
-      {/*             background: 'transparent', */}
-      {/*             cursor: 'pointer', */}
-      {/*             '&:hover': { */}
-      {/*               backgroundColor: '#f5f5f5', */}
-      {/*             }, */}
-      {/*           }} */}
-      {/*         > */}
-      {/*           <ListItemIcon sx={{ minWidth: 24 }}> */}
-      {/*             <AddIcon sx={{ fontSize: 20, color: '#666' }} /> */}
-      {/*           </ListItemIcon> */}
-      {/*           <ListItemText */}
-      {/*             primary={section} */}
-      {/*             primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }} */}
-      {/*           /> */}
-      {/*         </ListItem> */}
-      {/*       ))} */}
-      {/*     </List> */}
-      {/*   </Box> */}
-      {/* )} */}
+      {addSectionPopupOpen && layoutModalOpen && (
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 180,
+            right: 45,
+            background: '#fff',
+            borderRadius: '18px',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+            width: 320,
+            zIndex: 1003,
+            maxHeight: '600px',
+            overflowY: 'auto',
+          }}
+        >
+          <List sx={{ px: 0, pt: 0, pb: 0 }}>
+            {(() => {
+              const availableSections = [
+                // Original default sections (except Personal Info)
+                'Professional Summary',
+                'Technical Skills',
+                'Work Experience',
+                'Education',
+                // Additional sections
+                'Projects',
+                'Languages',
+                'Publications',
+                'Awards',
+                'Volunteer Experience',
+                'Interests',
+                'Courses',
+                'References'
+              ];
+              const filteredSections = availableSections.filter(section =>
+                !sectionOrder.includes(section)
+              );
+              return filteredSections;
+            })().map((section) => (
+              <ListItem
+                key={section}
+                component="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddSection(section);
+                }}
+                sx={{
+                  px: 2,
+                  py: 1.2,
+                  minHeight: 44,
+                  width: '100%',
+                  textAlign: 'left',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 24 }}>
+                  <AddIcon sx={{ fontSize: 20, color: '#666' }} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={section}
+                  primaryTypographyProps={{ fontWeight: 500, fontSize: '0.95rem', color: '#222' }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      )}
 
       {/* Date Picker */}
       <DatePicker
