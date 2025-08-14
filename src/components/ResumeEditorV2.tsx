@@ -10,49 +10,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  IconButton,
-  Alert,
-  CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  DeleteOutline as DeleteOutlineIcon,
-  Close as CloseIcon,
-  DragIndicator as DragIndicatorIcon,
-  List as ListIcon,
-} from "@mui/icons-material";
 
-import { DragDropContext, Droppable, Draggable, DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
 
-import { COLORS } from '../lib/colorSystem';
+
+
+import { DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
+
 import { ResumeHeader } from './ResumeEditor/components/ResumeHeader';
-import { PersonalInfoSection } from './ResumeEditor/components/sections/PersonalInfoSection';
-import { ProfessionalSummarySection } from "./ResumeEditor/components/sections/ProfessionalSummarySection";
-import { TechnicalSkillsSection } from "./ResumeEditor/components/sections/TechnicalSkillsSection";
-import { WorkExperienceSection } from "./ResumeEditor/components/sections/WorkExperienceSection";
-import { EducationSection } from "./ResumeEditor/components/sections/EducationSection";
-import { CoursesSection } from "./ResumeEditor/components/sections/CoursesSection";
-import { InterestsSection } from "./ResumeEditor/components/sections/InterestsSection";
-import { ProjectsSection } from "./ResumeEditor/components/sections/ProjectsSection";
-import { LanguagesSection } from "./ResumeEditor/components/sections/LanguagesSection";
-import { PublicationsSection } from "./ResumeEditor/components/sections/PublicationsSection";
-import { AwardsSection } from "./ResumeEditor/components/sections/AwardsSection";
-import { VolunteerExperienceSection } from "./ResumeEditor/components/sections/VolunteerExperienceSection";
-import { ReferencesSection } from "./ResumeEditor/components/sections/ReferencesSection";
+
 import { ExportPanel } from "./ResumeEditor/components/ExportPanel";
 import { DatePicker } from "./ResumeEditor/components/DatePicker";
 import { EditResumeInfoModal } from "./ResumeEditor/components/EditResumeInfoModal";

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Box, Typography, Divider } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
 import { DragIndicator as DragIndicatorIcon } from '@mui/icons-material';

@@ -6,8 +6,7 @@ import {
   IconButton, 
   List, 
   ListItem, 
-  ListItemText, 
-  ListItemIcon 
+  ListItemText
 } from '@mui/material';
 import { 
   Close as CloseIcon, 
