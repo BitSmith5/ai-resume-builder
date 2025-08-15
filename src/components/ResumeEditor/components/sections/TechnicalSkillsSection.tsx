@@ -108,7 +108,7 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
       {/* Skill Categories */}
       <Box>
         {(resumeData.skillCategories || []).map((category) => (
-          <Card key={category.id} sx={{ mb: 2, mr: 2, p: 2 }}>
+          <Card key={category.id} sx={{ mb: 3, mr: 2, p: 2 }}>
             {/* Category Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box sx={{
@@ -227,26 +227,12 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
       </Box>
 
       {/* + Skills button */}
-      <Box sx={{ ml: -1.5 }}>
+      <Box>
         <Button
           startIcon={<AddIcon />}
           onClick={addSkillCategory}
           variant="outlined"
           size="small"
-          sx={{
-            textTransform: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            borderRadius: 2,
-            border: '1px solid #e0e0e0',
-            color: 'black',
-            minWidth: 180,
-            '&:hover': {
-              backgroundColor: '#f5f5f5',
-              border: '1px solid #f5f5f5'
-            }
-          }}
         >
           Skill Category
         </Button>

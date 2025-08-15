@@ -197,16 +197,6 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
         onClick={addEducation}
         variant="outlined"
         size="small"
-        sx={{ 
-          textTransform: 'none', 
-          borderRadius: 2,
-          border: '1px solid #e0e0e0',
-          color: 'black',
-          '&:hover': {
-            backgroundColor: '#f5f5f5',
-            border: '1px solid #f5f5f5'
-          }
-        }}
       >
         Add Education
       </Button>
