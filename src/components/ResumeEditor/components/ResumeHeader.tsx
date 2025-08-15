@@ -12,7 +12,6 @@ import {
   Delete as DeleteIcon,
   Star as StarIcon,
 } from '@mui/icons-material';
-import { COLORS } from '../../../lib/colorSystem';
 
 interface ResumeHeaderProps {
   resumeTitle: string;
@@ -65,7 +64,7 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
               width: 24,
               height: 24,
               borderRadius: 1.5,
-              background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+              background: 'linear-gradient(90deg, rgb(173, 126, 233) 0%, rgb(203, 156, 263) 100%)',
               mr: 1,
             }}
           >

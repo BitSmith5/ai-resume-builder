@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Typography, Divider } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult, DragStart, DragUpdate } from '@hello-pangea/dnd';
 import { DragIndicator as DragIndicatorIcon } from '@mui/icons-material';
-import { COLORS } from '../../../lib/colorSystem';
 
 interface MainContentAreaProps {
   sectionOrder: string[];
@@ -37,8 +36,8 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
       {/* Fixed Header */}
       <Box sx={{
         padding: 3,
-        borderBottom: '1px solid #e0e0e0',
-        background: `linear-gradient(90deg, ${COLORS.primary} 0%, #ffffff 100%)`,
+        borderBottom: '1px solid',
+        background: 'linear-gradient(90deg, rgb(173, 126, 233) 0%, #ffffff 100%)',
         position: 'sticky',
         top: 0,
         zIndex: 10,
@@ -155,7 +154,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
                       </Draggable>
                     )}
                     {idx < sectionOrder.length - 1 && (
-                      <Divider sx={{ borderColor: '#e0e0e0', my: 0 }} />
+                      <Divider sx={{ my: 0 }} />
                     )}
                   </React.Fragment>
                 ))}

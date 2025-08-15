@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, Button } from '@mui/material';
-import { COLORS } from '../../../lib/colorSystem';
 
 interface DatePickerProps {
   isOpen: boolean;
@@ -100,7 +99,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   cursor: 'pointer',
                   borderRadius: 1,
                   '&:hover': {
-                    backgroundColor: COLORS.background,
+                    backgroundColor: '#f5f5f5',
                   },
                   textAlign: 'left',
                   fontWeight: 500,
@@ -155,7 +154,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   cursor: 'pointer',
                   borderRadius: 1,
                   '&:hover': {
-                    backgroundColor: COLORS.background,
+                    backgroundColor: '#f5f5f5',
                   },
                   textAlign: 'left',
                   fontWeight: 500,
@@ -176,9 +175,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               sx={{ 
                 textTransform: 'none', 
                 fontSize: '0.8rem',
-                color: COLORS.primary,
+                color: 'rgb(173, 126, 233)',
                 '&:hover': {
-                  backgroundColor: COLORS.overlay,
+                  backgroundColor: '#e0e0e0',
                 }
               }}
             >

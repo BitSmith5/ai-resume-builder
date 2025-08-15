@@ -16,9 +16,9 @@ import {
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { ResumeData } from '../../types';
-import { COLORS } from '../../../../lib/colorSystem';
 import { DatePicker } from '../DatePicker';
 import { useDatePicker } from '../../hooks/useDatePicker';
+
 
 interface WorkExperienceSectionProps {
   resumeData: ResumeData;
@@ -297,7 +297,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 textTransform: 'none', 
                 mt: 1,
                 px: 1,
-                color: COLORS.primaryDark,
+                color: 'rgb(143, 96, 203)',
                 '&:hover': {
                   backgroundColor: 'transparent',
                 }

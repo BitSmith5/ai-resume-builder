@@ -3,9 +3,7 @@ import Image from 'next/image';
 import { MdEmail, MdPhone, MdLocationOn, MdLanguage, MdLink } from 'react-icons/md';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import { getImage } from '@/lib/imageStorage';
-import { COLORS } from '@/lib/colorSystem';
 
-const MASTER_COLOR = COLORS.primary;
 
 interface ResumeData {
   title: string;
@@ -109,6 +107,7 @@ interface PageContent {
 }
 
 const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => {
+  const MASTER_COLOR = 'rgb(173, 126, 233)';
   const { personalInfo } = data.content;
   const [titleWidth, setTitleWidth] = React.useState(0);
   const titleRef = React.useRef<HTMLDivElement>(null);

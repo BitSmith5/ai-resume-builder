@@ -7,7 +7,6 @@ import {
   IconButton 
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import { COLORS } from '../../../lib/colorSystem';
 
 interface EditResumeInfoModalProps {
   open: boolean;
@@ -159,12 +158,12 @@ export const EditResumeInfoModal: React.FC<EditResumeInfoModalProps> = ({
             sx={{
               flex: 1,
               borderRadius: 2,
-              background: COLORS.primary,
+              background: 'rgb(173, 126, 233)',
               color: '#222',
               textTransform: 'none',
               px: 3,
               '&:hover': {
-                background: COLORS.hover,
+                background: 'rgb(193, 146, 253)',
               },
             }}
           >

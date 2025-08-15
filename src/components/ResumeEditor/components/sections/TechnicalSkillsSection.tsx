@@ -88,7 +88,7 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
             e.stopPropagation();
             onDeleteSection('Technical Skills');
           }}
-          sx={{ 
+          sx={{
             border: '1px solid #e0e0e0',
             borderRadius: '50%',
             '&:hover': {
@@ -101,13 +101,13 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           <DeleteOutlineIcon fontSize="small" />
         </IconButton>
       </Box>
-      
+
       {/* Skill Categories */}
       <Box sx={{ ml: -3.5 }}>
         {(resumeData.skillCategories || []).map((category) => (
-          <Box key={category.id} sx={{ mb: 2, background: 'transparent' }}>
+          <Box key={category.id} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f5f5f5' }}>
             {/* Category Header */}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -115,30 +115,28 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 userSelect: 'none',
                 color: '#bbb',
               }}>
-                <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0', mr: 1 }} />
               </Box>
               <TextField
                 value={category.title}
                 onChange={(e) => updateSkillCategory(category.id, { title: e.target.value })}
-                variant="standard"
-                sx={{ 
+                variant="outlined"
+                label="Category"
+                size="small"
+                sx={{
                   fontWeight: 600,
-                  px: 1,
-                  mr: 1,
-                  borderRadius: 2,
                   '&:hover': {
-                    backgroundColor: '#f5f5f5',
+                    backgroundColor: '#e0e0e0',
                   }
                 }}
                 InputProps={{
                   style: { fontWeight: 600, fontSize: '1rem' },
-                  disableUnderline: true,
                 }}
               />
               <IconButton
                 size="small"
                 onClick={() => deleteSkillCategory(category.id)}
-                sx={{ 
+                sx={{
                   border: '1px solid #e0e0e0',
                   borderRadius: '50%',
                   '&:hover': {
@@ -176,11 +174,11 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                   <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}>
                     <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
                   </Box>
-                  
+
                   <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
                     {skill.name}
                   </Typography>
-                  
+
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <IconButton
                       size="small"
@@ -207,9 +205,9 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               <TextField
                 size="small"
                 placeholder="Add skill..."
-                sx={{ 
-                  flex: 1, 
-                  backgroundColor: '#f5f5f5', 
+                sx={{
+                  flex: 1,
+                  backgroundColor: '#f5f5f5',
                   borderRadius: 2,
                   '& .MuiOutlinedInput-root': {
                     '& fieldset': {
@@ -231,7 +229,7 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                   }
                 }}
               />
-              <IconButton 
+              <IconButton
                 size="small"
                 onClick={(e) => {
                   const input = e.currentTarget.previousElementSibling?.querySelector('input') as HTMLInputElement;
@@ -255,10 +253,10 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           onClick={addSkillCategory}
           variant="outlined"
           size="small"
-          sx={{ 
-            textTransform: 'none', 
-            display: 'flex', 
-            alignItems: 'center', 
+          sx={{
+            textTransform: 'none',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'flex-start',
             borderRadius: 2,
             border: '1px solid #e0e0e0',

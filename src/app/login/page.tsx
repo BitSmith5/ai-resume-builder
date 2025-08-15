@@ -22,7 +22,7 @@ import {
   Tab,
 } from "@mui/material";
 import { Google as GoogleIcon, GitHub as GitHubIcon, Visibility, VisibilityOff } from "@mui/icons-material";
-import { COLORS } from "@/lib/colorSystem";
+
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -47,6 +47,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function LoginPage() {
+  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [tabValue, setTabValue] = useState(0);
@@ -202,7 +203,7 @@ export default function LoginPage() {
       <Card elevation={8}>
         <CardContent sx={{ p: 4 }}>
           <Box textAlign="center" mb={4}>
-            <Typography variant="h4" component="h1" gutterBottom sx={{ color: COLORS.primary }}>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'rgb(173, 126, 233)' }}>
               Welcome to AI Resume Builder
             </Typography>
             <Typography variant="body1" color="text.secondary">
@@ -223,13 +224,13 @@ export default function LoginPage() {
             sx={{ 
               mb: 2,
               '& .MuiTab-root': {
-                color: COLORS.primary,
+                color: 'rgb(173, 126, 233)',
                 '&.Mui-selected': {
-                  color: COLORS.primaryDark,
+                  color: 'rgb(143, 96, 203)',
                 },
               },
               '& .MuiTabs-indicator': {
-                backgroundColor: COLORS.primary,
+                backgroundColor: 'rgb(173, 126, 233)',
               },
             }}
           >
@@ -249,13 +250,13 @@ export default function LoginPage() {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     '& fieldset': {
-                      borderColor: COLORS.primary,
+                      borderColor: 'rgb(173, 126, 233)',
                     },
                     '&:hover fieldset': {
-                      borderColor: COLORS.hover,
+                      borderColor: 'rgb(193, 146, 253)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: COLORS.primaryDark,
+                      borderColor: 'rgb(143, 96, 203)',
                     },
                   },
                 }}
@@ -272,7 +273,7 @@ export default function LoginPage() {
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
-                        sx={{ color: COLORS.primary }}
+                        sx={{ color: 'rgb(173, 126, 233)' }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -281,13 +282,13 @@ export default function LoginPage() {
                   label="Password"
                   sx={{
                     '& fieldset': {
-                      borderColor: COLORS.primary,
+                      borderColor: 'rgb(173, 126, 233)',
                     },
                     '&:hover fieldset': {
-                      borderColor: COLORS.hover,
+                      borderColor: 'rgb(193, 146, 253)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: COLORS.primaryDark,
+                      borderColor: 'rgb(143, 96, 203)',
                     },
                   }}
                 />
@@ -299,12 +300,12 @@ export default function LoginPage() {
                 disabled={isLoading}
                 sx={{ 
                   py: 1.5,
-                  backgroundColor: COLORS.primary,
+                  backgroundColor: 'rgb(173, 126, 233)',
                   '&:hover': {
-                    backgroundColor: COLORS.hover,
+                    backgroundColor: 'rgb(193, 146, 253)',
                   },
                   '&:disabled': {
-                    backgroundColor: COLORS.uiBackground,
+                    backgroundColor: '#fafafa',
                   },
                 }}
               >
@@ -325,13 +326,13 @@ export default function LoginPage() {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     '& fieldset': {
-                      borderColor: COLORS.primary,
+                      borderColor: 'rgb(173, 126, 233)',
                     },
                     '&:hover fieldset': {
-                      borderColor: COLORS.hover,
+                      borderColor: 'rgb(193, 146, 253)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: COLORS.primaryDark,
+                      borderColor: 'rgb(143, 96, 203)',
                     },
                   },
                 }}
@@ -346,13 +347,13 @@ export default function LoginPage() {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     '& fieldset': {
-                      borderColor: COLORS.primary,
+                      borderColor: 'rgb(173, 126, 233)',
                     },
                     '&:hover fieldset': {
-                      borderColor: COLORS.hover,
+                      borderColor: 'rgb(193, 146, 253)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: COLORS.primaryDark,
+                      borderColor: 'rgb(143, 96, 203)',
                     },
                   },
                 }}
@@ -368,13 +369,13 @@ export default function LoginPage() {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     '& fieldset': {
-                      borderColor: COLORS.primary,
+                      borderColor: 'rgb(173, 126, 233)',
                     },
                     '&:hover fieldset': {
-                      borderColor: COLORS.hover,
+                      borderColor: 'rgb(193, 146, 253)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: COLORS.primaryDark,
+                      borderColor: 'rgb(143, 96, 203)',
                     },
                   },
                 }}
@@ -391,7 +392,7 @@ export default function LoginPage() {
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
-                        sx={{ color: COLORS.primary }}
+                        sx={{ color: 'rgb(173, 126, 233)' }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -400,13 +401,13 @@ export default function LoginPage() {
                   label="Password"
                   sx={{
                     '& fieldset': {
-                      borderColor: COLORS.primary,
+                      borderColor: 'rgb(173, 126, 233)',
                     },
                     '&:hover fieldset': {
-                      borderColor: COLORS.hover,
+                      borderColor: 'rgb(193, 146, 253)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: COLORS.primaryDark,
+                      borderColor: 'rgb(143, 96, 203)',
                     },
                   }}
                 />
@@ -418,12 +419,12 @@ export default function LoginPage() {
                 disabled={isLoading}
                 sx={{ 
                   py: 1.5,
-                  backgroundColor: COLORS.primary,
+                  backgroundColor: 'rgb(173, 126, 233)',
                   '&:hover': {
-                    backgroundColor: COLORS.hover,
+                    backgroundColor: 'rgb(193, 146, 253)',
                   },
                   '&:disabled': {
-                    backgroundColor: COLORS.uiBackground,
+                    backgroundColor: '#fafafa',
                   },
                 }}
               >
