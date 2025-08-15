@@ -126,15 +126,6 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 variant="outlined"
                 label="Category"
                 size="small"
-                sx={{
-                  fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: '#e0e0e0',
-                  }
-                }}
-                InputProps={{
-                  style: { fontWeight: 600, fontSize: '1rem' },
-                }}
               />
               <IconButton
                 size="small"

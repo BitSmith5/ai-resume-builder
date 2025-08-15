@@ -136,7 +136,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
           </Box>
 
           {/* Field of Study */}
-          <Box sx={{ display: 'flex', alignItems: 'center', my: 3, ml: 4.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2, ml: 4.5 }}>
             <TextField
               value={education.field}
               onChange={(e) => updateEducation(index, { field: e.target.value })}
