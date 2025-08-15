@@ -121,7 +121,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ 
+      display: "flex",
+      height: "100vh", // Ensure full viewport height
+      overflow: "hidden" // Prevent unnecessary scroll bars
+    }}>
       <AppBar
         position="fixed"
         sx={{
@@ -206,9 +210,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 0, // Remove padding to allow content to extend to edges
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           mt: "64px",
+          height: "calc(100vh - 64px)", // Ensure main content fits within viewport
+          overflow: "hidden", // Prevent scrolling at this level
+          display: "flex",
+          flexDirection: "column"
         }}
       >
         {children}

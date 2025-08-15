@@ -46,7 +46,11 @@ export default function Home() {
   }
 
   return (
-    <Box sx={{ bgcolor: 'background.default' }}>
+    <Box sx={{ 
+      bgcolor: 'background.default',
+      height: '100vh', // Use exact viewport height instead of min-height
+      overflow: 'auto' // Allow scrolling only when needed
+    }}>
       {/* Hero Section */}
       <Box
         sx={{

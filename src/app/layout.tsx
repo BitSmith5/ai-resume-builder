@@ -25,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" style={{ height: '100%' }}>
+      <body className={`${geistSans.variable} ${geistMono.variable}`} style={{ height: '100%', margin: 0, padding: 0 }}>
         <Providers>{children}</Providers>
       </body>
     </html>

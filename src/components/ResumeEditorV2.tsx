@@ -183,14 +183,13 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
   return (
     <Box sx={{
+      mt: 0, // Remove negative margin
       mr: { xs: 0, md: 20 },
       display: "flex",
       flexDirection: "column",
-      backgroundColor: "#f5f5f5",
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
       position: "relative",
-      height: "calc(100vh - 64px)",
+      height: "100%", // Use full height of parent
+      overflow: "hidden", // Prevent main scrollbar
     }}>
 
       <AlertMessages error={error} success={success} />

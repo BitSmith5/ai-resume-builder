@@ -32,6 +32,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
       overflow: 'hidden',
+      height: '100%', // Ensure full height
     }}>
       {/* Fixed Header */}
       <Box sx={{
@@ -56,6 +57,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
         sx={{
           flex: 1,
           overflowY: 'auto',
+          minHeight: 0, // Ensure flex child can shrink
           '&::-webkit-scrollbar': {
             width: '8px',
           },
@@ -77,7 +79,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
         >
           <Droppable droppableId="main-section-list" type="main-section">
             {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps}>
+              <div ref={provided.innerRef} {...provided.droppableProps} style={{ padding: '16px' }}>
                 {sectionOrder.map((section, idx) => (
                   <React.Fragment key={section}>
                     {section === "Personal Info" ? (
