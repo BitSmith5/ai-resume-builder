@@ -44,9 +44,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Get current page title based on pathname
   const getCurrentPageTitle = () => {
-    if (pathname === "/dashboard/resume") return "Resume";
-    if (pathname === "/dashboard/resume/new") return "Edit Resume";
-    if (pathname === "/dashboard/profile") return "Profile";
+    if (pathname === "/resume") return "Resume";
+    if (pathname === "/resume/new") return "Edit Resume";
+    if (pathname === "/profile") return "Profile";
     return "Resume Builder";
   };
 
@@ -86,8 +86,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const menuItems = [
-    { text: "Resume", icon: <ResumeIcon />, path: "/dashboard/resume" }, // New menu item for Resume section
-    { text: "Profile", icon: <ProfileIcon />, path: "/dashboard/profile" },
+    { text: "Resume", icon: <ResumeIcon />, path: "/resume" }, // New menu item for Resume section
+    { text: "Profile", icon: <ProfileIcon />, path: "/profile" },
   ];
 
   const drawer = (
@@ -100,7 +100,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <List>
         {menuItems.map((item) => {
           const isSelected = pathname === item.path || 
-                           (item.path === "/dashboard/resume" && pathname?.startsWith("/dashboard/resume"));
+                           (item.path === "/resume" && pathname?.startsWith("/resume"));
           
           return (
             <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
@@ -248,7 +248,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         onClose={handleProfileMenuClose}
         onClick={handleProfileMenuClose}
       >
-        <MenuItem onClick={() => router.push("/dashboard/profile")}>
+        <MenuItem onClick={() => router.push("/profile")}>
           <ListItemIcon>
             <ProfileIcon fontSize="small" />
           </ListItemIcon>

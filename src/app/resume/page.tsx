@@ -113,11 +113,11 @@ export default function ResumePage() {
   };
 
   const handleResumeClick = (resumeId: number) => {
-    router.push(`/dashboard/resume/new?id=${resumeId}`);
+            router.push(`/resume/new?id=${resumeId}`);
   };
 
   const handleAddResume = () => {
-    router.push('/dashboard/resume/new');
+            router.push('/resume/new');
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, resumeId: number) => {
@@ -133,7 +133,7 @@ export default function ResumePage() {
 
   const handleEditResume = () => {
     if (selectedResumeId) {
-      router.push(`/dashboard/resume/new?id=${selectedResumeId}`);
+              router.push(`/resume/new?id=${selectedResumeId}`);
     }
     handleMenuClose();
   };

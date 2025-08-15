@@ -32,25 +32,25 @@ const formatUrl = (url: string): string => {
 // Date formatting function to convert dates to MMM YYYY format
 const formatDate = (dateString: string): string => {
   if (!dateString) return '';
-  
+
   try {
     // Handle date strings in YYYY-MM-DD format to avoid timezone issues
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [year, month] = dateString.split('-').map(Number);
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return `${months[month - 1]} ${year}`; // month - 1 because array is 0-indexed
     }
-    
+
     // Fallback to Date object for other formats
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString; // Return original if invalid date
-    
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const month = months[date.getMonth()];
     const year = date.getFullYear();
-    
+
     return `${month} ${year}`;
   } catch {
     return dateString; // Return original if parsing fails
@@ -78,13 +78,13 @@ const renderSection = (sectionName: string, resumeData: any): string => {
   console.log(`🎯 Resume data keys:`, Object.keys(resumeData));
   console.log(`🎯 Content keys:`, resumeData.content ? Object.keys(resumeData.content) : 'No content');
   console.log(`🎯 Personal info:`, resumeData.content?.personalInfo);
-  
+
   switch (sectionName) {
     case 'Personal Info':
       // Personal info is already handled in the header and contact info
       // This section is intentionally empty as the content is in the header
       return '';
-    
+
     case 'Professional Summary':
       console.log(`🎯 Professional Summary - summary:`, resumeData.content?.personalInfo?.summary);
       return resumeData.content?.personalInfo?.summary ? `
@@ -93,7 +93,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           <div class="body-text">${resumeData.content.personalInfo.summary}</div>
         </div>
       ` : '';
-    
+
     case 'Work Experience':
       console.log(`🎯 Work Experience - data:`, resumeData.workExperience);
       console.log(`🎯 Work Experience - length:`, resumeData.workExperience?.length);
@@ -135,7 +135,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           </div>
         `;
       }
-    
+
     case 'Projects':
       console.log(`🎯 Projects - data:`, resumeData.projects);
       console.log(`🎯 Projects - length:`, resumeData.projects?.length);
@@ -174,7 +174,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           </div>
         `;
       }
-    
+
     case 'Education':
       console.log(`🎯 Education - data:`, resumeData.education);
       console.log(`🎯 Education - length:`, resumeData.education?.length);
@@ -210,7 +210,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           </div>
         `;
       }
-      
+
     case 'Technical Skills':
       console.log(`🎯 Technical Skills - skillCategories:`, resumeData.skillCategories);
       console.log(`🎯 Technical Skills - strengths:`, resumeData.strengths);
@@ -244,7 +244,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           <div class="body-text">No technical skills data available</div>
         </div>
       `;
-    
+
     case 'Courses':
       return resumeData.courses && resumeData.courses.length > 0 ? `
         <div class="section">
@@ -257,7 +257,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           `).join('')}
         </div>
       ` : '';
-    
+
     case 'Interests':
       return resumeData.interests && resumeData.interests.length > 0 ? `
         <div class="section">
@@ -265,7 +265,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           <div class="body-text">${resumeData.interests.map((interest: any) => interest.name).join(', ')}</div>
         </div>
       ` : '';
-    
+
     case 'Languages':
       return resumeData.languages && resumeData.languages.length > 0 ? `
         <div class="section">
@@ -273,7 +273,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           <div class="body-text">${resumeData.languages.map((lang: any) => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
         </div>
       ` : '';
-    
+
     case 'Publications':
       return resumeData.publications && resumeData.publications.length > 0 ? `
         <div class="section">
@@ -287,7 +287,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           `).join('')}
         </div>
       ` : '';
-    
+
     case 'Awards':
       return resumeData.awards && resumeData.awards.length > 0 ? `
         <div class="section">
@@ -301,7 +301,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           `).join('')}
         </div>
       ` : '';
-    
+
     case 'Volunteer Experience':
       return resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
         <div class="section">
@@ -318,7 +318,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           `).join('')}
         </div>
       ` : '';
-    
+
     case 'References':
       return resumeData.references && resumeData.references.length > 0 ? `
         <div class="section">
@@ -332,7 +332,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           `).join('')}
         </div>
       ` : '';
-    
+
     default:
       return '';
   }
@@ -351,7 +351,7 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
   console.log('🎯 resumeData.projects:', resumeData.projects);
   console.log('🎯 resumeData.education:', resumeData.education);
   console.log('🎯 exportSettings.sectionSpacing:', exportSettings.sectionSpacing);
-  
+
   // Create the HTML content with proper styling
   const htmlContent = `
     <div class="header">
@@ -360,18 +360,18 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
     </div>
     
     <div class="contact-info">
-      ${resumeData.content?.personalInfo?.city || resumeData.content?.personalInfo?.state ? 
-        `<span>${resumeData.content.personalInfo.city || ''}${resumeData.content.personalInfo.city && resumeData.content.personalInfo.state ? ', ' : ''}${resumeData.content.personalInfo.state || ''}</span>` : ''}
-      ${resumeData.content?.personalInfo?.phone ? 
-        `${resumeData.content.personalInfo.city || resumeData.content.personalInfo.state ? '<span class="contact-separator">•</span>' : ''}<span>${formatPhoneNumber(resumeData.content.personalInfo.phone)}</span>` : ''}
-      ${resumeData.content?.personalInfo?.email ? 
-        `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone) ? '<span class="contact-separator">•</span>' : ''}<span>${resumeData.content.personalInfo.email}</span>` : ''}
-      ${resumeData.content?.personalInfo?.linkedin ? 
-        `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.linkedin}" class="contact-link">LinkedIn</a></span>` : ''}
-      ${resumeData.content?.personalInfo?.github ? 
-        `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.github}" class="contact-link">GitHub</a></span>` : ''}
-      ${resumeData.content?.personalInfo?.website ? 
-        `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin || resumeData.content.personalInfo.github) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.website}" class="contact-link">${resumeData.content.personalInfo.website.replace(/^https?:\/\//, '')}</a></span>` : ''}
+      ${resumeData.content?.personalInfo?.city || resumeData.content?.personalInfo?.state ?
+      `<span>${resumeData.content.personalInfo.city || ''}${resumeData.content.personalInfo.city && resumeData.content.personalInfo.state ? ', ' : ''}${resumeData.content.personalInfo.state || ''}</span>` : ''}
+      ${resumeData.content?.personalInfo?.phone ?
+      `${resumeData.content.personalInfo.city || resumeData.content.personalInfo.state ? '<span class="contact-separator">•</span>' : ''}<span>${formatPhoneNumber(resumeData.content.personalInfo.phone)}</span>` : ''}
+      ${resumeData.content?.personalInfo?.email ?
+      `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone) ? '<span class="contact-separator">•</span>' : ''}<span>${resumeData.content.personalInfo.email}</span>` : ''}
+      ${resumeData.content?.personalInfo?.linkedin ?
+      `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.linkedin}" class="contact-link">LinkedIn</a></span>` : ''}
+      ${resumeData.content?.personalInfo?.github ?
+      `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.github}" class="contact-link">GitHub</a></span>` : ''}
+      ${resumeData.content?.personalInfo?.website ?
+      `${(resumeData.content.personalInfo.city || resumeData.content.personalInfo.state || resumeData.content.personalInfo.phone || resumeData.content.personalInfo.email || resumeData.content.personalInfo.linkedin || resumeData.content.personalInfo.github) ? '<span class="contact-separator">•</span>' : ''}<span><a href="${resumeData.content.personalInfo.website}" class="contact-link">${resumeData.content.personalInfo.website.replace(/^https?:\/\//, '')}</a></span>` : ''}
     </div>
 
 
@@ -384,21 +384,21 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
     ` : ''}
 
     ${activeSections.filter(sectionName => sectionName !== 'Professional Summary').map(sectionName => {
-      console.log(`🎯 generatePdfHtml - Rendering section: ${sectionName}`);
-      const rendered = renderSection(sectionName, resumeData);
-      console.log(`🎯 generatePdfHtml - Section ${sectionName} rendered length:`, rendered.length);
-      console.log(`🎯 generatePdfHtml - Section ${sectionName} preview:`, rendered.substring(0, 200));
-      return rendered;
-    }).join('')}
+        console.log(`🎯 generatePdfHtml - Rendering section: ${sectionName}`);
+        const rendered = renderSection(sectionName, resumeData);
+        console.log(`🎯 generatePdfHtml - Section ${sectionName} rendered length:`, rendered.length);
+        console.log(`🎯 generatePdfHtml - Section ${sectionName} preview:`, rendered.substring(0, 200));
+        return rendered;
+      }).join('')}
   `;
-  
+
   console.log(`🎯 Final HTML content:`, htmlContent);
 
   // Use smart pagination for both preview and PDF
   const processedHtml = generatePreviewPages(htmlContent, exportSettings);
   console.log(`🎯 ${isPreview ? 'Preview' : 'PDF'} - Using smart pagination with page containers`);
   const finalHtml = processedHtml;
-  
+
   // Wrap with complete document structure and CSS
   const completeHtml = `
     <!DOCTYPE html>
@@ -602,7 +602,7 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
       </body>
     </html>
   `;
-  
+
   return completeHtml;
 }
 
@@ -613,33 +613,33 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
     letter: { width: 612, height: 792 }, // 8.5" x 11" in points (72 DPI)
     a4: { width: 595, height: 842 }      // A4 in points (72 DPI)
   };
-  
+
   const pageSize = exportSettings.pageSize === 'letter' ? 'letter' : 'a4';
   const pageWidth = pageDimensions[pageSize].width;
   const pageHeight = pageDimensions[pageSize].height;
-  
+
   // Convert points to pixels for preview (72 DPI)
   const pageWidthPx = pageWidth * (96 / 72); // Convert points to pixels (96 DPI for screen)
   const pageHeightPx = pageHeight * (96 / 72);
-  
+
   // Split content into sections
   const sections = splitContentIntoSections(htmlContent);
-  
+
   // Create pages by combining sections that fit together
   const pages: string[] = [];
   let currentPageContent = '';
   let currentPageHeight = 0;
   const maxPageHeight = pageHeightPx - (exportSettings.topBottomMargin * 2) - 100; // Leave some buffer
-  
+
   for (let i = 0; i < sections.length; i++) {
     const section = sections[i];
     const sectionHeight = estimateSectionPartHeight(section, exportSettings);
-    
+
     console.log(`🎯 generatePreviewPages - Checking section ${i + 1}:`);
     console.log(`🎯 generatePreviewPages - Section ${i + 1} estimated height:`, sectionHeight);
     console.log(`🎯 generatePreviewPages - Current page height:`, currentPageHeight);
     console.log(`🎯 generatePreviewPages - Max page height:`, maxPageHeight);
-    
+
     // Check if this section would fit on the current page
     if (currentPageHeight + sectionHeight <= maxPageHeight) {
       // Add section to current page
@@ -653,21 +653,21 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
         pages.push(pageContainer);
         console.log(`🎯 generatePreviewPages - Created page with ${currentPageContent.split('<div class="section-header">').length - 1} sections`);
       }
-      
+
       // Start new page with this section
       currentPageContent = section;
       currentPageHeight = sectionHeight;
       console.log(`🎯 generatePreviewPages - Started new page with section ${i + 1}`);
     }
   }
-  
-    // Create the last page if there's content
+
+  // Create the last page if there's content
   if (currentPageContent) {
     const pageContainer = createPageContainer(currentPageContent, pageWidthPx, pageHeightPx, exportSettings);
     pages.push(pageContainer);
     console.log(`🎯 generatePreviewPages - Created final page with ${currentPageContent.split('<div class="section-header">').length - 1} sections`);
   }
-  
+
   // Add spacing between pages
   const result = pages.map((page, index) => {
     if (index < pages.length - 1) {
@@ -675,7 +675,7 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
     }
     return page;
   }).join('');
-  
+
   return result;
 }
 
@@ -683,14 +683,14 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
 function splitContentIntoSections(htmlContent: string): string[] {
   console.log(`🎯 splitContentIntoSections - Input HTML length:`, htmlContent.length);
   console.log(`🎯 splitContentIntoSections - Input HTML preview:`, htmlContent.substring(0, 500));
-  
+
   const sections: string[] = [];
-  
+
   // First, extract header and contact info as one section
   const headerMatch = htmlContent.match(/<div class="header">[\s\S]*?<\/div>/);
   const contactMatch = htmlContent.match(/<div class="contact-info">[\s\S]*?<\/div>/);
   const summaryMatch = htmlContent.match(/<div class="section"[^>]*style="text-align: left;">\s*<div class="section-header">Professional Summary<\/div>[\s\S]*?<\/div>\s*<\/div>/);
-  
+
   // Add header and contact as one section
   if (headerMatch || contactMatch) {
     let headerContactSection = '';
@@ -699,34 +699,34 @@ function splitContentIntoSections(htmlContent: string): string[] {
     sections.push(headerContactSection);
     console.log(`🎯 splitContentIntoSections - Added header/contact section, length:`, headerContactSection.length);
   }
-  
+
   // Add Professional Summary as separate section
   if (summaryMatch) {
     sections.push(summaryMatch[0]);
     console.log(`🎯 splitContentIntoSections - Added Professional Summary section, length:`, summaryMatch[0].length);
   }
-  
+
   // Use a robust HTML parser to find all section divs and their complete content
   let currentIndex = 0;
   const sectionStartTag = '<div class="section">';
-  
+
   console.log(`🎯 splitContentIntoSections - Looking for sections with tag: ${sectionStartTag}`);
   console.log(`🎯 splitContentIntoSections - HTML contains 'Work Experience':`, htmlContent.includes('Work Experience'));
   console.log(`🎯 splitContentIntoSections - HTML contains 'class="section"':`, htmlContent.includes('class="section"'));
-  
+
   while (true) {
     const sectionStartIndex = htmlContent.indexOf(sectionStartTag, currentIndex);
     if (sectionStartIndex === -1) break;
-    
+
     // Find the matching closing div by counting opening and closing divs
     let depth = 0;
     let pos = sectionStartIndex;
     let sectionEndIndex = -1;
-    
+
     while (pos < htmlContent.length) {
       const nextOpenDiv = htmlContent.indexOf('<div', pos);
       const nextCloseDiv = htmlContent.indexOf('</div>', pos);
-      
+
       if (nextOpenDiv !== -1 && (nextOpenDiv < nextCloseDiv || nextCloseDiv === -1)) {
         // Found an opening div before a closing div
         depth++;
@@ -735,7 +735,7 @@ function splitContentIntoSections(htmlContent: string): string[] {
         // Found a closing div
         depth--;
         pos = nextCloseDiv + 1;
-        
+
         if (depth === 0) {
           // This is the matching closing div for our section
           sectionEndIndex = nextCloseDiv + 6; // +6 for '</div>'
@@ -746,7 +746,7 @@ function splitContentIntoSections(htmlContent: string): string[] {
         break;
       }
     }
-    
+
     if (sectionEndIndex !== -1) {
       const fullSection = htmlContent.substring(sectionStartIndex, sectionEndIndex);
       sections.push(fullSection);
@@ -760,7 +760,7 @@ function splitContentIntoSections(htmlContent: string): string[] {
       currentIndex = sectionStartIndex + sectionStartTag.length;
     }
   }
-  
+
   console.log(`🎯 splitContentIntoSections - Total sections found:`, sections.length);
   return sections;
 }
@@ -785,9 +785,9 @@ function estimateSectionPartHeight(part: string, exportSettings: ExportSettings)
   const bulletMatches = part.match(/<div class="bullet-point">/g) || [];
   const headerMatches = part.match(/<div class="section-header">/g) || [];
   const bodyTextMatches = part.match(/<div class="body-text">/g) || [];
-  
+
   let height = 0;
-  
+
   // Section header height (including margins and padding)
   if (headerMatches.length > 0) {
     height += exportSettings.sectionHeadersSize * (exportSettings.lineSpacing / 10); // Font height
@@ -795,7 +795,7 @@ function estimateSectionPartHeight(part: string, exportSettings: ExportSettings)
     height += SPACING_CONSTANTS.SECTION_HEADER_PADDING_BOTTOM; // Padding below text
     height += 1; // Border width
   }
-  
+
   // Entry heights (including margins)
   height += entryMatches.length * (
     exportSettings.bodyTextSize * (exportSettings.lineSpacing / 10) * 3 + // Base content
@@ -803,16 +803,16 @@ function estimateSectionPartHeight(part: string, exportSettings: ExportSettings)
     SPACING_CONSTANTS.ENTRY_HEADER_MARGIN_BOTTOM + // Entry header margin
     SPACING_CONSTANTS.ENTRY_POSITION_MARGIN_BOTTOM // Entry position margin
   );
-  
+
   // Bullet point heights (including margins)
   height += bulletMatches.length * (
     exportSettings.bodyTextSize * (exportSettings.lineSpacing / 10) + // Font height
     SPACING_CONSTANTS.BULLET_POINT_MARGIN_BOTTOM // Margin below bullet
   );
-  
+
   // Body text margins
   height += bodyTextMatches.length * SPACING_CONSTANTS.BODY_TEXT_MARGIN_BOTTOM;
-  
+
   return height + SPACING_CONSTANTS.BUFFER; // Add buffer
 }
 
@@ -844,10 +844,10 @@ export function generateCompleteHtml(resumeData: any, activeSections: string[], 
   console.log('🎯 isPreview:', isPreview);
   console.log('🎯 activeSections:', activeSections);
   console.log('🎯 resumeData.workExperience:', resumeData.workExperience);
-  
+
   // Generate the HTML content with pagination
   const htmlContent = generatePdfHtml(resumeData, activeSections, exportSettings, isPreview);
-  
+
   // For both preview and PDF, use the processed HTML content directly
   return htmlContent;
 } 

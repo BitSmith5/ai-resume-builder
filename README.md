@@ -67,7 +67,7 @@ A comprehensive resume builder application built with Next.js, Prisma, and Mater
 
 ### Creating a Resume
 
-1. Navigate to `/dashboard/resumes`
+1. Navigate to `/resume`
 2. Click "Create New Resume"
 3. Fill in your personal information
 4. Add skills with ratings
