@@ -144,8 +144,8 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
       {(resumeData.workExperience || []).map((work) => (
         <Card key={work.id} sx={{ mb: 3, p: 2, mr: 2 }}>
           {/* Company and Position */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, mt: 1 }}>
-            <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0', mr: 1 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, mt: 1, gap: 2 }}>
+            <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0' }} />
             <TextField
               value={work.company}
               onChange={(e) => updateWorkExperience(work.id, { company: e.target.value })}
@@ -153,7 +153,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               variant="outlined"
               label="Company"
               size="small"
-              sx={{ fontWeight: 600, mx: 1, minWidth: 200 }}
+              sx={{ fontWeight: 600, minWidth: 200 }}
             />
             <TextField
               value={work.position}
@@ -162,7 +162,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               variant="outlined"
               label="Position"
               size="small"
-              sx={{ minWidth: 400, mx: 1 }}
+              sx={{ minWidth: 400 }}
             />
             <IconButton
               size="small"
@@ -171,7 +171,6 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 backgroundColor: 'white',
-                ml: 1,
                 '&:hover': {
                   backgroundColor: '#e0e0e0',
                   border: '1px solid #a0a0a0',
