@@ -13,7 +13,6 @@ import {
   DeleteOutline as DeleteOutlineIcon,
   Add as AddIcon,
   DragIndicator as DragIndicatorIcon,
-  Close as CloseIcon,
 } from '@mui/icons-material';
 import { ResumeData } from '../../types';
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -36,7 +36,6 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [mounted, setMounted] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -49,9 +48,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return "Resume Builder";
   };
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+
 
   // Show loading state while session is loading
   if (status === "loading") {
