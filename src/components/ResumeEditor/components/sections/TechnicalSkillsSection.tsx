@@ -5,6 +5,8 @@ import {
   TextField,
   IconButton,
   Button,
+  Card,
+  Chip,
 } from '@mui/material';
 import {
   DeleteOutline as DeleteOutlineIcon,
@@ -13,6 +15,7 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { ResumeData } from '../../types';
+import { themeColors } from '@/lib/theme';
 
 interface TechnicalSkillsSectionProps {
   resumeData: ResumeData;
@@ -103,9 +106,9 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
       </Box>
 
       {/* Skill Categories */}
-      <Box sx={{ ml: -3.5 }}>
+      <Box>
         {(resumeData.skillCategories || []).map((category) => (
-          <Box key={category.id} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f5f5f5' }}>
+          <Card key={category.id} sx={{ mb: 2, mr: 2, p: 2 }}>
             {/* Category Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box sx={{
@@ -139,10 +142,11 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 sx={{
                   border: '1px solid #e0e0e0',
                   borderRadius: '50%',
+                  backgroundColor: 'white',
+                  ml: 1,
                   '&:hover': {
-                    backgroundColor: '#f5f5f5',
-                    border: '1px solid #f5f5f5',
-                    borderRadius: '50%'
+                    backgroundColor: '#e0e0e0',
+                    border: '1px solid #a0a0a0',
                   }
                 }}
               >
@@ -151,52 +155,44 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
             </Box>
 
             {/* Skills in this category */}
-            <Box sx={{ display: "flex", minHeight: 40, flexWrap: "wrap", pl: 3 }}>
+            <Box sx={{ display: "flex", minHeight: 40, flexWrap: "wrap", pl: 3, gap: 1, my: 1.5 }}>
               {category.skills.map((skill) => (
-                <Box
+                <Chip
                   key={skill.id}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    bgcolor: '#f5f5f5',
-                    borderRadius: 2,
-                    px: 0.5,
                     py: 1,
-                    margin: 0.5,
-                    flexShrink: 0,
                     cursor: 'grab',
-                    '&:hover': {
-                      bgcolor: '#f5f5f5',
-                      transform: 'scale(1.02)',
-                    },
                   }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}>
-                    <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
-                  </Box>
-
-                  <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
-                    {skill.name}
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        deleteSkillFromCategory(category.id, skill.id);
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      sx={{ p: 0.5, backgroundColor: 'white', borderRadius: "50%", mr: 0.5 }}
-                    >
-                      <CloseIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Box>
-                </Box>
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'grab', ml: -0.5 }}>
+                        <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+                      </Box>
+                      <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
+                        {skill.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mr: -1 }}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteSkillFromCategory(category.id, skill.id);
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          sx={{ p: 0.5, borderRadius: "50%", '&:hover': { backgroundColor: themeColors.gray[500], color: themeColors.white } }}
+                        >
+                          <CloseIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  }
+                />
               ))}
             </Box>
 
@@ -205,22 +201,6 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               <TextField
                 size="small"
                 placeholder="Add skill..."
-                sx={{
-                  flex: 1,
-                  backgroundColor: '#f5f5f5',
-                  borderRadius: 2,
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      border: 'none',
-                    },
-                    '&:hover fieldset': {
-                      border: 'none',
-                    },
-                    '&.Mui-focused fieldset': {
-                      border: 'none',
-                    },
-                  },
-                }}
                 onKeyPress={(e) => {
                   const target = e.target as HTMLInputElement;
                   if (e.key === 'Enter' && target.value.trim()) {
@@ -242,7 +222,7 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 <AddIcon />
               </IconButton>
             </Box>
-          </Box>
+          </Card>
         ))}
       </Box>
 

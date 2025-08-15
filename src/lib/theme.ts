@@ -37,6 +37,49 @@ const selectedBackground = rgbToRgba(MASTER_COLOR_RGB.r, MASTER_COLOR_RGB.g, MAS
 const uiBackground = rgbToHex(MASTER_COLOR_RGB.r + 60, MASTER_COLOR_RGB.g + 60, MASTER_COLOR_RGB.b + 60);
 const uiBackgroundLight = rgbToHex(MASTER_COLOR_RGB.r + 90, MASTER_COLOR_RGB.g + 90, MASTER_COLOR_RGB.b + 90);
 
+// Define theme colors before theme creation so they can be used in component overrides
+const themeColors = {
+  primary: primaryColor,
+  primaryLight,
+  primaryDark,
+  background,
+  backgroundLight,
+  shadow,
+  overlay,
+  hover,
+  hoverLight,
+  selected,
+  selectedBackground,
+  uiBackground,
+  uiBackgroundLight,
+  selectedLightGray: '#f5f5f5',
+  
+  // Gray palette for consistent usage
+  gray: {
+    50: '#fafafa',
+    100: '#f5f5f5',  // Main background
+    200: '#eeeeee',
+    300: '#e0e0e0',  // Borders
+    400: '#bdbdbd',
+    500: '#9e9e9e',
+    600: '#757575',
+    700: '#616161',
+    800: '#424242',
+    900: '#212121',
+    A100: '#d5d5d5',
+    A200: '#aaaaaa',
+    A400: '#a0a0a0', // Icons and subtle elements
+    A700: '#666666', // Secondary text
+  },
+  
+  // Common gray usage patterns
+  backgroundGray: '#f5f5f5',    // Main background color
+  borderGray: '#e0e0e0',        // Border color
+  iconGray: '#a0a0a0',          // Icon color
+  textGray: '#666666',           // Secondary text
+  white: '#ffffff',              // Pure white
+};
+
 // Create the Material UI theme
 export const theme: Theme = createTheme({
   palette: {
@@ -140,22 +183,13 @@ export const theme: Theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#ffffff',
             '&:hover .MuiOutlinedInput-notchedOutline': {
               borderColor: hover,
             },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
               borderColor: primaryColor,
             },
-          },
-        },
-      },
-    },
-    MuiIconButton: {
-      styleOverrides: {
-        root: {
-          '&:hover': {
-            backgroundColor: selectedBackground,
           },
         },
       },
@@ -193,6 +227,27 @@ export const theme: Theme = createTheme({
         },
       },
     },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          border: `1px solid ${themeColors.borderGray}`,
+          backgroundColor: themeColors.backgroundGray,
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          backgroundColor: themeColors.white,
+          border: `1px solid ${themeColors.borderGray}`,
+          '&:hover': {
+            backgroundColor: themeColors.selectedBackground,
+            border: `1px solid ${themeColors.borderGray}`,
+          },
+        },
+      },
+    },
   },
 });
 
@@ -201,47 +256,7 @@ export const theme: Theme = createTheme({
 // ============================================================================
 
 // Export color values for components that need them directly
-export const themeColors = {
-  primary: primaryColor,
-  primaryLight,
-  primaryDark,
-  background,
-  backgroundLight,
-  shadow,
-  overlay,
-  hover,
-  hoverLight,
-  selected,
-  selectedBackground,
-  uiBackground,
-  uiBackgroundLight,
-  selectedLightGray: '#f5f5f5',
-  
-  // Gray palette for consistent usage
-  gray: {
-    50: '#fafafa',
-    100: '#f5f5f5',  // Main background
-    200: '#eeeeee',
-    300: '#e0e0e0',  // Borders
-    400: '#bdbdbd',
-    500: '#9e9e9e',
-    600: '#757575',
-    700: '#616161',
-    800: '#424242',
-    900: '#212121',
-    A100: '#d5d5d5',
-    A200: '#aaaaaa',
-    A400: '#a0a0a0', // Icons and subtle elements
-    A700: '#666666', // Secondary text
-  },
-  
-  // Common gray usage patterns
-  backgroundGray: '#f5f5f5',    // Main background color
-  borderGray: '#e0e0e0',        // Border color
-  iconGray: '#a0a0a0',          // Icon color
-  textGray: '#666666',           // Secondary text
-  white: '#ffffff',              // Pure white
-};
+export { themeColors };
 
 // Export the master color for backward compatibility
 export const MASTER_COLOR_RGBA = `rgb(${MASTER_COLOR_RGB.r}, ${MASTER_COLOR_RGB.g}, ${MASTER_COLOR_RGB.b})`;

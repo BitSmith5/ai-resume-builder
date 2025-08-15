@@ -7,6 +7,7 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  Card,
 } from '@mui/material';
 import {
   DeleteOutline as DeleteOutlineIcon,
@@ -18,6 +19,7 @@ import {
 import { ResumeData } from '../../types';
 import { DatePicker } from '../DatePicker';
 import { useDatePicker } from '../../hooks/useDatePicker';
+import { themeColors } from '../../../../lib/theme';
 
 
 interface WorkExperienceSectionProps {
@@ -112,7 +114,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   };
 
   return (
-    <Box sx={{ py: 2 }}>
+    <Box sx={{ py: 2, }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
         <Typography variant="h6" fontWeight={600}>
           Professional Experience
@@ -124,7 +126,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             e.stopPropagation();
             onDeleteSection('Work Experience');
           }}
-          sx={{ 
+          sx={{
             border: '1px solid #e0e0e0',
             borderRadius: '50%',
             '&:hover': {
@@ -137,35 +139,35 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
           <DeleteOutlineIcon fontSize="small" />
         </IconButton>
       </Box>
-      
+
       {/* Work Experience Entries */}
       {(resumeData.workExperience || []).map((work) => (
-        <Box key={work.id} sx={{ mb: 3, p: 2, mr: 2, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f5f5f5' }}>
+        <Card key={work.id} sx={{ mb: 3, p: 2, mr: 2 }}>
           {/* Company and Position */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, mt: 1 }}>
             <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0', mr: 1 }} />
-                          <TextField
-                value={work.company}
-                onChange={(e) => updateWorkExperience(work.id, { company: e.target.value })}
-                placeholder="Company"
-                variant="outlined"
-                label="Company"
-                size="small"
-                sx={{ fontWeight: 600, mx: 1, minWidth: 200, backgroundColor: 'white' }}
-              />
-                          <TextField
-                value={work.position}
-                onChange={(e) => updateWorkExperience(work.id, { position: e.target.value })}
-                placeholder="Position"
-                variant="outlined"
-                label="Position"
-                size="small"
-                sx={{ minWidth: 400, mx: 1, backgroundColor: 'white' }}
-              />
+            <TextField
+              value={work.company}
+              onChange={(e) => updateWorkExperience(work.id, { company: e.target.value })}
+              placeholder="Company"
+              variant="outlined"
+              label="Company"
+              size="small"
+              sx={{ fontWeight: 600, mx: 1, minWidth: 200 }}
+            />
+            <TextField
+              value={work.position}
+              onChange={(e) => updateWorkExperience(work.id, { position: e.target.value })}
+              placeholder="Position"
+              variant="outlined"
+              label="Position"
+              size="small"
+              sx={{ minWidth: 400, mx: 1 }}
+            />
             <IconButton
               size="small"
               onClick={() => deleteWorkExperience(work.id)}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 backgroundColor: 'white',
@@ -189,7 +191,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               variant="outlined"
               label="Location"
               size="small"
-              sx={{ minWidth: 150, backgroundColor: 'white' }}
+              sx={{ minWidth: 150 }}
             />
             <Box sx={{ position: 'relative' }}>
               <TextField
@@ -198,7 +200,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 variant="outlined"
                 label="Start Date"
                 size="small"
-                sx={{ minWidth: 100, backgroundColor: 'white' }}
+                sx={{ width: 150 }}
                 InputProps={{
                   readOnly: true,
                   endAdornment: (
@@ -226,7 +228,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 variant="outlined"
                 label="End Date"
                 size="small"
-                sx={{ minWidth: 100, backgroundColor: 'white' }}
+                sx={{ width: 150 }}
                 disabled={work.current}
                 InputProps={{
                   readOnly: true,
@@ -267,16 +269,16 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             {work.bulletPoints.map((bullet) => (
               <Box key={bullet.id} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <Typography sx={{ mr: 1, color: 'black', fontSize: '0.875rem' }}>•</Typography>
-                                  <TextField
-                    value={bullet.description}
-                    onChange={(e) => updateBulletPoint(work.id, bullet.id, e.target.value)}
-                    placeholder="Bullet point description..."
-                    variant="outlined"
-                    size="small"
-                    multiline
-                    maxRows={3}
-                    sx={{ flex: 1, backgroundColor: 'white' }}
-                  />
+                <TextField
+                  value={bullet.description}
+                  onChange={(e) => updateBulletPoint(work.id, bullet.id, e.target.value)}
+                  placeholder="Bullet point description..."
+                  variant="outlined"
+                  size="small"
+                  multiline
+                  maxRows={3}
+                  sx={{ flex: 1 }}
+                />
                 <IconButton
                   size="small"
                   onClick={() => deleteBulletPoint(work.id, bullet.id)}
@@ -286,15 +288,15 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 </IconButton>
               </Box>
             ))}
-            
+
             {/* Add Bullet Point Button */}
             <Button
               startIcon={<AddIcon />}
               onClick={() => addBulletPoint(work.id)}
               variant="text"
               size="small"
-              sx={{ 
-                textTransform: 'none', 
+              sx={{
+                textTransform: 'none',
                 mt: 1,
                 px: 1,
                 color: 'rgb(143, 96, 203)',
@@ -306,7 +308,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               Add Bullet Point
             </Button>
           </Box>
-        </Box>
+        </Card>
       ))}
 
       {/* Add Work Experience Button */}
@@ -315,8 +317,8 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
         onClick={addWorkExperience}
         variant="outlined"
         size="small"
-        sx={{ 
-          textTransform: 'none', 
+        sx={{
+          textTransform: 'none',
           borderRadius: 2,
           border: '1px solid #e0e0e0',
           color: 'black',

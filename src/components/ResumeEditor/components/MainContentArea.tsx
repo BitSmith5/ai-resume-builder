@@ -21,13 +21,13 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
   scrollContainerRef
 }) => {
   return (
-    <Box sx={{ 
-      display: "flex", 
+    <Box sx={{
+      display: "flex",
       flexDirection: "column",
       flex: 1,
       marginX: 2,
       backgroundColor: "white",
-      borderTopLeftRadius: 20, 
+      borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
@@ -52,7 +52,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
       </Box>
 
       {/* Scrollable Content Area */}
-      <Box 
+      <Box
         ref={scrollContainerRef}
         sx={{
           flex: 1,
@@ -72,7 +72,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
             background: '#aaaaaa',
           },
         }}>
-        <DragDropContext 
+        <DragDropContext
           onDragStart={onDragStart}
           onDragUpdate={onDragUpdate}
           onDragEnd={onDragEnd}
@@ -95,7 +95,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
                         {/* Section content */}
                         <Box sx={{ flex: 1, pl: 3 }}>
                           {sectionComponents[section]
-                          ? sectionComponents[section]()
+                            ? sectionComponents[section]()
                             : (
                               <Box sx={{ py: 2, textAlign: "center" }}>
                                 <Typography color="text.secondary">
@@ -141,7 +141,7 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
                             {/* Section content */}
                             <Box sx={{ flex: 1 }}>
                               {sectionComponents[section]
-                              ? sectionComponents[section]()
+                                ? sectionComponents[section]()
                                 : (
                                   <Box sx={{ py: 2, textAlign: "center" }}>
                                     <Typography color="text.secondary">
@@ -150,7 +150,6 @@ export const MainContentArea: React.FC<MainContentAreaProps> = ({
                                   </Box>
                                 )}
                             </Box>
-
                           </Box>
                         )}
                       </Draggable>
