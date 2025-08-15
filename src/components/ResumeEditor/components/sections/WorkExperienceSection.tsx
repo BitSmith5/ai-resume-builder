@@ -19,7 +19,7 @@ import {
 import { ResumeData } from '../../types';
 import { DatePicker } from '../DatePicker';
 import { useDatePicker } from '../../hooks/useDatePicker';
-import { themeColors } from '../../../../lib/theme';
+
 
 
 interface WorkExperienceSectionProps {
