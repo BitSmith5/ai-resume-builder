@@ -13,9 +13,12 @@ import {
   Add as AddIcon,
   DragIndicator as DragIndicatorIcon,
   Close as CloseIcon,
+  CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { ResumeData } from '../../types';
 import { COLORS } from '../../../../lib/colorSystem';
+import { DatePicker } from '../DatePicker';
+import { useDatePicker } from '../../hooks/useDatePicker';
 
 interface WorkExperienceSectionProps {
   resumeData: ResumeData;
@@ -28,6 +31,8 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
+  const { datePickerOpen, datePickerPosition, openDatePicker, closeDatePicker, handleDateSelect } = useDatePicker();
+
   const addWorkExperience = () => {
     const newWork = {
       id: `work-${Date.now()}`,
@@ -146,7 +151,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 variant="outlined"
                 label="Company"
                 size="small"
-                sx={{ fontWeight: 600, mx: 1, minWidth: 200 }}
+                sx={{ fontWeight: 600, mx: 1, minWidth: 200, backgroundColor: 'white' }}
               />
                           <TextField
                 value={work.position}
@@ -155,7 +160,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 variant="outlined"
                 label="Position"
                 size="small"
-                sx={{ minWidth: 400, mx: 1 }}
+                sx={{ minWidth: 400, mx: 1, backgroundColor: 'white' }}
               />
             <IconButton
               size="small"
@@ -184,27 +189,68 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               variant="outlined"
               label="Location"
               size="small"
-              sx={{ minWidth: 150 }}
+              sx={{ minWidth: 150, backgroundColor: 'white' }}
             />
-            <TextField
-              value={work.startDate}
-              onChange={(e) => updateWorkExperience(work.id, { startDate: e.target.value })}
-              placeholder="Start Date"
-              variant="outlined"
-              label="Start Date"
-              size="small"
-              sx={{ minWidth: 100 }}
-            />
-            <TextField
-              value={work.endDate}
-              onChange={(e) => updateWorkExperience(work.id, { endDate: e.target.value })}
-              placeholder="End Date"
-              variant="outlined"
-              label="End Date"
-              size="small"
-              sx={{ minWidth: 100 }}
-              disabled={work.current}
-            />
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                value={work.startDate}
+                placeholder="Start Date"
+                variant="outlined"
+                label="Start Date"
+                size="small"
+                sx={{ minWidth: 100, backgroundColor: 'white' }}
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        openDatePicker(
+                          { x: rect.left, y: rect.bottom + 5 },
+                          (date) => updateWorkExperience(work.id, { startDate: date })
+                        );
+                      }}
+                      sx={{ p: 0.5 }}
+                    >
+                      <CalendarIcon fontSize="small" />
+                    </IconButton>
+                  ),
+                }}
+              />
+            </Box>
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                value={work.endDate}
+                placeholder="End Date"
+                variant="outlined"
+                label="End Date"
+                size="small"
+                sx={{ minWidth: 100, backgroundColor: 'white' }}
+                disabled={work.current}
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        if (!work.current) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          openDatePicker(
+                            { x: rect.left, y: rect.bottom + 5 },
+                            (date) => updateWorkExperience(work.id, { endDate: date })
+                          );
+                        }
+                      }}
+                      sx={{ p: 0.5 }}
+                      disabled={work.current}
+                    >
+                      <CalendarIcon fontSize="small" />
+                    </IconButton>
+                  ),
+                }}
+              />
+            </Box>
             <FormControlLabel
               control={
                 <Checkbox
@@ -282,6 +328,14 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
       >
         Add Work Experience
       </Button>
+
+      {/* DatePicker Component */}
+      <DatePicker
+        isOpen={datePickerOpen}
+        onClose={closeDatePicker}
+        onSelect={handleDateSelect}
+        position={datePickerPosition}
+      />
     </Box>
   );
 };
