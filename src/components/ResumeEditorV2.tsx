@@ -75,7 +75,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     layoutModalOpen,
     addSectionPopupOpen,
     deleteConfirmOpen,
-    setDatePickerOpen,
     setEditResumeInfoOpen,
     setLayoutModalOpen,
     setAddSectionPopupOpen,
@@ -89,7 +88,8 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     datePickerPosition,
     datePickerCallbackRef,
     handleDateSelect,
-    setDatePickerPosition
+    setDatePickerPosition,
+    setDatePickerOpen
   } = datePicker;
 
   // Scroll management
