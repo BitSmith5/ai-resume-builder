@@ -83,14 +83,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
   // Date picker state management
   const datePicker = useDatePicker();
-  const {
-    datePickerOpen: datePickerOpenFromHook,
-    datePickerPosition,
-    datePickerCallbackRef,
-    handleDateSelect,
-    setDatePickerPosition,
-    setDatePickerOpen
-  } = datePicker;
 
   // Scroll management
   const scrollManagement = useScrollManagement();
@@ -234,10 +226,10 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
       {/* Date Picker */}
       <DatePicker
-        isOpen={datePickerOpenFromHook}
+        isOpen={datePicker.datePickerOpen}
         onClose={() => datePicker.closeDatePicker()}
-        onSelect={handleDateSelect}
-        position={datePickerPosition}
+        onSelect={datePicker.handleDateSelect}
+        position={datePicker.datePickerPosition}
       />
 
       {/* Edit Resume Info Modal */}
