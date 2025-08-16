@@ -285,9 +285,9 @@ export async function PUT(
 
     // Process projects data
     const processedProjects = (projects || [])
-      .filter((project: { title: string; [key: string]: unknown }) => {
+      .filter((project: { title: string; startDate?: string; endDate?: string; technologies?: unknown[]; link?: string; [key: string]: unknown }) => {
         // Allow projects to be saved even if partially filled - just need at least one field
-        return project.title || project.startDate || project.endDate || project.technologies?.length || project.link;
+        return project.title || project.startDate || project.endDate || (project.technologies && project.technologies.length > 0) || project.link;
       })
       .map((project: { id?: string; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
