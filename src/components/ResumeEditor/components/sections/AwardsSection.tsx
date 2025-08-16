@@ -98,7 +98,7 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
         award.id === awardId ? { ...award, bulletPoints: [...award.bulletPoints, newBullet] } : award
       )
     }));
-    
+
     // Set the new bullet ID to trigger focus in useEffect
     setNewBulletId(newBulletId);
   };
@@ -242,7 +242,7 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
                           />
                         </Box>
 
-                                                {/* Award Bullet Points */}
+                        {/* Award Bullet Points */}
                         <Box sx={{ ml: 3 }}>
                           {award.bulletPoints.map((bullet) => (
                             <Box key={bullet.id} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
