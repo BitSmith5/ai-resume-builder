@@ -52,7 +52,7 @@ export const VolunteerExperienceSection: React.FC<VolunteerExperienceSectionProp
         volunteerExperience: []
       }));
     }
-  }, [setResumeData]);
+  }, [setResumeData, resumeData.volunteerExperience]);
 
   const addVolunteerExperience = () => {
     const newVolunteer = {
