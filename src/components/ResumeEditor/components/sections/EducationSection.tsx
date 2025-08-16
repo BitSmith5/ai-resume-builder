@@ -13,8 +13,11 @@ import {
   DeleteOutline as DeleteOutlineIcon,
   Add as AddIcon,
   DragIndicator as DragIndicatorIcon,
+  CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { ResumeData } from '../../types';
+import { DatePicker } from '../DatePicker';
+import { useDatePicker } from '../../hooks/useDatePicker';
 
 interface EducationSectionProps {
   resumeData: ResumeData;
@@ -27,6 +30,8 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
+  const { datePickerOpen, datePickerPosition, openDatePicker, closeDatePicker, handleDateSelect } = useDatePicker();
+
   const addEducation = () => {
     const newEducation = {
       institution: "",
@@ -150,25 +155,66 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
 
           {/* Dates and GPA */}
           <Box sx={{ display: 'flex', alignItems: 'center', ml: 4.5, gap: 2 }}>
-            <TextField
-              value={education.startDate}
-              onChange={(e) => updateEducation(index, { startDate: e.target.value })}
-              placeholder="Start Date"
-              variant="outlined"
-              label="Start Date"
-              size="small"
-              sx={{ width: 150 }}
-            />
-            <TextField
-              value={education.endDate}
-              onChange={(e) => updateEducation(index, { endDate: e.target.value })}
-              placeholder="End Date"
-              variant="outlined"
-              label="End Date"
-              size="small"
-              sx={{ width: 150 }}
-              disabled={education.current}
-            />
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                value={education.startDate}
+                placeholder="Start Date"
+                variant="outlined"
+                label="Start Date"
+                size="small"
+                sx={{ width: 150 }}
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        openDatePicker(
+                          { x: rect.left, y: rect.bottom + 5 },
+                          (date) => updateEducation(index, { startDate: date })
+                        );
+                      }}
+                      sx={{ p: 0.5 }}
+                    >
+                      <CalendarIcon fontSize="small" />
+                    </IconButton>
+                  ),
+                }}
+              />
+            </Box>
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                value={education.endDate}
+                placeholder="End Date"
+                variant="outlined"
+                label="End Date"
+                size="small"
+                sx={{ width: 150 }}
+                disabled={education.current}
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        if (!education.current) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          openDatePicker(
+                            { x: rect.left, y: rect.bottom + 5 },
+                            (date) => updateEducation(index, { endDate: date })
+                          );
+                        }
+                      }}
+                      sx={{ p: 0.5 }}
+                      disabled={education.current}
+                    >
+                      <CalendarIcon fontSize="small" />
+                    </IconButton>
+                  ),
+                }}
+              />
+            </Box>
             <TextField
               value={education.gpa || ''}
               onChange={(e) => updateEducation(index, { gpa: parseFloat(e.target.value) || undefined })}
@@ -200,6 +246,14 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
       >
         Add Education
       </Button>
+
+      {/* DatePicker Component */}
+      <DatePicker
+        isOpen={datePickerOpen}
+        onClose={closeDatePicker}
+        onSelect={handleDateSelect}
+        position={datePickerPosition}
+      />
     </Box>
   );
 };

@@ -197,6 +197,9 @@ export const theme: Theme = createTheme({
     MuiCheckbox: {
       styleOverrides: {
         root: {
+          '&:hover': {
+            backgroundColor: 'transparent',
+          },
           '&.Mui-checked': {
             color: primaryColor,
           },
@@ -244,6 +247,23 @@ export const theme: Theme = createTheme({
           '&:hover': {
             backgroundColor: themeColors.selectedBackground,
             border: `1px solid ${themeColors.borderGray}`,
+          },
+        },
+      },
+    },
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          border: `1px solid ${themeColors.borderGray}`,
+          borderRadius: 8,
+          backgroundColor: themeColors.white,
+          '&:hover': {
+            backgroundColor: themeColors.gray[50],
+            border: `1px solid ${themeColors.hover}`,
+          },
+          '&.Mui-focused': {
+            border: `1px solid ${themeColors.primary}`,
+            backgroundColor: themeColors.white,
           },
         },
       },

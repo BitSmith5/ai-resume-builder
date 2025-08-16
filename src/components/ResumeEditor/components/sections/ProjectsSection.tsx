@@ -9,17 +9,23 @@ import {
   FormControl,
   Select,
   MenuItem,
+  Card,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
+  DeleteOutline as DeleteOutlineIcon,
   DragIndicator as DragIndicatorIcon,
   AddCircleOutline as AddCircleOutlineIcon,
+  CalendarToday as CalendarIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { ResumeData } from '../../types';
+import { DatePicker } from '../DatePicker';
+import { useDatePicker } from '../../hooks/useDatePicker';
+import { themeColors } from '@/lib/theme';
 
 interface ProjectsSectionProps {
   resumeData: ResumeData;
@@ -32,6 +38,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
+  const { datePickerOpen, datePickerPosition, openDatePicker, closeDatePicker, handleDateSelect } = useDatePicker();
 
 
   // Initialize projects if not exists
@@ -200,7 +207,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
             }
           }}
         >
-          <DeleteIcon fontSize="small" />
+          <DeleteOutlineIcon fontSize="small" />
         </IconButton>
       </Box>
 
@@ -212,20 +219,13 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 <React.Fragment key={project.id}>
                   <Draggable draggableId={`project-${project.id}`} index={projectIndex}>
                     {(provided) => (
-                      <Box
+                      <Card
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        sx={{
-                          mb: 4,
-                          background: 'transparent',
-                          p: 3,
-                          border: '1px solid #e0e0e0',
-                          borderRadius: 2,
-                          ml: -5.5,
-                        }}
+                        sx={{ mb: 3, p: 2, mr: 2 }}
                       >
                         {/* Project Header with Drag Handle */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, width: '100%' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, width: '100%', gap: 2 }}>
                           <Box
                             {...provided.dragHandleProps}
                             sx={{
@@ -234,7 +234,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                               cursor: 'grab',
                               userSelect: 'none',
                               color: '#bbb',
-                              mr: 1,
                             }}
                           >
                             <DragIndicatorIcon sx={{ fontSize: 20 }} />
@@ -243,81 +242,97 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                             value={project.title || ''}
                             onChange={(e) => updateProject(project.id, { title: e.target.value })}
                             placeholder="Project Title..."
-                            variant="standard"
-                            sx={{
-                              fontWeight: 600,
-                              px: 1,
-                              mr: 2,
-                              borderRadius: 2,
-                              backgroundColor: (project.title && project.title.trim()) ? 'transparent' : '#f5f5f5',
-                              '&:hover': {
-                                backgroundColor: '#f5f5f5',
-                              },
-                              flexGrow: 1,
-                            }}
-                            InputProps={{
-                              style: { fontWeight: 600, fontSize: '1.1rem' },
-                              disableUnderline: true,
-                            }}
+                            variant="outlined"
+                            label="Project Title"
+                            size="small"
+                            sx={{ width: 400 }}
                           />
                           <IconButton
                             size="small"
                             onClick={() => deleteProject(project.id)}
                             sx={{
-                              color: '#999',
-                              '&:hover': { color: '#d32f2f' },
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                              '&:hover': {
+                                backgroundColor: '#e0e0e0',
+                                border: '1px solid #a0a0a0',
+                              }
                             }}
                           >
-                            <DeleteIcon fontSize="small" />
+                            <DeleteOutlineIcon fontSize="small" />
                           </IconButton>
                         </Box>
 
                         {/* Project Details */}
-                        <Box sx={{ ml: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ ml: 4.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {/* Dates */}
                           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                            <TextField
-                              value={project.startDate || ''}
-                              onChange={(e) => updateProject(project.id, { startDate: e.target.value })}
-                              placeholder="Start Date..."
-                              variant="standard"
-                              sx={{
-                                px: 1,
-                                borderRadius: 2,
-                                backgroundColor: (project.startDate && project.startDate.trim()) ? 'transparent' : '#f5f5f5',
-                                '&:hover': {
-                                  backgroundColor: '#f5f5f5',
-                                },
-                                width: 120,
-                              }}
-                              InputProps={{
-                                disableUnderline: true,
-                              }}
-                            />
-                            <Typography variant="body2" color="text.secondary">to</Typography>
-                            <TextField
-                              value={project.endDate || ''}
-                              onChange={(e) => updateProject(project.id, { endDate: e.target.value })}
-                              placeholder="End Date..."
-                              variant="standard"
-                              sx={{
-                                px: 1,
-                                borderRadius: 2,
-                                backgroundColor: (project.endDate && project.endDate.trim()) ? 'transparent' : '#f5f5f5',
-                                '&:hover': {
-                                  backgroundColor: '#f5f5f5',
-                                },
-                                width: 120,
-                              }}
-                              InputProps={{
-                                disableUnderline: true,
-                              }}
-                            />
+                            <Box sx={{ position: 'relative' }}>
+                              <TextField
+                                value={project.startDate || ''}
+                                placeholder="Start Date..."
+                                variant="outlined"
+                                label="Start Date"
+                                size="small"
+                                sx={{ width: 150 }}
+                                InputProps={{
+                                  readOnly: true,
+                                  endAdornment: (
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        openDatePicker(
+                                          { x: rect.left, y: rect.bottom + 5 },
+                                          (date) => updateProject(project.id, { startDate: date })
+                                        );
+                                      }}
+                                      sx={{ p: 0.5 }}
+                                    >
+                                      <CalendarIcon fontSize="small" />
+                                    </IconButton>
+                                  ),
+                                }}
+                              />
+                            </Box>
+                            <Box sx={{ position: 'relative' }}>
+                              <TextField
+                                value={project.endDate || ''}
+                                placeholder="End Date..."
+                                variant="outlined"
+                                label="End Date"
+                                size="small"
+                                sx={{ width: 150 }}
+                                disabled={project.current}
+                                InputProps={{
+                                  readOnly: true,
+                                  endAdornment: (
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => {
+                                        if (!project.current) {
+                                          const rect = e.currentTarget.getBoundingClientRect();
+                                          openDatePicker(
+                                            { x: rect.left, y: rect.bottom + 5 },
+                                            (date) => updateProject(project.id, { endDate: date })
+                                          );
+                                        }
+                                      }}
+                                      sx={{ p: 0.5 }}
+                                      disabled={project.current}
+                                    >
+                                      <CalendarIcon fontSize="small" />
+                                    </IconButton>
+                                  ),
+                                }}
+                              />
+                            </Box>
                             <FormControl size="small">
                               <Select
                                 value={project.current ? 'current' : 'completed'}
                                 onChange={(e) => updateProject(project.id, { current: e.target.value === 'current' })}
-                                sx={{ height: 32, minWidth: 100 }}
+                                sx={{ minWidth: 100 }}
                               >
                                 <MenuItem value="completed">Completed</MenuItem>
                                 <MenuItem value="current">Current</MenuItem>
@@ -330,18 +345,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                             value={project.link || ''}
                             onChange={(e) => updateProject(project.id, { link: e.target.value })}
                             placeholder="Project Link (optional)..."
-                            variant="standard"
-                            sx={{
-                              px: 1,
-                              borderRadius: 2,
-                              backgroundColor: (project.link && project.link.trim()) ? 'transparent' : '#f5f5f5',
-                              '&:hover': {
-                                backgroundColor: '#f5f5f5',
-                              },
-                            }}
-                            InputProps={{
-                              disableUnderline: true,
-                            }}
+                            variant="outlined"
+                            label="Project Link (optional)"
+                            size="small"
+                            sx={{ width: 600 }}
                           />
 
                           {/* Technologies */}
@@ -362,13 +369,39 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                                   {project.technologies.map((tech, techIndex) => (
                                     <Chip
                                       key={`${project.id}-tech-${techIndex}`}
-                                      label={tech}
-                                      onDelete={() => removeTechnology(project.id, techIndex)}
-                                      size="small"
                                       sx={{
-                                        backgroundColor: '#e3f2fd',
-                                        '&:hover': { backgroundColor: '#bbdefb' }
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        py: 1,
+                                        cursor: 'grab',
                                       }}
+                                      label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                          <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'grab', ml: -0.5 }}>
+                                            <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+                                          </Box>
+                                          <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
+                                            {tech}
+                                          </Typography>
+                                          <Box sx={{ display: 'flex', alignItems: 'center', mr: -1 }}>
+                                            <IconButton
+                                              size="small"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                removeTechnology(project.id, techIndex);
+                                              }}
+                                              onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                              }}
+                                              sx={{ p: 0.5, borderRadius: "50%", '&:hover': { backgroundColor: themeColors.gray[500], color: themeColors.white } }}
+                                            >
+                                              <CloseIcon sx={{ fontSize: 16 }} />
+                                            </IconButton>
+                                          </Box>
+                                        </Box>
+                                      }
                                     />
                                   ))}
                                 </Box>
@@ -384,13 +417,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                                     e.currentTarget.value = '';
                                   }
                                 }}
-                                sx={{
-                                  width: 200,
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 32,
-                                    fontSize: '0.875rem',
-                                  }
-                                }}
+                                sx={{ width: 200 }}
                               />
                               <Button
                                 size="small"
@@ -401,7 +428,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                                     input.value = '';
                                   }
                                 }}
-                                sx={{ height: 32, minWidth: 'auto', px: 1 }}
+                                sx={{ height: 32, minWidth: 'auto' }}
                               >
                                 <AddCircleOutlineIcon fontSize="small" />
                               </Button>
@@ -415,37 +442,23 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                             </Typography>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                               {project.bulletPoints.map((bullet) => (
-                                <Box key={bullet.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                <Box key={bullet.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <Typography variant="body2" sx={{ mt: 0.5 }}>•</Typography>
                                   <TextField
                                     value={bullet.description}
                                     onChange={(e) => updateBulletPoint(project.id, bullet.id, e.target.value)}
                                     placeholder="Describe what you accomplished..."
-                                    variant="standard"
+                                    variant="outlined"
+                                    size="small"
                                     multiline
-                                    sx={{
-                                      px: 1,
-                                      borderRadius: 2,
-                                      backgroundColor: (bullet.description && bullet.description.trim()) ? 'transparent' : '#f5f5f5',
-                                      '&:hover': {
-                                        backgroundColor: '#f5f5f5',
-                                      },
-                                      flexGrow: 1,
-                                    }}
-                                    InputProps={{
-                                      disableUnderline: true,
-                                    }}
+                                    sx={{ width: '100%'}}
                                   />
                                   <IconButton
                                     size="small"
                                     onClick={() => deleteBulletPoint(project.id, bullet.id)}
-                                    sx={{
-                                      color: '#999',
-                                      '&:hover': { color: '#d32f2f' },
-                                      mt: 0.5,
-                                    }}
+                                    sx={{ p: 0.5 }}
                                   >
-                                    <DeleteIcon fontSize="small" />
+                                    <CloseIcon fontSize="small" />
                                   </IconButton>
                                 </Box>
                               ))}
@@ -454,23 +467,14 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                                 onClick={() => addBulletPoint(project.id)}
                                 variant="outlined"
                                 size="small"
-                                sx={{
-                                  borderColor: '#ddd',
-                                  color: '#666',
-                                  '&:hover': {
-                                    borderColor: '#999',
-                                    backgroundColor: '#f5f5f5'
-                                  },
-                                  alignSelf: 'flex-start',
-                                  mt: 1,
-                                }}
+                                sx={{ mt: 1, width: 'fit-content' }}
                               >
                                 Add Bullet Point
                               </Button>
                             </Box>
                           </Box>
                         </Box>
-                      </Box>
+                      </Card>
                     )}
                   </Draggable>
                   {provided.placeholder}
@@ -499,6 +503,14 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
           Add Project
         </Button>
       </Box>
+
+      {/* DatePicker Component */}
+      <DatePicker
+        isOpen={datePickerOpen}
+        onClose={closeDatePicker}
+        onSelect={handleDateSelect}
+        position={datePickerPosition}
+      />
     </Box>
   );
 };
