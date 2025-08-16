@@ -365,10 +365,6 @@ export async function PUT(
 
     // Process volunteer experience data
     const processedVolunteerExperience = (volunteerExperience || [])
-      .filter((volunteer: { organization: string; position: string; startDate: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return volunteer.organization && volunteer.position && volunteer.startDate;
-      })
       .map((volunteer: { id?: string; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, resumeId, ...rest } = volunteer;

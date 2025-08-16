@@ -116,9 +116,6 @@ export const createSectionComponents = ({
         resumeData={resumeData}
         setResumeData={setResumeData}
         onDeleteSection={onDeleteSection}
-        setDatePickerOpen={setDatePickerOpen}
-        setDatePickerPosition={setDatePickerPosition}
-        datePickerCallbackRef={datePickerCallbackRef}
       />
     ),
     "References": () => (

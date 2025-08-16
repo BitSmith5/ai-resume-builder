@@ -474,7 +474,6 @@ export const useResumeData = (resumeId?: string) => {
         references: deletedSections.includes('References') ? [] : (data.references || []),
       };
 
-      // Save resume data
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
       const method = resumeId ? "PUT" : "POST";
 
