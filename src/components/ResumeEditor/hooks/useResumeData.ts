@@ -580,12 +580,12 @@ export const useResumeData = (resumeId?: string) => {
         !resumeData.title && 
         resumeData.workExperience.length === 0 && 
         resumeData.education.length === 0 && 
-        resumeData.references.length === 0 && 
-        resumeData.projects.length === 0 && 
-        resumeData.languages.length === 0 && 
-        resumeData.publications.length === 0 && 
-        resumeData.awards.length === 0 && 
-        resumeData.volunteerExperience.length === 0 && 
+        (resumeData.references?.length || 0) === 0 && 
+        (resumeData.projects?.length || 0) === 0 && 
+        (resumeData.languages?.length || 0) === 0 && 
+        (resumeData.publications?.length || 0) === 0 && 
+        (resumeData.awards?.length || 0) === 0 && 
+        (resumeData.volunteerExperience?.length || 0) === 0 && 
         resumeData.interests.length === 0 && 
         resumeData.courses.length === 0 && 
         resumeData.strengths.length === 0) return;
