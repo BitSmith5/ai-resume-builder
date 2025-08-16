@@ -408,8 +408,8 @@ export async function PUT(
     // Process references data
     const processedReferences = (references || [])
       .filter((reference: { name: string; title: string; company: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return reference.name && reference.title && reference.company;
+        // Allow references to be saved even if partially filled - just need at least one field
+        return reference.name || reference.title || reference.company || reference.email || reference.phone || reference.relationship;
       })
       .map((reference: { id?: string; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
