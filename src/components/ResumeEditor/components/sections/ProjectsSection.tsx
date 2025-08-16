@@ -467,7 +467,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                                 onClick={() => addBulletPoint(project.id)}
                                 variant="outlined"
                                 size="small"
-                                sx={{ mt: 1, width: 'fit-content' }}
+                                sx={{ border: 'none', width: 'fit-content', mt: 1 }}
                               >
                                 Add Bullet Point
                               </Button>
