@@ -7,13 +7,17 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  Card,
 } from '@mui/material';
 import {
   DeleteOutline as DeleteOutlineIcon,
   Add as AddIcon,
   DragIndicator as DragIndicatorIcon,
+  CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { ResumeData } from '../../types';
+import { DatePicker } from '../DatePicker';
+import { useDatePicker } from '../../hooks/useDatePicker';
 
 interface EducationSectionProps {
   resumeData: ResumeData;
@@ -26,6 +30,8 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
+  const { datePickerOpen, datePickerPosition, openDatePicker, closeDatePicker, handleDateSelect } = useDatePicker();
+
   const addEducation = () => {
     const newEducation = {
       institution: "",
@@ -95,35 +101,38 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
       
       {/* Education Entries */}
       {(resumeData.education || []).map((education, index) => (
-        <Box key={index} sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
+        <Card key={index} sx={{ mb: 3, p: 2, mr: 2 }}>
           {/* Institution and Degree */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <DragIndicatorIcon sx={{ fontSize: 20, color: '#bbb', mr: 1 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
+            <DragIndicatorIcon sx={{ fontSize: 20, color: '#bbb', cursor: 'grab' }} />
             <TextField
               value={education.institution}
               onChange={(e) => updateEducation(index, { institution: e.target.value })}
               placeholder="Institution"
-              variant="standard"
-              sx={{ fontWeight: 600, mr: 2, minWidth: 200 }}
-              InputProps={{ disableUnderline: true }}
+              variant="outlined"
+              label="Institution"
+              size="small"
+              sx={{ fontWeight: 600, width: 400 }}
             />
             <TextField
               value={education.degree}
               onChange={(e) => updateEducation(index, { degree: e.target.value })}
               placeholder="Degree"
-              variant="standard"
-              sx={{ flex: 1, mr: 2 }}
-              InputProps={{ disableUnderline: true }}
+              variant="outlined"
+              label="Degree"
+              size="small"
+              sx={{ width: 150 }}
             />
             <IconButton
               size="small"
               onClick={() => deleteEducation(index)}
-              sx={{ 
+              sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
+                backgroundColor: 'white',
                 '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #f5f5f5',
+                  backgroundColor: '#e0e0e0',
+                  border: '1px solid #a0a0a0',
                 }
               }}
             >
@@ -132,43 +141,88 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
           </Box>
 
           {/* Field of Study */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2, ml: 4.5 }}>
             <TextField
               value={education.field}
               onChange={(e) => updateEducation(index, { field: e.target.value })}
               placeholder="Field of Study"
-              variant="standard"
-              sx={{ mr: 2, minWidth: 200 }}
-              InputProps={{ disableUnderline: true }}
+              variant="outlined"
+              label="Field of Study"
+              size="small"
+              sx={{ width: 300 }}
             />
           </Box>
 
           {/* Dates and GPA */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 3 }}>
-            <TextField
-              value={education.startDate}
-              onChange={(e) => updateEducation(index, { startDate: e.target.value })}
-              placeholder="Start Date"
-              variant="standard"
-              sx={{ mr: 2, minWidth: 100 }}
-              InputProps={{ disableUnderline: true }}
-            />
-            <TextField
-              value={education.endDate}
-              onChange={(e) => updateEducation(index, { endDate: e.target.value })}
-              placeholder="End Date"
-              variant="standard"
-              sx={{ mr: 2, minWidth: 100 }}
-              InputProps={{ disableUnderline: true }}
-              disabled={education.current}
-            />
+          <Box sx={{ display: 'flex', alignItems: 'center', ml: 4.5, gap: 2 }}>
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                value={education.startDate}
+                placeholder="Start Date"
+                variant="outlined"
+                label="Start Date"
+                size="small"
+                sx={{ width: 150 }}
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        openDatePicker(
+                          { x: rect.left, y: rect.bottom + 5 },
+                          (date) => updateEducation(index, { startDate: date })
+                        );
+                      }}
+                      sx={{ p: 0.5 }}
+                    >
+                      <CalendarIcon fontSize="small" />
+                    </IconButton>
+                  ),
+                }}
+              />
+            </Box>
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                value={education.endDate}
+                placeholder="End Date"
+                variant="outlined"
+                label="End Date"
+                size="small"
+                sx={{ width: 150 }}
+                disabled={education.current}
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        if (!education.current) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          openDatePicker(
+                            { x: rect.left, y: rect.bottom + 5 },
+                            (date) => updateEducation(index, { endDate: date })
+                          );
+                        }
+                      }}
+                      sx={{ p: 0.5 }}
+                      disabled={education.current}
+                    >
+                      <CalendarIcon fontSize="small" />
+                    </IconButton>
+                  ),
+                }}
+              />
+            </Box>
             <TextField
               value={education.gpa || ''}
               onChange={(e) => updateEducation(index, { gpa: parseFloat(e.target.value) || undefined })}
               placeholder="GPA"
-              variant="standard"
-              sx={{ mr: 2, minWidth: 80 }}
-              InputProps={{ disableUnderline: true }}
+              variant="outlined"
+              label="GPA"
+              size="small"
+              sx={{ width: 80 }}
             />
             <FormControlLabel
               control={
@@ -180,7 +234,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
               label="Current"
             />
           </Box>
-        </Box>
+        </Card>
       ))}
 
       {/* Add Education Button */}
@@ -189,19 +243,17 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
         onClick={addEducation}
         variant="outlined"
         size="small"
-        sx={{ 
-          textTransform: 'none', 
-          borderRadius: 2,
-          border: '1px solid #e0e0e0',
-          color: 'black',
-          '&:hover': {
-            backgroundColor: '#f5f5f5',
-            border: '1px solid #f5f5f5'
-          }
-        }}
       >
         Add Education
       </Button>
+
+      {/* DatePicker Component */}
+      <DatePicker
+        isOpen={datePickerOpen}
+        onClose={closeDatePicker}
+        onSelect={handleDateSelect}
+        position={datePickerPosition}
+      />
     </Box>
   );
 };

@@ -152,8 +152,8 @@ export async function PUT(
     // Convert string dates to Date objects for workExperience and remove id/resumeId fields
     const processedWorkExperience = (workExperience || [])
       .filter((exp: { company: string; position: string; startDate: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return exp.company && exp.position && exp.startDate;
+        // Allow work experience to be saved even if partially filled - just need at least one field
+        return exp.company || exp.position || exp.startDate || exp.location;
       })
       .map((exp: { id?: number; resumeId?: number; startDate: string; endDate?: string; company: string; position: string; location?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -200,8 +200,8 @@ export async function PUT(
     // Convert string dates to Date objects for education and remove id/resumeId fields
     const processedEducation = (education || [])
       .filter((edu: { institution: string; degree: string; field: string; startDate: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return edu.institution && edu.degree && edu.field && edu.startDate;
+        // Allow education to be saved even if partially filled - just need at least one field
+        return edu.institution || edu.degree || edu.field || edu.startDate;
       })
       .map((edu: { id?: number; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -248,8 +248,8 @@ export async function PUT(
     // Filter out id and resumeId fields from strengths
     const processedStrengths = (strengths || [])
       .filter((strength: { skillName: string; rating: number; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return strength.skillName && strength.rating;
+        // Allow strengths to be saved even if partially filled - just need at least one field
+        return strength.skillName || strength.rating;
       })
       .map((strength: { id?: number; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -262,8 +262,8 @@ export async function PUT(
     // Filter out id and resumeId fields from courses
     const processedCourses = (courses || [])
       .filter((course: { title: string; provider: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return course.title && course.provider;
+        // Allow courses to be saved even if partially filled - just need at least one field
+        return course.title || course.provider;
       })
       .map((course: { id?: number; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -274,8 +274,8 @@ export async function PUT(
     // Filter out id and resumeId fields from interests
     const processedInterests = (interests || [])
       .filter((interest: { name: string; icon: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return interest.name && interest.icon;
+        // Allow interests to be saved even if partially filled - just need at least one field
+        return interest.name || interest.icon;
       })
       .map((interest: { id?: number; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -285,9 +285,9 @@ export async function PUT(
 
     // Process projects data
     const processedProjects = (projects || [])
-      .filter((project: { title: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return project.title;
+      .filter((project: { title: string; startDate?: string; endDate?: string; technologies?: unknown[]; link?: string; [key: string]: unknown }) => {
+        // Allow projects to be saved even if partially filled - just need at least one field
+        return project.title || project.startDate || project.endDate || (project.technologies && project.technologies.length > 0) || project.link;
       })
       .map((project: { id?: string; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -330,8 +330,8 @@ export async function PUT(
     // Process languages data
     const processedLanguages = (languages || [])
       .filter((language: { name: string; proficiency: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return language.name && language.proficiency;
+        // Allow languages to be saved even if partially filled - just need at least one field
+        return language.name || language.proficiency;
       })
       .map((language: { id?: string; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -342,8 +342,8 @@ export async function PUT(
     // Process publications data
     const processedPublications = (publications || [])
       .filter((publication: { title: string; authors: string; journal: string; year: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return publication.title && publication.authors && publication.journal && publication.year;
+        // Allow publications to be saved even if partially filled - just need at least one field
+        return publication.title || publication.authors || publication.journal || publication.year || publication.doi || publication.link;
       })
       .map((publication: { id?: string; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -354,8 +354,8 @@ export async function PUT(
     // Process awards data
     const processedAwards = (awards || [])
       .filter((award: { title: string; organization: string; year: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return award.title && award.organization && award.year;
+        // Allow awards to be saved even if partially filled - just need at least one field
+        return award.title || award.organization || award.year;
       })
       .map((award: { id?: string; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -365,10 +365,6 @@ export async function PUT(
 
     // Process volunteer experience data
     const processedVolunteerExperience = (volunteerExperience || [])
-      .filter((volunteer: { organization: string; position: string; startDate: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return volunteer.organization && volunteer.position && volunteer.startDate;
-      })
       .map((volunteer: { id?: string; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, resumeId, ...rest } = volunteer;
@@ -412,8 +408,8 @@ export async function PUT(
     // Process references data
     const processedReferences = (references || [])
       .filter((reference: { name: string; title: string; company: string; [key: string]: unknown }) => {
-        // Filter out empty entries
-        return reference.name && reference.title && reference.company;
+        // Allow references to be saved even if partially filled - just need at least one field
+        return reference.name || reference.title || reference.company || reference.email || reference.phone || reference.relationship;
       })
       .map((reference: { id?: string; resumeId?: number; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

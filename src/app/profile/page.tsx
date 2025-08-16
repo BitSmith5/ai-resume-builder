@@ -26,7 +26,7 @@ import {
   Language as LanguageIcon,
 } from "@mui/icons-material";
 import DashboardLayout from "@/components/DashboardLayout";
-import { COLORS } from "@/lib/colorSystem";
+
 
 interface ProfileData {
   name: string;
@@ -46,6 +46,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
+  
   const { data: session, status } = useSession();
   const [profileData, setProfileData] = useState<ProfileData>({
     name: "",
@@ -155,7 +156,7 @@ export default function ProfilePage() {
     return (
       <DashboardLayout>
         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
-          <CircularProgress sx={{ color: COLORS.primary }} />
+          <CircularProgress sx={{ color: 'rgb(173, 126, 233)' }} />
         </Box>
       </DashboardLayout>
     );
@@ -171,7 +172,7 @@ export default function ProfilePage() {
       <Box m={2}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
           <Box>
-            <Typography variant="h4" component="h1" gutterBottom sx={{ color: COLORS.primary }}>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'rgb(173, 126, 233)' }}>
               Profile Settings
             </Typography>
             <Typography variant="body1" color="text.secondary">
@@ -184,9 +185,9 @@ export default function ProfilePage() {
               startIcon={<EditIcon />}
               onClick={() => setIsEditing(true)}
               sx={{
-                backgroundColor: COLORS.primary,
+                backgroundColor: 'rgb(173, 126, 233)',
                 '&:hover': {
-                  backgroundColor: COLORS.hover,
+                  backgroundColor: 'rgb(193, 146, 253)',
                 },
               }}
             >
@@ -213,8 +214,8 @@ export default function ProfilePage() {
             <Card sx={{ backgroundColor: '#f5f5f5' }}>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={3}>
-                  <PersonIcon sx={{ mr: 1, color: COLORS.primary }} />
-                  <Typography variant="h6" sx={{ color: COLORS.primary }}>
+                  <PersonIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />
+                  <Typography variant="h6" sx={{ color: 'rgb(173, 126, 233)' }}>
                     Personal Information
                   </Typography>
                 </Box>
@@ -227,7 +228,7 @@ export default function ProfilePage() {
                     onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                     disabled={!isEditing}
                     InputProps={{
-                      startAdornment: <PersonIcon sx={{ mr: 1, color: COLORS.primary }} />,
+                      startAdornment: <PersonIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
                     sx={{
                       '& .MuiInputBase-input': {
@@ -246,10 +247,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -261,7 +262,7 @@ export default function ProfilePage() {
                     onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                     disabled={!isEditing}
                     InputProps={{
-                      startAdornment: <EmailIcon sx={{ mr: 1, color: COLORS.primary }} />,
+                      startAdornment: <EmailIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
                     sx={{
                       '& .MuiInputBase-input': {
@@ -280,10 +281,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -311,10 +312,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -340,10 +341,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -356,7 +357,7 @@ export default function ProfilePage() {
                     disabled={!isEditing}
                     placeholder="https://linkedin.com/in/yourprofile"
                     InputProps={{
-                      startAdornment: <LinkedInIcon sx={{ mr: 1, color: COLORS.primary }} />,
+                      startAdornment: <LinkedInIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
                     sx={{
                       '& .MuiInputBase-input': {
@@ -375,10 +376,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -391,7 +392,7 @@ export default function ProfilePage() {
                     disabled={!isEditing}
                     placeholder="https://github.com/yourusername"
                     InputProps={{
-                      startAdornment: <GitHubIcon sx={{ mr: 1, color: COLORS.primary }} />,
+                      startAdornment: <GitHubIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
                     sx={{
                       '& .MuiInputBase-input': {
@@ -410,10 +411,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -426,7 +427,7 @@ export default function ProfilePage() {
                     disabled={!isEditing}
                     placeholder="https://yourportfolio.com"
                     InputProps={{
-                      startAdornment: <LanguageIcon sx={{ mr: 1, color: COLORS.primary }} />,
+                      startAdornment: <LanguageIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
                     sx={{
                       '& .MuiInputBase-input': {
@@ -443,10 +444,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -478,10 +479,10 @@ export default function ProfilePage() {
                       },
                       '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
-                          borderColor: COLORS.hover,
+                          borderColor: 'rgb(193, 146, 253)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: COLORS.primary,
+                          borderColor: 'rgb(173, 126, 233)',
                         },
                       },
                     }}
@@ -496,12 +497,12 @@ export default function ProfilePage() {
                       onClick={handleSave}
                       disabled={loading}
                       sx={{
-                        backgroundColor: COLORS.primary,
+                        backgroundColor: 'rgb(173, 126, 233)',
                         '&:hover': {
-                          backgroundColor: COLORS.hover,
+                          backgroundColor: 'rgb(193, 146, 253)',
                         },
                         '&:disabled': {
-                          backgroundColor: COLORS.primaryDark,
+                          backgroundColor: 'rgb(143, 96, 203)',
                         },
                       }}
                     >
@@ -513,11 +514,11 @@ export default function ProfilePage() {
                       onClick={handleCancel}
                       disabled={loading}
                       sx={{
-                        borderColor: COLORS.primary,
-                        color: COLORS.primary,
+                        borderColor: 'rgb(173, 126, 233)',
+                        color: 'rgb(173, 126, 233)',
                         '&:hover': {
-                          borderColor: COLORS.hover,
-                          backgroundColor: COLORS.selectedBackground,
+                          borderColor: 'rgb(193, 146, 253)',
+                          backgroundColor: '#fafafa',
                         },
                       }}
                     >
@@ -540,12 +541,12 @@ export default function ProfilePage() {
                     height: 80, 
                     mx: "auto", 
                     mb: 2,
-                    backgroundColor: COLORS.primary,
+                    backgroundColor: 'rgb(173, 126, 233)',
                   }}
                 >
                   {!session?.user?.image && session?.user?.name ? session.user.name.charAt(0).toUpperCase() : undefined}
                 </Avatar>
-                <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'rgb(173, 126, 233)' }}>
                   {session?.user?.name || "User"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -555,10 +556,10 @@ export default function ProfilePage() {
                   label="Premium Member" 
                   sx={{ 
                     mt: 1,
-                    backgroundColor: COLORS.primary,
+                    backgroundColor: 'rgb(173, 126, 233)',
                     color: 'white',
                     '&:hover': {
-                      backgroundColor: COLORS.hover,
+                      backgroundColor: 'rgb(193, 146, 253)',
                     },
                   }} 
                 />
@@ -624,15 +625,15 @@ export default function ProfilePage() {
         <Card sx={{ mt: 3, backgroundColor: '#f5f5f5' }}>
           <CardContent>
             <Box display="flex" alignItems="center" mb={3}>
-              <SecurityIcon sx={{ mr: 1, color: COLORS.primary }} />
-              <Typography variant="h6" sx={{ color: COLORS.primary }}>
+              <SecurityIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />
+              <Typography variant="h6" sx={{ color: 'rgb(173, 126, 233)' }}>
                 Account Security
               </Typography>
             </Box>
 
             <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }} gap={2}>
               <Box>
-                <Typography variant="subtitle1" gutterBottom sx={{ color: COLORS.primary }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ color: 'rgb(173, 126, 233)' }}>
                   Last Login
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -640,7 +641,7 @@ export default function ProfilePage() {
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="subtitle1" gutterBottom sx={{ color: COLORS.primary }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ color: 'rgb(173, 126, 233)' }}>
                   Account Created
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -653,11 +654,11 @@ export default function ProfilePage() {
               <Button 
                 variant="outlined" 
                 sx={{
-                  borderColor: COLORS.primary,
-                  color: COLORS.primary,
+                  borderColor: 'rgb(173, 126, 233)',
+                  color: 'rgb(173, 126, 233)',
                   '&:hover': {
-                    borderColor: COLORS.hover,
-                    backgroundColor: COLORS.selectedBackground,
+                    borderColor: 'rgb(193, 146, 253)',
+                    backgroundColor: '#fafafa',
                   },
                 }}
               >

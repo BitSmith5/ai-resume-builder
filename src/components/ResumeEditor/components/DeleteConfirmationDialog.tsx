@@ -10,7 +10,6 @@ import {
   CircularProgress 
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-import { COLORS } from '../../../lib/colorSystem';
 
 interface DeleteConfirmationDialogProps {
   open: boolean;
@@ -34,8 +33,8 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: `0 8px 32px ${COLORS.shadow}`,
-          border: `1px solid ${COLORS.overlay}`,
+          boxShadow: '0 8px 32px #e0e0e0',
+          border: '1px solid #eeeeee',
         }
       }}
     >
@@ -43,7 +42,7 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
         sx={{ 
           pb: 1, 
           fontWeight: 600,
-          background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+          background: 'linear-gradient(135deg, rgb(173, 126, 233) 0%, rgb(203, 156, 263) 100%)',
           color: 'white',
           borderRadius: '12px 12px 0 0',
           textAlign: 'center'
@@ -61,9 +60,9 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
             px: 4,
             py: 2,
             mb: 3,
-            backgroundColor: COLORS.selectedBackground,
+            backgroundColor: '#fafafa',
             borderRadius: 2,
-            border: `1px solid ${COLORS.overlay}`
+            border: '1px solid #eeeeee'
           }}
         >
           <Typography component="li" variant="body2" sx={{ mb: 1, color: '#555' }}>
@@ -99,11 +98,11 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
           variant="outlined"
           sx={{ 
             textTransform: 'none',
-            borderColor: COLORS.primary,
-            color: COLORS.primary,
+            borderColor: 'rgb(173, 126, 233)',
+            color: 'rgb(173, 126, 233)',
             '&:hover': {
-              borderColor: COLORS.primaryDark,
-              backgroundColor: COLORS.selectedBackground,
+              borderColor: 'rgb(143, 96, 203)',
+              backgroundColor: '#fafafa',
             }
           }}
         >

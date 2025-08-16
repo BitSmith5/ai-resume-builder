@@ -18,9 +18,10 @@ import {
   Speed as SpeedIcon,
   Palette as DesignIcon,
 } from "@mui/icons-material";
-import { COLORS } from "@/lib/colorSystem";
+
 
 export default function Home() {
+  
   const { status } = useSession();
   const router = useRouter();
 
@@ -45,11 +46,15 @@ export default function Home() {
   }
 
   return (
-    <Box sx={{ bgcolor: 'background.default' }}>
+    <Box sx={{ 
+      bgcolor: 'background.default',
+      height: '100vh', // Use exact viewport height instead of min-height
+      overflow: 'auto' // Allow scrolling only when needed
+    }}>
       {/* Hero Section */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`,
+          background: `linear-gradient(135deg, ${'rgb(173, 126, 233)'} 0%, ${'rgb(143, 96, 203)'} 100%)`,
           color: "white",
           position: 'relative',
           overflow: 'hidden',
@@ -111,7 +116,7 @@ export default function Home() {
               startIcon={<ResumeIcon />}
               sx={{
                 bgcolor: "white",
-                color: COLORS.primary,
+                color: 'rgb(173, 126, 233)',
                 px: 4,
                 py: 1.5,
                 fontSize: "1.1rem",
@@ -181,7 +186,7 @@ export default function Home() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: COLORS.overlay,
+                  bgcolor: '#eeeeee',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -189,7 +194,7 @@ export default function Home() {
                   mb: 3
                 }}
               >
-                <DesignIcon sx={{ fontSize: 40, color: COLORS.primary }} />
+                <DesignIcon sx={{ fontSize: 40, color: 'rgb(173, 126, 233)' }} />
               </Box>
               <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
                 Customizable Templates
@@ -220,7 +225,7 @@ export default function Home() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: COLORS.overlay,
+                  bgcolor: '#eeeeee',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -228,7 +233,7 @@ export default function Home() {
                   mb: 3
                 }}
               >
-                <SpeedIcon sx={{ fontSize: 40, color: COLORS.primary }} />
+                <SpeedIcon sx={{ fontSize: 40, color: 'rgb(173, 126, 233)' }} />
               </Box>
               <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
                 Quick & Easy
@@ -259,7 +264,7 @@ export default function Home() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: COLORS.overlay,
+                  bgcolor: '#eeeeee',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -267,7 +272,7 @@ export default function Home() {
                   mb: 3
                 }}
               >
-                <SecurityIcon sx={{ fontSize: 40, color: COLORS.primary }} />
+                <SecurityIcon sx={{ fontSize: 40, color: 'rgb(173, 126, 233)' }} />
               </Box>
               <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
                 Secure & Private
@@ -281,11 +286,11 @@ export default function Home() {
       </Container>
 
       {/* Stats Section */}
-      <Box sx={{ bgcolor: COLORS.backgroundLight, py: 8 }}>
+              <Box sx={{ bgcolor: '#ffffff', py: 8 }}>
         <Container maxWidth="lg">
           <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={4} textAlign="center">
             <Box>
-              <Typography variant="h3" component="div" sx={{ color: COLORS.primary, fontWeight: 700, mb: 1 }}>
+              <Typography variant="h3" component="div" sx={{ color: 'rgb(173, 126, 233)', fontWeight: 700, mb: 1 }}>
                 10K+
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -293,7 +298,7 @@ export default function Home() {
               </Typography>
             </Box>
             <Box>
-              <Typography variant="h3" component="div" sx={{ color: COLORS.primary, fontWeight: 700, mb: 1 }}>
+              <Typography variant="h3" component="div" sx={{ color: 'rgb(173, 126, 233)', fontWeight: 700, mb: 1 }}>
                 95%
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -301,7 +306,7 @@ export default function Home() {
               </Typography>
             </Box>
             <Box>
-              <Typography variant="h3" component="div" sx={{ color: COLORS.primary, fontWeight: 700, mb: 1 }}>
+              <Typography variant="h3" component="div" sx={{ color: 'rgb(173, 126, 233)', fontWeight: 700, mb: 1 }}>
                 4.9
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -352,10 +357,10 @@ export default function Home() {
                 fontSize: "1.2rem",
                 fontWeight: 600,
                 borderRadius: 2,
-                bgcolor: COLORS.primary,
+                bgcolor: 'rgb(173, 126, 233)',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
                 "&:hover": {
-                  bgcolor: COLORS.primaryDark,
+                  bgcolor: 'rgb(143, 96, 203)',
                   transform: 'translateY(-2px)',
                   boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
                 },

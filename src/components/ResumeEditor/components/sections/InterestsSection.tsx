@@ -9,10 +9,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Card,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
+  DeleteOutline as DeleteIcon,
   DragIndicator as DragIndicatorIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -159,18 +160,13 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                 <React.Fragment key={interestIndex}>
                   <Draggable draggableId={`interest-${interestIndex}`} index={interestIndex}>
                     {(provided) => (
-                      <Box
+                      <Card
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        sx={{
-                          mb: 3,
-                          background: 'transparent',
-                          p: 2,
-                          ml: -5.5,
-                        }}
+                        sx={{ mb: 3, p: 2, mr: 2 }}
                       >
                         {/* Interest Header with Drag Handle */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: 'fit-content', gap: 2 }}>
                           <Box
                             {...provided.dragHandleProps}
                             sx={{
@@ -179,7 +175,6 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                               cursor: 'grab',
                               userSelect: 'none',
                               color: '#bbb',
-                              mr: 0.5,
                             }}
                           >
                             <DragIndicatorIcon sx={{ fontSize: 20 }} />
@@ -188,66 +183,49 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                             value={interest.name || ''}
                             onChange={(e) => updateInterest(interestIndex, { name: e.target.value })}
                             placeholder="Interest Name..."
-                            variant="standard"
-                            sx={{
-                              fontWeight: 600,
-                              px: 1,
-                              mr: 1,
-                              borderRadius: 2,
-                              backgroundColor: (interest.name && interest.name.trim()) ? 'transparent' : '#f5f5f5',
-                              '&:hover': {
-                                backgroundColor: '#f5f5f5',
-                              }
-                            }}
-                            InputProps={{
-                              style: { fontWeight: 600, fontSize: '1rem' },
-                              disableUnderline: true,
-                            }}
+                            variant="outlined"
+                            label="Interest Name"
+                            size="small"
+                            sx={{ width: 200 }}
                           />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <FormControl size="small" sx={{ width: 150 }}>
+                              <InputLabel>Icon</InputLabel>
+                              <Select
+                                value={interest.icon || '🎵'}
+                                onChange={(e) => updateInterest(interestIndex, { icon: e.target.value })}
+                                label="Icon"
+                              >
+                                {AVAILABLE_ICONS.map((iconOption) => (
+                                  <MenuItem key={iconOption.value} value={iconOption.value}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      <span>{iconOption.value}</span>
+                                      <span style={{ fontSize: '0.875rem', color: '#666' }}>
+                                        {iconOption.label}
+                                      </span>
+                                    </Box>
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
                           <IconButton
                             size="small"
                             onClick={() => deleteInterest(interestIndex)}
                             sx={{
-                              color: '#999',
-                              '&:hover': { color: '#d32f2f' },
-                              ml: 'auto'
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                              '&:hover': {
+                                backgroundColor: '#e0e0e0',
+                                border: '1px solid #a0a0a0',
+                              }
                             }}
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>
-
-                        {/* Interest Icon Selection */}
-                        <Box sx={{ ml: 6, display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <FormControl size="small" sx={{ minWidth: 120 }}>
-                            <InputLabel>Icon</InputLabel>
-                            <Select
-                              value={interest.icon || '🎵'}
-                              onChange={(e) => updateInterest(interestIndex, { icon: e.target.value })}
-                              label="Icon"
-                              sx={{
-                                height: 40,
-                                '& .MuiSelect-select': {
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 1,
-                                }
-                              }}
-                            >
-                              {AVAILABLE_ICONS.map((iconOption) => (
-                                <MenuItem key={iconOption.value} value={iconOption.value}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <span>{iconOption.value}</span>
-                                    <span style={{ fontSize: '0.875rem', color: '#666' }}>
-                                      {iconOption.label}
-                                    </span>
-                                  </Box>
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Box>
+                      </Card>
                     )}
                   </Draggable>
                   {provided.placeholder}
@@ -258,20 +236,12 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
         </Droppable>
       </DragDropContext>
 
-      <Box sx={{ ml: 6, mt: 2 }}>
+      <Box sx={{ mt: 2 }}>
         <Button
           startIcon={<AddIcon />}
           onClick={addInterest}
           variant="outlined"
           size="small"
-          sx={{
-            borderColor: '#ddd',
-            color: '#666',
-            '&:hover': {
-              borderColor: '#999',
-              backgroundColor: '#f5f5f5'
-            }
-          }}
         >
           Add Interest
         </Button>

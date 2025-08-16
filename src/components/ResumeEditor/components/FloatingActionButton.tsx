@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box, Button } from '@mui/material';
 import { List as ListIcon } from '@mui/icons-material';
-import { COLORS } from '../../../lib/colorSystem';
 
 interface FloatingActionButtonProps {
   onClick: () => void;
@@ -30,10 +29,10 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           maxWidth: 60,
           maxHeight: 60,
           padding: 0,
-          background: COLORS.primary,
+          background: 'rgb(173, 126, 233)',
           boxShadow: 'none',
           '&:hover': {
-            background: COLORS.hover,
+            background: 'rgb(193, 146, 253)',
           }
         }}
         onClick={onClick}
