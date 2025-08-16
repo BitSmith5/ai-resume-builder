@@ -254,7 +254,6 @@ export const theme: Theme = createTheme({
     MuiSelect: {
       styleOverrides: {
         root: {
-          border: `1px solid ${themeColors.borderGray}`,
           borderRadius: 8,
           backgroundColor: themeColors.white,
           '&:hover': {

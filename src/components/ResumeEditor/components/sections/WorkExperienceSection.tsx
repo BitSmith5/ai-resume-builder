@@ -46,6 +46,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
       current: false,
       bulletPoints: []
     };
+    
     setResumeData(prev => ({
       ...prev,
       workExperience: [...(prev.workExperience || []), newWork]
@@ -327,6 +328,8 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
         onSelect={handleDateSelect}
         position={datePickerPosition}
       />
+
+
     </Box>
   );
 };

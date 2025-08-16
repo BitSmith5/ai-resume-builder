@@ -292,7 +292,6 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
                       </Card>
                     )}
                   </Draggable>
-                  <Box sx={{ mx: 3, my: 2, height: 1.5, backgroundColor: '#e0e0e0' }} />
                 </React.Fragment>
               ))}
               {provided.placeholder}

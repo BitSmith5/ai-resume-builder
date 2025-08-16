@@ -195,14 +195,6 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                                 value={interest.icon || '🎵'}
                                 onChange={(e) => updateInterest(interestIndex, { icon: e.target.value })}
                                 label="Icon"
-                                sx={{
-                                  height: 40,
-                                  '& .MuiSelect-select': {
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1,
-                                  }
-                                }}
                               >
                                 {AVAILABLE_ICONS.map((iconOption) => (
                                   <MenuItem key={iconOption.value} value={iconOption.value}>
