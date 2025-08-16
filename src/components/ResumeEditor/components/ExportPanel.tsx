@@ -19,7 +19,7 @@ import {
   Close as CloseIcon,
   RestartAlt as RestartAltIcon,
 } from '@mui/icons-material';
-import { COLORS } from '../../../lib/colorSystem';
+
 
 interface ExportSettings {
   template: string;
@@ -60,6 +60,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   onDownloadPDF,
   pdfDownloading,
 }) => {
+  
 
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
@@ -389,7 +390,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         border: 'none',
                       },
                       '&.Mui-focused': {
-                        border: `2px solid ${COLORS.primary}`,
+                        border: `2px solid ${'rgb(173, 126, 233)'}`,
                         outline: 'none',
                       },
                     },
@@ -400,13 +401,13 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       border: 'none',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      border: `2px solid ${COLORS.primary} !important`,
+                      border: `2px solid ${'rgb(173, 126, 233)'} !important`,
                     },
                     '& .MuiMenuItem-root.Mui-selected': {
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       color: 'white',
                       '&:hover': {
-                        backgroundColor: COLORS.hover,
+                        backgroundColor: 'rgb(193, 146, 253)',
                       },
                     },
                   }}
@@ -427,11 +428,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     fontSize: 12,
                     textTransform: 'none',
                     borderRadius: 2,
-                    backgroundColor: exportSettings.template === 'standard' ? COLORS.primary : 'transparent',
-                    color: exportSettings.template === 'standard' ? 'white' : COLORS.primary,
-                    borderColor: COLORS.primary,
+                    backgroundColor: exportSettings.template === 'standard' ? 'rgb(173, 126, 233)' : 'transparent',
+                    color: exportSettings.template === 'standard' ? 'white' : 'rgb(173, 126, 233)',
+                    borderColor: 'rgb(173, 126, 233)',
                     '&:hover': {
-                      backgroundColor: exportSettings.template === 'standard' ? COLORS.hover : COLORS.selectedBackground,
+                      backgroundColor: exportSettings.template === 'standard' ? 'rgb(193, 146, 253)' : '#fafafa',
                     },
                   }}
                 >
@@ -446,11 +447,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     fontSize: 12,
                     textTransform: 'none',
                     borderRadius: 2,
-                    backgroundColor: exportSettings.template === 'compact' ? COLORS.primary : 'transparent',
-                    color: exportSettings.template === 'compact' ? 'white' : COLORS.primary,
-                    borderColor: COLORS.primary,
+                    backgroundColor: exportSettings.template === 'compact' ? 'rgb(173, 126, 233)' : 'transparent',
+                    color: exportSettings.template === 'compact' ? 'white' : 'rgb(173, 126, 233)',
+                    borderColor: 'rgb(173, 126, 233)',
                     '&:hover': {
-                      backgroundColor: exportSettings.template === 'compact' ? COLORS.hover : COLORS.selectedBackground,
+                      backgroundColor: exportSettings.template === 'compact' ? 'rgb(193, 146, 253)' : '#fafafa',
                     },
                   }}
                 >
@@ -491,7 +492,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         border: 'none',
                       },
                       '&.Mui-focused': {
-                        border: `2px solid ${COLORS.primary}`,
+                        border: `2px solid ${'rgb(173, 126, 233)'}`,
                         outline: 'none',
                       },
                     },
@@ -502,7 +503,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       border: 'none',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      border: `2px solid ${COLORS.primary} !important`,
+                      border: `2px solid ${'rgb(173, 126, 233)'} !important`,
                     },
                   }}
                 >
@@ -540,7 +541,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         border: 'none',
                       },
                       '&.Mui-focused': {
-                        border: `2px solid ${COLORS.primary}`,
+                        border: `2px solid ${'rgb(173, 126, 233)'}`,
                         outline: 'none',
                       },
                     },
@@ -551,7 +552,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       border: 'none',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      border: `2px solid ${COLORS.primary} !important`,
+                      border: `2px solid ${'rgb(173, 126, 233)'} !important`,
                     },
                   }}
                 />
@@ -582,7 +583,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         border: 'none',
                       },
                       '&.Mui-focused': {
-                        border: `2px solid ${COLORS.primary}`,
+                        border: `2px solid ${'rgb(173, 126, 233)'}`,
                         outline: 'none',
                       },
                     },
@@ -593,7 +594,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       border: 'none',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      border: `2px solid ${COLORS.primary} !important`,
+                      border: `2px solid ${'rgb(173, 126, 233)'} !important`,
                     },
                   }}
                 />
@@ -624,7 +625,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         border: 'none',
                       },
                       '&.Mui-focused': {
-                        border: `2px solid ${COLORS.primary}`,
+                        border: `2px solid ${'rgb(173, 126, 233)'}`,
                         outline: 'none',
                       },
                     },
@@ -635,7 +636,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       border: 'none',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      border: `2px solid ${COLORS.primary} !important`,
+                      border: `2px solid ${'rgb(173, 126, 233)'} !important`,
                     },
                   }}
                 />
@@ -666,7 +667,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         border: 'none',
                       },
                       '&.Mui-focused': {
-                        border: `2px solid ${COLORS.primary}`,
+                        border: `2px solid ${'rgb(173, 126, 233)'}`,
                         outline: 'none',
                       },
                     },
@@ -677,7 +678,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       border: 'none',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      border: `2px solid ${COLORS.primary} !important`,
+                      border: `2px solid ${'rgb(173, 126, 233)'} !important`,
                     },
                   }}
                 />
@@ -710,11 +711,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     '& .MuiSlider-thumb': {
                       width: 16,
                       height: 16,
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: '2px solid white',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                       '&:hover': {
-                        backgroundColor: COLORS.hover,
+                        backgroundColor: 'rgb(193, 146, 253)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                       },
                       '&:active': {
@@ -734,7 +735,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       },
                     },
                     '& .MuiSlider-track': {
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: 'none',
                     },
                     '& .MuiSlider-rail': {
@@ -763,11 +764,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     '& .MuiSlider-thumb': {
                       width: 16,
                       height: 16,
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: '2px solid white',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                       '&:hover': {
-                        backgroundColor: COLORS.hover,
+                        backgroundColor: 'rgb(193, 146, 253)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                       },
                       '&:active': {
@@ -787,7 +788,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       },
                     },
                     '& .MuiSlider-track': {
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: 'none',
                     },
                     '& .MuiSlider-rail': {
@@ -816,11 +817,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     '& .MuiSlider-thumb': {
                       width: 16,
                       height: 16,
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: '2px solid white',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                       '&:hover': {
-                        backgroundColor: COLORS.hover,
+                        backgroundColor: 'rgb(193, 146, 253)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                       },
                       '&:active': {
@@ -840,7 +841,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       },
                     },
                     '& .MuiSlider-track': {
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: 'none',
                     },
                     '& .MuiSlider-rail': {
@@ -869,11 +870,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     '& .MuiSlider-thumb': {
                       width: 16,
                       height: 16,
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: '2px solid white',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                       '&:hover': {
-                        backgroundColor: COLORS.hover,
+                        backgroundColor: 'rgb(193, 146, 253)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                       },
                       '&:active': {
@@ -893,7 +894,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       },
                     },
                     '& .MuiSlider-track': {
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: 'none',
                     },
                     '& .MuiSlider-rail': {
@@ -922,11 +923,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     '& .MuiSlider-thumb': {
                       width: 16,
                       height: 16,
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: '2px solid white',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                       '&:hover': {
-                        backgroundColor: COLORS.hover,
+                        backgroundColor: 'rgb(193, 146, 253)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                       },
                       '&:active': {
@@ -946,7 +947,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       },
                     },
                     '& .MuiSlider-track': {
-                      backgroundColor: COLORS.primary,
+                      backgroundColor: 'rgb(173, 126, 233)',
                       border: 'none',
                     },
                     '& .MuiSlider-rail': {
@@ -973,15 +974,15 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       height: 24,
                       borderRadius: '20px',
                       border: 'none',
-                      backgroundColor: exportSettings.alignTextLeftRight ? COLORS.primary : '#e0e0e0',
+                      backgroundColor: exportSettings.alignTextLeftRight ? 'rgb(173, 126, 233)' : '#e0e0e0',
                       '&.Mui-selected': {
-                        backgroundColor: COLORS.primary,
+                        backgroundColor: 'rgb(173, 126, 233)',
                       },
                       '&:hover': {
                         backgroundColor: '#e0e0e0',
                       },
                       '&.Mui-selected:hover': {
-                        backgroundColor: COLORS.primaryLight,
+                        backgroundColor: 'rgb(203, 156, 263)',
                       },
                       position: 'relative',
                       '&::after': {

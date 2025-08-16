@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -26,7 +26,6 @@ import {
   Person as ProfileIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
-import { COLORS } from "@/lib/colorSystem";
 
 const drawerWidth = 240;
 
@@ -37,7 +36,6 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [mounted, setMounted] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -50,9 +48,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return "Resume Builder";
   };
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+
 
   // Show loading state while session is loading
   if (status === "loading") {
@@ -93,38 +89,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ color: COLORS.primary }}>
+        <Typography variant="h6" noWrap component="div" sx={{ color: 'rgb(173, 126, 233)' }}>
           Resume Builder
         </Typography>
       </Toolbar>
       <List>
         {menuItems.map((item) => {
-          const isSelected = pathname === item.path || 
-                           (item.path === "/resume" && pathname?.startsWith("/resume"));
-          
+          const isSelected = pathname === item.path;
           return (
-            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
-              <ListItemButton 
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
                 onClick={() => router.push(item.path)}
                 sx={{
-                  mx: 1,
-                  borderRadius: '20px',
-                  backgroundColor: isSelected ? COLORS.selectedBackground : 'transparent',
-                  color: isSelected ? COLORS.primary : 'inherit',
+                  backgroundColor: isSelected ? '#fafafa' : 'transparent',
+                  color: isSelected ? 'rgb(173, 126, 233)' : 'inherit',
                   '&:hover': {
-                    backgroundColor: COLORS.selectedBackground,
-                    borderRadius: '20px',
+                    backgroundColor: '#fafafa',
                   },
-                  '& .MuiListItemIcon-root': {
-                    color: isSelected ? COLORS.primary : 'inherit',
-                  },
-                  '& .MuiListItemText-primary': {
-                    fontWeight: isSelected ? 600 : 400,
-                  },
-                  transition: 'all 0.2s ease-in-out',
                 }}
               >
-                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemIcon sx={{ color: 'inherit' }}>
+                  {item.icon}
+                </ListItemIcon>
                 <ListItemText primary={item.text} />
               </ListItemButton>
             </ListItem>
@@ -135,15 +121,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ 
+      display: "flex",
+      height: "100vh", // Ensure full viewport height
+      overflow: "hidden" // Prevent unnecessary scroll bars
+    }}>
       <AppBar
         position="fixed"
-        elevation={0}
         sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-          backgroundColor: 'transparent',
-          boxShadow: 'none',
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+          backgroundColor: "white",
+          color: "black",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       >
         <Toolbar>
@@ -152,40 +142,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: "none" } }}
+            sx={{ mr: 2, display: { sm: "none" } }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, color: 'black' }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {getCurrentPageTitle()}
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                mr: 2,
-                display: { xs: 'none', sm: 'block' },
-                color: 'black'
-              }}
-            >
-              {mounted ? (session?.user?.name || "User") : "..."}
-            </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <IconButton
-              size="large"
-              edge="end"
-              aria-label="account of current user"
-              aria-controls="primary-search-account-menu"
-              aria-haspopup="true"
               onClick={handleProfileMenuOpen}
-              color="inherit"
+              sx={{ p: 0 }}
             >
-              {mounted && session?.user?.image ? (
-                <Avatar src={session.user.image} sx={{ width: 32, height: 32 }} />
-              ) : (
-                <Avatar sx={{ width: 32, height: 32 }}>
-                  {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
-                </Avatar>
-              )}
+              <Avatar
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: 'rgb(173, 126, 233)',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                }}
+              >
+                {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </Avatar>
             </IconButton>
           </Box>
         </Toolbar>
@@ -193,21 +172,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <Box
         component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: "block", md: "none" },
+            display: { xs: "block", sm: "none" },
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
-              borderRight: 'none',
             },
           }}
         >
@@ -216,11 +194,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: "none", md: "block" },
+            display: { xs: "none", sm: "block" },
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
-              borderRight: 'none',
             },
           }}
           open
@@ -233,12 +210,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { xs: "100vw", md: `calc(100% - ${drawerWidth}px)` },
-          maxWidth: { xs: "100vw", md: "none" },
-          overflow: "visible",
+          p: 0, // Remove padding to allow content to extend to edges
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          mt: "64px",
+          height: "calc(100vh - 64px)", // Ensure main content fits within viewport
+          overflow: "hidden", // Prevent scrolling at this level
+          display: "flex",
+          flexDirection: "column"
         }}
       >
-        <Toolbar />
         {children}
       </Box>
 
@@ -246,14 +226,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleProfileMenuClose}
-        onClick={handleProfileMenuClose}
+        sx={{
+          "& .MuiPaper-root": {
+            minWidth: 150,
+            mt: 1,
+          },
+        }}
       >
-        <MenuItem onClick={() => router.push("/profile")}>
-          <ListItemIcon>
-            <ProfileIcon fontSize="small" />
-          </ListItemIcon>
-          Profile
-        </MenuItem>
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <LogoutIcon fontSize="small" />

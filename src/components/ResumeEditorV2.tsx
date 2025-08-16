@@ -83,14 +83,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
   // Date picker state management
   const datePicker = useDatePicker();
-  const {
-    datePickerOpen: datePickerOpenFromHook,
-    datePickerPosition,
-    datePickerCallbackRef,
-    handleDateSelect,
-    setDatePickerPosition,
-    setDatePickerOpen
-  } = datePicker;
 
   // Scroll management
   const scrollManagement = useScrollManagement();
@@ -173,24 +165,20 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     resumeData,
     setProfileData,
     setResumeData,
-    onDeleteSection: handleDeleteSection,
-    setDatePickerOpen,
-    setDatePickerPosition,
-    datePickerCallbackRef
+    onDeleteSection: handleDeleteSection
   });
 
 
 
   return (
     <Box sx={{
+      mt: 0, // Remove negative margin
       mr: { xs: 0, md: 20 },
       display: "flex",
       flexDirection: "column",
-      backgroundColor: "#f5f5f5",
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
       position: "relative",
-      height: "calc(100vh - 64px)",
+      height: "100%", // Use full height of parent
+      overflow: "hidden", // Prevent main scrollbar
     }}>
 
       <AlertMessages error={error} success={success} />
@@ -238,10 +226,10 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
       {/* Date Picker */}
       <DatePicker
-        isOpen={datePickerOpenFromHook}
+        isOpen={datePicker.datePickerOpen}
         onClose={() => datePicker.closeDatePicker()}
-        onSelect={handleDateSelect}
-        position={datePickerPosition}
+        onSelect={datePicker.handleDateSelect}
+        position={datePicker.datePickerPosition}
       />
 
       {/* Edit Resume Info Modal */}

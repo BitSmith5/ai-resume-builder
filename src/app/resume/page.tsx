@@ -23,7 +23,7 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
-import { COLORS } from '@/lib/colorSystem';
+
 
 interface Resume {
   id: number;
@@ -59,6 +59,7 @@ interface Resume {
 
 export default function ResumePage() {
   const router = useRouter();
+  
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +106,7 @@ export default function ResumePage() {
     if (title.toLowerCase().includes('full-stack') || title.toLowerCase().includes('developer')) {
       return 'B';
     }
-    return <ArticleIcon sx={{ color: COLORS.primary }} />;
+    return <ArticleIcon sx={{ color: 'rgb(173, 126, 233)' }} />;
   };
 
   const getResumeIconColor = () => {
@@ -281,9 +282,9 @@ export default function ResumePage() {
                  justifyContent: 'center',
                  width: 26,
                  height: 26,
-                 bgcolor: COLORS.primaryLight,
-                 borderRadius: 1.5,
-                 color: COLORS.primaryDark
+                                    bgcolor: 'rgb(203, 156, 263)',
+                   borderRadius: 1.5,
+                   color: 'rgb(143, 96, 203)'
                }}
              >
                <AddIcon sx={{ fontSize: 20 }} />
@@ -291,7 +292,7 @@ export default function ResumePage() {
              <Typography
                variant="body2"
                sx={{
-                 color: COLORS.primaryDark,
+                 color: 'rgb(143, 96, 203)',
                  fontWeight: 500
                }}
              >

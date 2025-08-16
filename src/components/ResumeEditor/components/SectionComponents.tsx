@@ -19,9 +19,6 @@ interface SectionComponentsProps {
   setProfileData: (data: any) => void;
   setResumeData: (data: any) => void;
   onDeleteSection: (sectionName: string) => void;
-  setDatePickerOpen: (open: boolean) => void;
-  setDatePickerPosition: (position: { x: number; y: number }) => void;
-  datePickerCallbackRef: React.MutableRefObject<((date: string) => void) | null>;
 }
 
 export const createSectionComponents = ({
@@ -29,10 +26,7 @@ export const createSectionComponents = ({
   resumeData,
   setProfileData,
   setResumeData,
-  onDeleteSection,
-  setDatePickerOpen,
-  setDatePickerPosition,
-  datePickerCallbackRef
+  onDeleteSection
 }: SectionComponentsProps): Record<string, () => JSX.Element> => {
   return {
     "Personal Info": () => (
@@ -116,9 +110,6 @@ export const createSectionComponents = ({
         resumeData={resumeData}
         setResumeData={setResumeData}
         onDeleteSection={onDeleteSection}
-        setDatePickerOpen={setDatePickerOpen}
-        setDatePickerPosition={setDatePickerPosition}
-        datePickerCallbackRef={datePickerCallbackRef}
       />
     ),
     "References": () => (

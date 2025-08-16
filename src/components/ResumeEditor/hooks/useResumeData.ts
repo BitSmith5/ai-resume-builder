@@ -474,7 +474,6 @@ export const useResumeData = (resumeId?: string) => {
         references: deletedSections.includes('References') ? [] : (data.references || []),
       };
 
-      // Save resume data
       const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
       const method = resumeId ? "PUT" : "POST";
 
@@ -576,7 +575,22 @@ export const useResumeData = (resumeId?: string) => {
     if (loading || !session?.user) return;
 
     // Don't save if we're still loading initial data
-    if (resumeId && !resumeData.title && resumeData.workExperience.length === 0) return;
+    // Allow saving if there's any meaningful content, not just title and work experience
+    if (resumeId && 
+        !resumeData.title && 
+        resumeData.workExperience.length === 0 && 
+        resumeData.education.length === 0 && 
+        (resumeData.references?.length || 0) === 0 && 
+        (resumeData.projects?.length || 0) === 0 && 
+        (resumeData.languages?.length || 0) === 0 && 
+        (resumeData.publications?.length || 0) === 0 && 
+        (resumeData.awards?.length || 0) === 0 && 
+        (resumeData.volunteerExperience?.length || 0) === 0 && 
+        resumeData.interests.length === 0 && 
+        resumeData.courses.length === 0 && 
+        resumeData.strengths.length === 0) return;
+
+
 
     debouncedSave(resumeData, profileData, sectionOrder);
   }, [resumeData, profileData, sectionOrder, loading, session?.user, resumeId, debouncedSave]);

@@ -5,10 +5,11 @@ import {
   Button,
   Typography,
   IconButton,
+  Card,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
+  DeleteOutline as DeleteOutlineIcon,
   DragIndicator as DragIndicatorIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -100,7 +101,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
             }
           }}
         >
-          <DeleteIcon fontSize="small" />
+          <DeleteOutlineIcon fontSize="small" />
         </IconButton>
       </Box>
 
@@ -112,18 +113,13 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                 <React.Fragment key={courseIndex}>
                   <Draggable draggableId={`course-${courseIndex}`} index={courseIndex}>
                     {(provided) => (
-                      <Box
+                      <Card
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        sx={{
-                          mb: 3,
-                          background: 'transparent',
-                          p: 2,
-                          ml: -5.5,
-                        }}
+                        sx={{ mb: 3, p: 2, mr: 2 }}
                       >
                         {/* Course Header with Drag Handle */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: 300 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
                           <Box
                             {...provided.dragHandleProps}
                             sx={{
@@ -132,7 +128,6 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                               cursor: 'grab',
                               userSelect: 'none',
                               color: '#bbb',
-                              mr: 0.5,
                             }}
                           >
                             <DragIndicatorIcon sx={{ fontSize: 20 }} />
@@ -141,73 +136,50 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                             value={course.title || ''}
                             onChange={(e) => updateCourse(courseIndex, { title: e.target.value })}
                             placeholder="Course Title..."
-                            variant="standard"
-                            sx={{
-                              fontWeight: 600,
-                              px: 1,
-                              mr: 1,
-                              borderRadius: 2,
-                              backgroundColor: (course.title && course.title.trim()) ? 'transparent' : '#f5f5f5',
-                              '&:hover': {
-                                backgroundColor: '#f5f5f5',
-                              }
-                            }}
-                            InputProps={{
-                              style: { fontWeight: 600, fontSize: '1rem' },
-                              disableUnderline: true,
-                            }}
+                            variant="outlined"
+                            label="Course Title"
+                            size="small"
+                            sx={{ width: 400 }}
                           />
                           <IconButton
                             size="small"
                             onClick={() => deleteCourse(courseIndex)}
                             sx={{
-                              color: '#999',
-                              '&:hover': { color: '#d32f2f' },
-                              ml: 'auto'
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                              '&:hover': {
+                                backgroundColor: '#e0e0e0',
+                                border: '1px solid #a0a0a0',
+                              }
                             }}
                           >
-                            <DeleteIcon fontSize="small" />
+                            <DeleteOutlineIcon fontSize="small" />
                           </IconButton>
                         </Box>
 
                         {/* Course Details */}
-                        <Box sx={{ ml: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ ml: 4.5, mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <TextField
                             value={course.provider || ''}
                             onChange={(e) => updateCourse(courseIndex, { provider: e.target.value })}
                             placeholder="Provider (e.g., Udemy, Coursera)..."
-                            variant="standard"
-                            sx={{
-                              px: 1,
-                              borderRadius: 2,
-                              backgroundColor: (course.provider && course.provider.trim()) ? 'transparent' : '#f5f5f5',
-                              '&:hover': {
-                                backgroundColor: '#f5f5f5',
-                              }
-                            }}
-                            InputProps={{
-                              disableUnderline: true,
-                            }}
+                            variant="outlined"
+                            label="Provider"
+                            size="small"
+                            sx={{ width: 400 }}
                           />
                           <TextField
                             value={course.link || ''}
                             onChange={(e) => updateCourse(courseIndex, { link: e.target.value })}
                             placeholder="Course Link (optional)..."
-                            variant="standard"
-                            sx={{
-                              px: 1,
-                              borderRadius: 2,
-                              backgroundColor: (course.link && course.link.trim()) ? 'transparent' : '#f5f5f5',
-                              '&:hover': {
-                                backgroundColor: '#f5f5f5',
-                              }
-                            }}
-                            InputProps={{
-                              disableUnderline: true,
-                            }}
+                            variant="outlined"
+                            label="Course Link"
+                            size="small"
+                            sx={{ width: 600 }}
                           />
                         </Box>
-                      </Box>
+                      </Card>
                     )}
                   </Draggable>
                   {provided.placeholder}
@@ -218,20 +190,12 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
         </Droppable>
       </DragDropContext>
 
-      <Box sx={{ ml: 6, mt: 2 }}>
+      <Box sx={{ mt: 2 }}>
         <Button
           startIcon={<AddIcon />}
           onClick={addCourse}
           variant="outlined"
           size="small"
-          sx={{
-            borderColor: '#ddd',
-            color: '#666',
-            '&:hover': {
-              borderColor: '#999',
-              backgroundColor: '#f5f5f5'
-            }
-          }}
         >
           Add Course
         </Button>
