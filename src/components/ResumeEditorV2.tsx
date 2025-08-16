@@ -173,10 +173,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     resumeData,
     setProfileData,
     setResumeData,
-    onDeleteSection: handleDeleteSection,
-    setDatePickerOpen,
-    setDatePickerPosition,
-    datePickerCallbackRef
+    onDeleteSection: handleDeleteSection
   });
 
 
