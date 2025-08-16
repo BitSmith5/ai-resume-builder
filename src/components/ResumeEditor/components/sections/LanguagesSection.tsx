@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
   TextField,
   IconButton,
   Button,
-  FormControl,
-  Select,
-  MenuItem,
+  Card,
 } from '@mui/material';
 import {
   DeleteOutline as DeleteOutlineIcon,
@@ -27,24 +25,31 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
-  const [newLanguage, setNewLanguage] = useState('');
-  const [newProficiency, setNewProficiency] = useState('Beginner');
+  const [newLanguageId, setNewLanguageId] = useState<string | null>(null);
+  const languageRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
+  // Focus on new language when it's added
+  useEffect(() => {
+    if (newLanguageId && languageRefs.current[newLanguageId]) {
+      languageRefs.current[newLanguageId]?.focus();
+      setNewLanguageId(null);
+    }
+  }, [newLanguageId]);
 
   const addLanguage = () => {
-    if (!newLanguage.trim()) return;
-    const language = {
+    const newLanguage = {
       id: Math.random().toString(),
-      name: newLanguage.trim(),
-      proficiency: newProficiency,
+      name: "",
+      proficiency: "Beginner",
     };
 
     setResumeData(prev => ({
       ...prev,
-      languages: [...(prev.languages || []), language]
+      languages: [...(prev.languages || []), newLanguage]
     }));
 
-    setNewLanguage('');
-    setNewProficiency('Beginner');
+    // Set the new language ID to trigger focus in useEffect
+    setNewLanguageId(newLanguage.id);
   };
 
   const updateLanguage = (languageId: string, updates: Partial<{ name: string; proficiency: string }>) => {
@@ -93,11 +98,11 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
       </Box>
 
       {/* Languages List */}
-      <Box sx={{ ml: -3.5 }}>
+      <Box>
         {(resumeData.languages || []).map((language) => (
-          <Box key={language.id} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f5f5f5' }}>
+          <Card key={language.id} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f5f5f5', mr: 2 }}>
             {/* Language Header */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -105,23 +110,19 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
                 userSelect: 'none',
                 color: '#bbb',
               }}>
-                <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0', mr: 1 }} />
+                <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0' }} />
               </Box>
               <TextField
+                inputRef={(el) => {
+                  languageRefs.current[language.id] = el;
+                }}
                 value={language.name}
                 onChange={(e) => updateLanguage(language.id, { name: e.target.value })}
                 variant="outlined"
                 label="Language"
                 size="small"
-                sx={{
-                  fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: '#e0e0e0',
-                  }
-                }}
-                InputProps={{
-                  style: { fontWeight: 600, fontSize: '1rem' },
-                }}
+                sx={{ width: 200 }}
+                placeholder="Enter language name..."
               />
               <IconButton
                 size="small"
@@ -129,10 +130,10 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
                 sx={{
                   border: '1px solid #e0e0e0',
                   borderRadius: '50%',
+                  backgroundColor: 'white',
                   '&:hover': {
-                    backgroundColor: '#f5f5f5',
-                    border: '1px solid #f5f5f5',
-                    borderRadius: '50%'
+                    backgroundColor: '#e0e0e0',
+                    border: '1px solid #a0a0a0',
                   }
                 }}
               >
@@ -141,111 +142,29 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
             </Box>
 
             {/* Proficiency Selection */}
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2, pl: 3 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2, ml: 4.5 }}>
               {proficiencyLevels.map((level) => (
                 <Button
                   key={level}
                   variant={language.proficiency === level ? "contained" : "outlined"}
                   size="small"
                   onClick={() => updateLanguage(language.id, { proficiency: level })}
-                  sx={{
-                    textTransform: 'none',
-                    fontSize: '0.8rem',
-                    px: 1.5,
-                    py: 0.5,
-                    minWidth: 'auto',
-                    border: language.proficiency === level ? `2px solid rgb(173, 126, 233)` : '1px solid #e0e0e0',
-                    backgroundColor: language.proficiency === level ? '#fafafa' : 'white',
-                    color: language.proficiency === level ? 'rgb(173, 126, 233)' : '#333',
-                    '&:hover': {
-                      border: `2px solid rgb(173, 126, 233)`,
-                      backgroundColor: language.proficiency === level ? '#fafafa' : '#f5f5f5',
-                    }
-                  }}
                 >
                   {level}
                 </Button>
               ))}
             </Box>
-          </Box>
+          </Card>
         ))}
       </Box>
 
-      {/* Add Language Form */}
-      <Box sx={{ ml: -1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Add language..."
-          value={newLanguage}
-          onChange={(e) => setNewLanguage(e.target.value)}
-          sx={{
-            backgroundColor: '#f5f5f5',
-            borderRadius: 2,
-            '& .MuiOutlinedInput-root': {
-              '& fieldset': {
-                border: 'none',
-              },
-              '&:hover fieldset': {
-                border: 'none',
-              },
-              '&.Mui-focused fieldset': {
-                border: 'none',
-              },
-            },
-          }}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' && newLanguage.trim()) {
-              addLanguage();
-            }
-          }}
-        />
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <Select
-            value={newProficiency}
-            onChange={(e) => setNewProficiency(e.target.value)}
-            sx={{
-              backgroundColor: '#f5f5f5',
-              borderRadius: 2,
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  border: 'none',
-                },
-                '&:hover fieldset': {
-                  border: 'none',
-                },
-                '&.Mui-focused fieldset': {
-                  border: 'none',
-                },
-              },
-            }}
-          >
-            {proficiencyLevels.map((level) => (
-              <MenuItem key={level} value={level}>
-                {level}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      {/* Add Language Button */}
+      <Box>
         <Button
           startIcon={<AddIcon />}
           onClick={addLanguage}
           variant="outlined"
           size="small"
-          disabled={!newLanguage.trim()}
-          sx={{
-            textTransform: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            borderRadius: 2,
-            border: '1px solid #e0e0e0',
-            color: 'black',
-            minWidth: 120,
-            '&:hover': {
-              backgroundColor: '#f5f5f5',
-              border: '1px solid #f5f5f5'
-            }
-          }}
         >
           Add Language
         </Button>

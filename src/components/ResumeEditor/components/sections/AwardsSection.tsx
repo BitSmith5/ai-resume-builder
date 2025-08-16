@@ -302,26 +302,12 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
       </DragDropContext>
 
       {/* Add Award button */}
-      <Box sx={{ ml: -1.5 }}>
+      <Box>
         <Button
           startIcon={<AddIcon />}
           onClick={addAward}
           variant="outlined"
           size="small"
-          sx={{
-            textTransform: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            borderRadius: 2,
-            border: '1px solid #e0e0e0',
-            color: 'black',
-            minWidth: 180,
-            '&:hover': {
-              backgroundColor: '#f5f5f5',
-              border: '1px solid #f5f5f5'
-            }
-          }}
         >
           Award
         </Button>

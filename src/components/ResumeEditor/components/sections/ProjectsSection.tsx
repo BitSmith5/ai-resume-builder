@@ -485,20 +485,12 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         </Droppable>
       </DragDropContext>
 
-      <Box sx={{ ml: 6, mt: 2 }}>
+      <Box sx={{ mt: 2 }}>
         <Button
           startIcon={<AddIcon />}
           onClick={addProject}
           variant="outlined"
           size="small"
-          sx={{
-            borderColor: '#ddd',
-            color: '#666',
-            '&:hover': {
-              borderColor: '#999',
-              backgroundColor: '#f5f5f5'
-            }
-          }}
         >
           Add Project
         </Button>
