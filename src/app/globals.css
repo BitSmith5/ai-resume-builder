@@ -88,3 +88,25 @@ input:-webkit-autofill:focus {
     background-color: #121212 !important;
   }
 }
+
+/* Global scrollbar styles for all scroll bars in the app */
+::-webkit-scrollbar {
+  width: 10px !important;
+  background-color: transparent !important;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+  margin-left: 8px !important;
+  left: 8px !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cccccc !important;
+  border-radius: 5px !important;
+  margin-left: 8px !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aaaaaa !important;
+}
