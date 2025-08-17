@@ -35,7 +35,6 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
 
   const addEducation = () => {
     const newEducation = {
-      id: `education-${Date.now()}`,
       institution: "",
       degree: "",
       field: "",
@@ -50,7 +49,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
     }));
   };
 
-  const updateEducation = (educationId: string, updates: Partial<{
+  const updateEducation = (index: number, updates: Partial<{
     institution: string;
     degree: string;
     field: string;
@@ -61,16 +60,16 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
   }>) => {
     setResumeData(prev => ({
       ...prev,
-      education: (prev.education || []).map((edu) =>
-        edu.id === educationId ? { ...edu, ...updates } : edu
+      education: (prev.education || []).map((edu, i) =>
+        i === index ? { ...edu, ...updates } : edu
       )
     }));
   };
 
-  const deleteEducation = (educationId: string) => {
+  const deleteEducation = (index: number) => {
     setResumeData(prev => ({
       ...prev,
-      education: (prev.education || []).filter((edu) => edu.id !== educationId)
+      education: (prev.education || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -117,13 +116,13 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
           {(provided) => (
             <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.education || []).length === 0 ? 10 : 100 }}>
               {(resumeData.education || []).map((education, educationIndex) => (
-                <React.Fragment key={education.id}>
-                  <Draggable draggableId={`education-${education.id}`} index={educationIndex}>
+                <React.Fragment key={educationIndex}>
+                  <Draggable draggableId={`education-${educationIndex}`} index={educationIndex}>
                     {(provided) => (
                       <Card
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        data-education-id={education.id}
+                        data-education-index={educationIndex}
                         sx={{ mb: 3, p: 2, mr: 2 }}
                       >
                         {/* Institution and Degree */}
@@ -142,7 +141,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                           </Box>
                           <TextField
                             value={education.institution}
-                            onChange={(e) => updateEducation(education.id, { institution: e.target.value })}
+                            onChange={(e) => updateEducation(educationIndex, { institution: e.target.value })}
                             placeholder="Institution"
                             variant="outlined"
                             label="Institution"
@@ -151,7 +150,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                           />
                           <TextField
                             value={education.degree}
-                            onChange={(e) => updateEducation(education.id, { degree: e.target.value })}
+                            onChange={(e) => updateEducation(educationIndex, { degree: e.target.value })}
                             placeholder="Degree"
                             variant="outlined"
                             label="Degree"
@@ -160,7 +159,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                           />
                           <TextField
                             value={education.field}
-                            onChange={(e) => updateEducation(education.id, { field: e.target.value })}
+                            onChange={(e) => updateEducation(educationIndex, { field: e.target.value })}
                             placeholder="Field of Study"
                             variant="outlined"
                             label="Field of Study"
@@ -169,7 +168,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                           />
                           <IconButton
                             size="small"
-                            onClick={() => deleteEducation(education.id)}
+                            onClick={() => deleteEducation(educationIndex)}
                             sx={{
                               border: '1px solid #e0e0e0',
                               borderRadius: '50%',
@@ -203,7 +202,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                                       const rect = e.currentTarget.getBoundingClientRect();
                                       openDatePicker(
                                         { x: rect.left, y: rect.bottom + 5 },
-                                        (date) => updateEducation(education.id, { startDate: date })
+                                        (date) => updateEducation(educationIndex, { startDate: date })
                                       );
                                     }}
                                     sx={{ p: 0.5 }}
@@ -233,7 +232,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         openDatePicker(
                                           { x: rect.left, y: rect.bottom + 5 },
-                                          (date) => updateEducation(education.id, { endDate: date })
+                                          (date) => updateEducation(educationIndex, { endDate: date })
                                         );
                                       }
                                     }}
@@ -250,7 +249,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                             control={
                               <Checkbox
                                 checked={education.current}
-                                onChange={(e) => updateEducation(education.id, { current: e.target.checked })}
+                                onChange={(e) => updateEducation(educationIndex, { current: e.target.checked })}
                               />
                             }
                             label="Current"
@@ -259,7 +258,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                             value={education.gpa || ''}
                             onChange={(e) => {
                               const gpa = parseFloat(e.target.value);
-                              updateEducation(education.id, { gpa: isNaN(gpa) ? undefined : gpa });
+                              updateEducation(educationIndex, { gpa: isNaN(gpa) ? undefined : gpa });
                             }}
                             placeholder="GPA (optional)"
                             variant="outlined"
