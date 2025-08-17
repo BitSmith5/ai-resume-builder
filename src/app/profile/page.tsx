@@ -46,7 +46,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-  
+
   const { data: session, status } = useSession();
   const [profileData, setProfileData] = useState<ProfileData>({
     name: "",
@@ -211,7 +211,7 @@ export default function ProfilePage() {
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
           {/* Profile Information */}
           <Box flex={2}>
-            <Card sx={{ backgroundColor: '#f5f5f5' }}>
+            <Card sx={{ backgroundColor: 'white' }}>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={3}>
                   <PersonIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />
@@ -230,30 +230,6 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <PersonIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
-                    }}
                   />
                   <TextField
                     fullWidth
@@ -264,30 +240,6 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <EmailIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
-                    }}
                   />
                   <TextField
                     fullWidth
@@ -295,30 +247,6 @@ export default function ProfilePage() {
                     value={profileData.phone}
                     onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
                     disabled={!isEditing}
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
-                    }}
                   />
                   <TextField
                     fullWidth
@@ -326,28 +254,6 @@ export default function ProfilePage() {
                     value={profileData.location}
                     onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
                     disabled={!isEditing}
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'inherit !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
-                    }}
                   />
                   <TextField
                     fullWidth
@@ -358,30 +264,6 @@ export default function ProfilePage() {
                     placeholder="https://linkedin.com/in/yourprofile"
                     InputProps={{
                       startAdornment: <LinkedInIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
-                    }}
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
                     }}
                   />
                   <TextField
@@ -394,30 +276,6 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <GitHubIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
-                    }}
                   />
                   <TextField
                     fullWidth
@@ -429,28 +287,6 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: <LanguageIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />,
                     }}
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'inherit !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
-                    }}
                   />
                   <TextField
                     fullWidth
@@ -461,31 +297,6 @@ export default function ProfilePage() {
                     onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
                     disabled={!isEditing}
                     placeholder="Tell us about yourself..."
-                    sx={{ 
-                      gridColumn: { sm: "span 2" },
-                      '& .MuiInputBase-input': {
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:hover': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                        '&:-webkit-autofill:focus': {
-                          WebkitBoxShadow: '0 0 0 100px #f5f5f5 inset !important',
-                          WebkitTextFillColor: 'rgba(0, 0, 0, 0.87) !important',
-                        },
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: 'rgb(193, 146, 253)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'rgb(173, 126, 233)',
-                        },
-                      },
-                    }}
                   />
                 </Box>
 
@@ -496,15 +307,6 @@ export default function ProfilePage() {
                       startIcon={<SaveIcon />}
                       onClick={handleSave}
                       disabled={loading}
-                      sx={{
-                        backgroundColor: 'rgb(173, 126, 233)',
-                        '&:hover': {
-                          backgroundColor: 'rgb(193, 146, 253)',
-                        },
-                        '&:disabled': {
-                          backgroundColor: 'rgb(143, 96, 203)',
-                        },
-                      }}
                     >
                       {loading ? "Saving..." : "Save Changes"}
                     </Button>
@@ -513,14 +315,6 @@ export default function ProfilePage() {
                       startIcon={<CancelIcon />}
                       onClick={handleCancel}
                       disabled={loading}
-                      sx={{
-                        borderColor: 'rgb(173, 126, 233)',
-                        color: 'rgb(173, 126, 233)',
-                        '&:hover': {
-                          borderColor: 'rgb(193, 146, 253)',
-                          backgroundColor: '#fafafa',
-                        },
-                      }}
                     >
                       Cancel
                     </Button>
@@ -532,14 +326,14 @@ export default function ProfilePage() {
 
           {/* Profile Avatar and Account Info */}
           <Box flex={1} minWidth={{ md: 300 }}>
-            <Card sx={{ mb: 3, backgroundColor: '#f5f5f5' }}>
+            <Card sx={{ mb: 3, backgroundColor: 'white' }}>
               <CardContent sx={{ textAlign: "center" }}>
                 <Avatar
                   src={session?.user?.image || undefined}
-                  sx={{ 
-                    width: 80, 
-                    height: 80, 
-                    mx: "auto", 
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    mx: "auto",
                     mb: 2,
                     backgroundColor: 'rgb(173, 126, 233)',
                   }}
@@ -552,77 +346,24 @@ export default function ProfilePage() {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   {session?.user?.email}
                 </Typography>
-                <Chip 
-                  label="Premium Member" 
-                  sx={{ 
+                <Chip
+                  label="Premium Member"
+                  sx={{
                     mt: 1,
                     backgroundColor: 'rgb(173, 126, 233)',
                     color: 'white',
                     '&:hover': {
                       backgroundColor: 'rgb(193, 146, 253)',
                     },
-                  }} 
+                  }}
                 />
               </CardContent>
             </Card>
-
-            {/* Preferences */}
-            {/* <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={3}>
-                  <SettingsIcon sx={{ mr: 1, color: "primary.main" }} />
-                  <Typography variant="h6">Preferences</Typography>
-                </Box>
-
-                <Stack spacing={2}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={profileData.preferences.emailNotifications}
-                        onChange={() => handlePreferenceChange('emailNotifications')}
-                        disabled={!isEditing}
-                      />
-                    }
-                    label="Email Notifications"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={profileData.preferences.pushNotifications}
-                        onChange={() => handlePreferenceChange('pushNotifications')}
-                        disabled={!isEditing}
-                      />
-                    }
-                    label="Push Notifications"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={profileData.preferences.resumeAutoSave}
-                        onChange={() => handlePreferenceChange('resumeAutoSave')}
-                        disabled={!isEditing}
-                      />
-                    }
-                    label="Auto-save Resumes"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={profileData.preferences.publicProfile}
-                        onChange={() => handlePreferenceChange('publicProfile')}
-                        disabled={!isEditing}
-                      />
-                    }
-                    label="Public Profile"
-                  />
-                </Stack>
-              </CardContent>
-            </Card> */}
           </Box>
         </Box>
 
         {/* Account Security */}
-        <Card sx={{ mt: 3, backgroundColor: '#f5f5f5' }}>
+        <Card sx={{ mt: 3, backgroundColor: 'white' }}>
           <CardContent>
             <Box display="flex" alignItems="center" mb={3}>
               <SecurityIcon sx={{ mr: 1, color: 'rgb(173, 126, 233)' }} />
@@ -651,16 +392,8 @@ export default function ProfilePage() {
             </Box>
 
             <Box mt={3}>
-              <Button 
-                variant="outlined" 
-                sx={{
-                  borderColor: 'rgb(173, 126, 233)',
-                  color: 'rgb(173, 126, 233)',
-                  '&:hover': {
-                    borderColor: 'rgb(193, 146, 253)',
-                    backgroundColor: '#fafafa',
-                  },
-                }}
+              <Button
+                variant="outlined"
               >
                 Change Password
               </Button>

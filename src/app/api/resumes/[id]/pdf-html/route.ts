@@ -113,7 +113,7 @@ export async function POST(
     console.log('🎯 HTML PDF - Using template:', template);
     
          // Generate HTML using the unified PDF generator - SAME CODE FOR BOTH
-     const html = generatePdfHtml(resumeData, activeSections, exportSettings, !generatePdf);
+     const html = generatePdfHtml(resumeData, activeSections, exportSettings);
      console.log('🎯 HTML PDF - HTML rendered successfully, length:', html.length);
  
           console.log('🎯 HTML PDF - HTML generated successfully');

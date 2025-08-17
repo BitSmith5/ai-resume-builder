@@ -20,8 +20,6 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { ResumeData } from '../../types';
 import { DatePicker } from '../DatePicker';
 import { useDatePicker } from '../../hooks/useDatePicker';
@@ -39,6 +37,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   onDeleteSection,
 }) => {
   const { datePickerOpen, datePickerPosition, openDatePicker, closeDatePicker, handleDateSelect } = useDatePicker();
+  
+  // State for technology input fields
+  const [techInputs, setTechInputs] = React.useState<{ [key: string]: string }>({});
 
 
   // Initialize projects if not exists
@@ -108,6 +109,22 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
     const newTechnologies = [...project.technologies, technology.trim()];
     updateProject(projectId, { technologies: newTechnologies });
+    
+    // Clear the input field
+    setTechInputs(prev => ({ ...prev, [projectId]: '' }));
+  };
+
+  const handleTechInputChange = (projectId: string, value: string) => {
+    setTechInputs(prev => ({ ...prev, [projectId]: value }));
+  };
+
+  const handleTechInputKeyPress = (projectId: string, e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      const value = techInputs[projectId] || '';
+      if (value.trim()) {
+        addTechnology(projectId, value.trim());
+      }
+    }
   };
 
   const removeTechnology = (projectId: string, technologyIndex: number) => {
@@ -118,20 +135,27 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     updateProject(projectId, { technologies: newTechnologies });
   };
 
-  const handleTechnologyDragEnd = (event: DragEndEvent, projectId: string) => {
-    const { active, over } = event;
+  const handleTechnologyDragEnd = (result: DropResult, projectId: string) => {
+    if (!result.destination) return;
 
-    if (active.id !== over?.id) {
-      const project = (resumeData.projects || projects).find(p => p.id === projectId);
-      if (!project) return;
+    const project = (resumeData.projects || projects).find(p => p.id === projectId);
+    if (!project) return;
 
-      const oldIndex = project.technologies.findIndex((_, index) => `${projectId}-tech-${index}` === active.id);
-      const newIndex = project.technologies.findIndex((_, index) => `${projectId}-tech-${index}` === over?.id);
+    const newTechnologies = Array.from(project.technologies);
+    const [removed] = newTechnologies.splice(result.source.index, 1);
+    newTechnologies.splice(result.destination.index, 0, removed);
 
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newTechnologies = arrayMove(project.technologies, oldIndex, newIndex);
-        updateProject(projectId, { technologies: newTechnologies });
-      }
+    updateProject(projectId, { technologies: newTechnologies });
+  };
+
+  const handleAllDragEnd = (result: DropResult) => {
+    // Check if this is a technology drag
+    if (result.source.droppableId.startsWith('tech-')) {
+      const projectId = result.source.droppableId.replace('tech-', '');
+      handleTechnologyDragEnd(result, projectId);
+    } else if (result.source.droppableId === 'projects') {
+      // This is a project drag
+      handleProjectDragEnd(result);
     }
   };
 
@@ -176,15 +200,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     setResumeData(prev => ({ ...prev, projects: newProjects }));
   };
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+
 
   return (
     <Box sx={{ py: 2 }}>
+      
       <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
         <Typography variant="h6" fontWeight={600}>
           Projects
@@ -211,7 +231,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         </IconButton>
       </Box>
 
-      <DragDropContext onDragEnd={handleProjectDragEnd}>
+             <DragDropContext onDragEnd={handleAllDragEnd}>
         <Droppable droppableId="projects" type="project">
           {(provided) => (
             <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.projects || projects).length === 0 ? 10 : 100 }}>
@@ -219,11 +239,12 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 <React.Fragment key={project.id}>
                   <Draggable draggableId={`project-${project.id}`} index={projectIndex}>
                     {(provided) => (
-                      <Card
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        sx={{ mb: 3, p: 2, mr: 2 }}
-                      >
+                                             <Card
+                         ref={provided.innerRef}
+                         {...provided.draggableProps}
+                         data-project-id={project.id}
+                         sx={{ mb: 3, p: 2, mr: 2 }}
+                       >
                         {/* Project Header with Drag Handle */}
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, width: '100%', gap: 2 }}>
                           <Box
@@ -351,85 +372,112 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                             sx={{ width: 600 }}
                           />
 
-                          {/* Technologies */}
-                          <Box>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                              Technologies:
-                            </Typography>
-                            <DndContext
-                              sensors={sensors}
-                              collisionDetection={closestCenter}
-                              onDragEnd={(event) => handleTechnologyDragEnd(event, project.id)}
-                            >
-                              <SortableContext
-                                items={project.technologies.map((_, index) => `${project.id}-tech-${index}`)}
-                                strategy={horizontalListSortingStrategy}
-                              >
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                                  {project.technologies.map((tech, techIndex) => (
-                                    <Chip
-                                      key={`${project.id}-tech-${techIndex}`}
-                                      sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        py: 1,
-                                        cursor: 'grab',
-                                      }}
-                                      label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                          <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'grab', ml: -0.5 }}>
-                                            <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
-                                          </Box>
-                                          <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
-                                            {tech}
-                                          </Typography>
-                                          <Box sx={{ display: 'flex', alignItems: 'center', mr: -1 }}>
-                                            <IconButton
-                                              size="small"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                removeTechnology(project.id, techIndex);
-                                              }}
-                                              onMouseDown={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                              }}
-                                              sx={{ p: 0.5, borderRadius: "50%", '&:hover': { backgroundColor: themeColors.gray[500], color: themeColors.white } }}
-                                            >
-                                              <CloseIcon sx={{ fontSize: 16 }} />
-                                            </IconButton>
-                                          </Box>
-                                        </Box>
-                                      }
-                                    />
-                                  ))}
-                                </Box>
-                              </SortableContext>
-                            </DndContext>
+                                                     {/* Technologies */}
+                           <Box>
+                             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                               Technologies:
+                             </Typography>
+                                                           <Droppable droppableId={`tech-${project.id}`} direction="horizontal" type="technology">
+                               {(provided) => (
+                                 <Box 
+                                   ref={provided.innerRef}
+                                   {...provided.droppableProps}
+                                   sx={{ 
+                                     display: 'flex', 
+                                     flexWrap: 'wrap', 
+                                     gap: 1, 
+                                     mb: 2,
+                                     minHeight: 40
+                                   }}
+                                 >
+                                   {project.technologies.map((tech, techIndex) => (
+                                                                           <Draggable 
+                                        key={`${project.id}-tech-${techIndex}`} 
+                                        draggableId={`${project.id}-tech-${techIndex}`} 
+                                        index={techIndex}
+                                      >
+                                       {(provided, snapshot) => (
+                                         <Box
+                                           ref={provided.innerRef}
+                                           {...provided.draggableProps}
+                                           {...provided.dragHandleProps}
+                                           sx={{
+                                             display: 'flex',
+                                             alignItems: 'center',
+                                             opacity: snapshot.isDragging ? 0.8 : 1,
+                                             transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
+                                             transition: 'all 0.2s ease',
+                                           }}
+                                         >
+                                           <Chip
+                                             sx={{
+                                               display: 'flex',
+                                               alignItems: 'center',
+                                               py: 1,
+                                               cursor: 'grab',
+                                               userSelect: 'none',
+                                               '&:active': {
+                                                 cursor: 'grabbing',
+                                               },
+                                               '&:focus': {
+                                                 outline: 'none',
+                                               },
+                                             }}
+                                             label={
+                                               <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                                 <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'grab', ml: -0.5 }}>
+                                                   <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
+                                                 </Box>
+                                                 <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
+                                                   {tech}
+                                                 </Typography>
+                                                 <Box sx={{ display: 'flex', alignItems: 'center', mr: -1 }}>
+                                                   <IconButton
+                                                     size="small"
+                                                     onClick={(e) => {
+                                                       e.preventDefault();
+                                                       e.stopPropagation();
+                                                       removeTechnology(project.id, techIndex);
+                                                     }}
+                                                     onMouseDown={(e) => {
+                                                       e.preventDefault();
+                                                       e.stopPropagation();
+                                                     }}
+                                                     sx={{ p: 0.5, borderRadius: "50%", '&:hover': { backgroundColor: themeColors.gray[500], color: themeColors.white } }}
+                                                   >
+                                                     <CloseIcon sx={{ fontSize: 16 }} />
+                                                   </IconButton>
+                                                 </Box>
+                                               </Box>
+                                             }
+                                           />
+                                         </Box>
+                                       )}
+                                     </Draggable>
+                                   ))}
+                                   {provided.placeholder}
+                                 </Box>
+                               )}
+                             </Droppable>
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                              <TextField
-                                size="small"
-                                placeholder="Add technology..."
-                                onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                                  if (e.key === 'Enter') {
-                                    addTechnology(project.id, e.currentTarget.value);
-                                    e.currentTarget.value = '';
-                                  }
-                                }}
-                                sx={{ width: 200 }}
-                              />
-                              <Button
-                                size="small"
-                                onClick={() => {
-                                  const input = document.querySelector(`input[placeholder="Add technology..."]`) as HTMLInputElement;
-                                  if (input && input.value.trim()) {
-                                    addTechnology(project.id, input.value.trim());
-                                    input.value = '';
-                                  }
-                                }}
-                                sx={{ height: 32, minWidth: 'auto' }}
-                              >
+                                                             <TextField
+                                 size="small"
+                                 placeholder="Add technology..."
+                                 value={techInputs[project.id] || ''}
+                                 onChange={(e) => handleTechInputChange(project.id, e.target.value)}
+                                 onKeyPress={(e) => handleTechInputKeyPress(project.id, e)}
+                                 sx={{ width: 200 }}
+                               />
+                                                             <Button
+                                 size="small"
+                                 onClick={() => {
+                                   const value = techInputs[project.id] || '';
+                                   if (value.trim()) {
+                                     addTechnology(project.id, value.trim());
+                                   }
+                                 }}
+                                 sx={{ height: 32, minWidth: 'auto' }}
+                               >
                                 <AddCircleOutlineIcon fontSize="small" />
                               </Button>
                             </Box>
@@ -506,3 +554,5 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     </Box>
   );
 };
+
+

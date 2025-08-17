@@ -304,7 +304,7 @@ export default function ResumePage() {
         {/* Main Content */}
         <Box sx={{
           backgroundColor: "white",
-          borderRadius: 4,
+          borderRadius: 2,
           overflow: 'hidden',
         }}>
           {/* Resume List */}
