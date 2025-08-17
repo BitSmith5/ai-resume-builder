@@ -74,10 +74,6 @@ const formatPhoneNumber = (phone: string): string => {
 
 // Function to render sections based on the active sections order
 const renderSection = (sectionName: string, resumeData: any): string => {
-  console.log(`🎯 Rendering section: ${sectionName}`);
-  console.log(`🎯 Resume data keys:`, Object.keys(resumeData));
-  console.log(`🎯 Content keys:`, resumeData.content ? Object.keys(resumeData.content) : 'No content');
-  console.log(`🎯 Personal info:`, resumeData.content?.personalInfo);
 
   switch (sectionName) {
     case 'Personal Info':
@@ -86,7 +82,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return '';
 
     case 'Professional Summary':
-      console.log(`🎯 Professional Summary - summary:`, resumeData.content?.personalInfo?.summary);
       return resumeData.content?.personalInfo?.summary ? `
         <div class="section">
           <div class="section-header">Professional Summary</div>
@@ -95,13 +90,8 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       ` : '';
 
     case 'Work Experience':
-      console.log(`🎯 Work Experience - data:`, resumeData.workExperience);
-      console.log(`🎯 Work Experience - length:`, resumeData.workExperience?.length);
       if (resumeData.workExperience && resumeData.workExperience.length > 0) {
-        console.log(`🎯 Work Experience - rendering ${resumeData.workExperience.length} entries`);
-        console.log(`🎯 First work experience:`, resumeData.workExperience[0]);
         const workHtml = resumeData.workExperience.map((work: any) => {
-          console.log(`🎯 Work ${work.company}:`, work);
           return `
             <div class="entry">
               <div class="entry-header">
@@ -119,7 +109,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
             </div>
           `;
         }).join('');
-        console.log(`🎯 Work Experience HTML:`, workHtml);
         return `
           <div class="section">
             <div class="section-header">Work Experience</div>
@@ -127,7 +116,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
         </div>
         `;
       } else {
-        console.log(`🎯 Work Experience - no data found, showing placeholder`);
         return `
           <div class="section">
             <div class="section-header">Work Experience</div>
@@ -137,13 +125,8 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       }
 
     case 'Projects':
-      console.log(`🎯 Projects - data:`, resumeData.projects);
-      console.log(`🎯 Projects - length:`, resumeData.projects?.length);
       if (resumeData.projects && resumeData.projects.length > 0) {
-        console.log(`🎯 Projects - rendering ${resumeData.projects.length} projects`);
-        console.log(`🎯 First project:`, resumeData.projects[0]);
         const projectsHtml = resumeData.projects.map((project: any) => {
-          console.log(`🎯 Project ${project.title}:`, project);
           return `
             <div class="entry">
               <div class="entry-header">
@@ -158,7 +141,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
             </div>
           `;
         }).join('');
-        console.log(`🎯 Projects HTML:`, projectsHtml);
         return `
           <div class="section">
             <div class="section-header">Projects</div>
@@ -166,7 +148,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
         </div>
         `;
       } else {
-        console.log(`🎯 Projects - no data found, showing placeholder`);
         return `
           <div class="section">
             <div class="section-header">Projects</div>
@@ -176,13 +157,8 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       }
 
     case 'Education':
-      console.log(`🎯 Education - data:`, resumeData.education);
-      console.log(`🎯 Education - length:`, resumeData.education?.length);
       if (resumeData.education && resumeData.education.length > 0) {
-        console.log(`🎯 Education - rendering ${resumeData.education.length} education entries`);
-        console.log(`🎯 First education:`, resumeData.education[0]);
         const educationHtml = resumeData.education.map((edu: any) => {
-          console.log(`🎯 Education ${edu.institution}:`, edu);
           return `
             <div class="entry">
               <div class="entry-header">
@@ -194,7 +170,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
             </div>
           `;
         }).join('');
-        console.log(`🎯 Education HTML:`, educationHtml);
         return `
           <div class="section">
             <div class="section-header">Education</div>
@@ -202,7 +177,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
         </div>
         `;
       } else {
-        console.log(`🎯 Education - no data found, showing placeholder`);
         return `
           <div class="section">
             <div class="section-header">Education</div>
@@ -212,11 +186,8 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       }
 
     case 'Technical Skills':
-      console.log(`🎯 Technical Skills - skillCategories:`, resumeData.skillCategories);
-      console.log(`🎯 Technical Skills - strengths:`, resumeData.strengths);
       // Check for skillCategories first (structured format), then fall back to strengths
       if (resumeData.skillCategories && resumeData.skillCategories.length > 0) {
-        console.log(`🎯 Technical Skills - rendering skillCategories`);
         return `
           <div class="section">
             <div class="section-header">Technical Skills</div>
@@ -229,7 +200,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           </div>
         `;
       } else if (resumeData.strengths && resumeData.strengths.length > 0) {
-        console.log(`🎯 Technical Skills - rendering strengths`);
         return `
           <div class="section">
             <div class="section-header">Technical Skills</div>
@@ -237,7 +207,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
           </div>
         `;
       }
-      console.log(`🎯 Technical Skills - no data found, showing placeholder`);
       return `
         <div class="section">
           <div class="section-header">Technical Skills</div>
@@ -340,17 +309,6 @@ const renderSection = (sectionName: string, resumeData: any): string => {
 
 // Generate the HTML content for PDF (used by both preview and PDF download)
 export function generatePdfHtml(resumeData: any, activeSections: string[], exportSettings: ExportSettings, isPreview: boolean = false): string {
-  console.log('🎯 generatePdfHtml called with:');
-  console.log('🎯 activeSections:', activeSections);
-  console.log('🎯 resumeData keys:', Object.keys(resumeData));
-  console.log('🎯 resumeData.content:', resumeData.content);
-  console.log('🎯 resumeData.content.personalInfo:', resumeData.content?.personalInfo);
-  console.log('🎯 resumeData.skillCategories:', resumeData.skillCategories);
-  console.log('🎯 resumeData.strengths:', resumeData.strengths);
-  console.log('🎯 resumeData.workExperience:', resumeData.workExperience);
-  console.log('🎯 resumeData.projects:', resumeData.projects);
-  console.log('🎯 resumeData.education:', resumeData.education);
-  console.log('🎯 exportSettings.sectionSpacing:', exportSettings.sectionSpacing);
 
   // Create the HTML content with proper styling
   const htmlContent = `
@@ -384,19 +342,12 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
     ` : ''}
 
     ${activeSections.filter(sectionName => sectionName !== 'Professional Summary').map(sectionName => {
-        console.log(`🎯 generatePdfHtml - Rendering section: ${sectionName}`);
-        const rendered = renderSection(sectionName, resumeData);
-        console.log(`🎯 generatePdfHtml - Section ${sectionName} rendered length:`, rendered.length);
-        console.log(`🎯 generatePdfHtml - Section ${sectionName} preview:`, rendered.substring(0, 200));
-        return rendered;
+        return renderSection(sectionName, resumeData);
       }).join('')}
   `;
 
-  console.log(`🎯 Final HTML content:`, htmlContent);
-
   // Use smart pagination for both preview and PDF
   const processedHtml = generatePreviewPages(htmlContent, exportSettings);
-  console.log(`🎯 ${isPreview ? 'Preview' : 'PDF'} - Using smart pagination with page containers`);
   const finalHtml = processedHtml;
 
   // Wrap with complete document structure and CSS
@@ -635,29 +586,21 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
     const section = sections[i];
     const sectionHeight = estimateSectionPartHeight(section, exportSettings);
 
-    console.log(`🎯 generatePreviewPages - Checking section ${i + 1}:`);
-    console.log(`🎯 generatePreviewPages - Section ${i + 1} estimated height:`, sectionHeight);
-    console.log(`🎯 generatePreviewPages - Current page height:`, currentPageHeight);
-    console.log(`🎯 generatePreviewPages - Max page height:`, maxPageHeight);
-
     // Check if this section would fit on the current page
     if (currentPageHeight + sectionHeight <= maxPageHeight) {
       // Add section to current page
       currentPageContent += section;
       currentPageHeight += sectionHeight;
-      console.log(`🎯 generatePreviewPages - Added section ${i + 1} to current page`);
     } else {
       // Current page is full, create it and start a new page
       if (currentPageContent) {
         const pageContainer = createPageContainer(currentPageContent, pageWidthPx, pageHeightPx, exportSettings);
         pages.push(pageContainer);
-        console.log(`🎯 generatePreviewPages - Created page with ${currentPageContent.split('<div class="section-header">').length - 1} sections`);
       }
 
       // Start new page with this section
       currentPageContent = section;
       currentPageHeight = sectionHeight;
-      console.log(`🎯 generatePreviewPages - Started new page with section ${i + 1}`);
     }
   }
 
@@ -665,7 +608,6 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
   if (currentPageContent) {
     const pageContainer = createPageContainer(currentPageContent, pageWidthPx, pageHeightPx, exportSettings);
     pages.push(pageContainer);
-    console.log(`🎯 generatePreviewPages - Created final page with ${currentPageContent.split('<div class="section-header">').length - 1} sections`);
   }
 
   // Add spacing between pages
@@ -681,9 +623,6 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
 
 // Helper function to split HTML content into sections
 function splitContentIntoSections(htmlContent: string): string[] {
-  console.log(`🎯 splitContentIntoSections - Input HTML length:`, htmlContent.length);
-  console.log(`🎯 splitContentIntoSections - Input HTML preview:`, htmlContent.substring(0, 500));
-
   const sections: string[] = [];
 
   // First, extract header and contact info as one section
@@ -697,22 +636,16 @@ function splitContentIntoSections(htmlContent: string): string[] {
     if (headerMatch) headerContactSection += headerMatch[0];
     if (contactMatch) headerContactSection += contactMatch[0];
     sections.push(headerContactSection);
-    console.log(`🎯 splitContentIntoSections - Added header/contact section, length:`, headerContactSection.length);
   }
 
   // Add Professional Summary as separate section
   if (summaryMatch) {
     sections.push(summaryMatch[0]);
-    console.log(`🎯 splitContentIntoSections - Added Professional Summary section, length:`, summaryMatch[0].length);
   }
 
   // Use a robust HTML parser to find all section divs and their complete content
   let currentIndex = 0;
   const sectionStartTag = '<div class="section">';
-
-  console.log(`🎯 splitContentIntoSections - Looking for sections with tag: ${sectionStartTag}`);
-  console.log(`🎯 splitContentIntoSections - HTML contains 'Work Experience':`, htmlContent.includes('Work Experience'));
-  console.log(`🎯 splitContentIntoSections - HTML contains 'class="section"':`, htmlContent.includes('class="section"'));
 
   while (true) {
     const sectionStartIndex = htmlContent.indexOf(sectionStartTag, currentIndex);
@@ -750,18 +683,13 @@ function splitContentIntoSections(htmlContent: string): string[] {
     if (sectionEndIndex !== -1) {
       const fullSection = htmlContent.substring(sectionStartIndex, sectionEndIndex);
       sections.push(fullSection);
-      console.log(`🎯 splitContentIntoSections - Added section ${sections.length}, length:`, fullSection.length);
-      console.log(`🎯 splitContentIntoSections - Section ${sections.length} preview:`, fullSection.substring(0, 200));
-      console.log(`🎯 splitContentIntoSections - Section ${sections.length} contains 'Work Experience':`, fullSection.includes('Work Experience'));
       currentIndex = sectionEndIndex;
     } else {
       // If we can't find the closing div, skip this section
-      console.log(`🎯 splitContentIntoSections - Could not find closing div for section starting at index ${sectionStartIndex}`);
       currentIndex = sectionStartIndex + sectionStartTag.length;
     }
   }
 
-  console.log(`🎯 splitContentIntoSections - Total sections found:`, sections.length);
   return sections;
 }
 
@@ -840,10 +768,6 @@ function createPageContainer(content: string, pageWidthPx: number, pageHeightPx:
 
 // Generate the complete HTML document with styling
 export function generateCompleteHtml(resumeData: any, activeSections: string[], exportSettings: ExportSettings, isPreview: boolean = false): string {
-  console.log('🎯 generateCompleteHtml called with:');
-  console.log('🎯 isPreview:', isPreview);
-  console.log('🎯 activeSections:', activeSections);
-  console.log('🎯 resumeData.workExperience:', resumeData.workExperience);
 
   // Generate the HTML content with pagination
   const htmlContent = generatePdfHtml(resumeData, activeSections, exportSettings, isPreview);
