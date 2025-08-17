@@ -308,7 +308,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
 };
 
 // Generate the HTML content for PDF (used by both preview and PDF download)
-export function generatePdfHtml(resumeData: any, activeSections: string[], exportSettings: ExportSettings, isPreview: boolean = false): string {
+export function generatePdfHtml(resumeData: any, activeSections: string[], exportSettings: ExportSettings): string {
 
   // Create the HTML content with proper styling
   const htmlContent = `
@@ -770,7 +770,7 @@ function createPageContainer(content: string, pageWidthPx: number, pageHeightPx:
 export function generateCompleteHtml(resumeData: any, activeSections: string[], exportSettings: ExportSettings, isPreview: boolean = false): string {
 
   // Generate the HTML content with pagination
-  const htmlContent = generatePdfHtml(resumeData, activeSections, exportSettings, isPreview);
+  const htmlContent = generatePdfHtml(resumeData, activeSections, exportSettings);
 
   // For both preview and PDF, use the processed HTML content directly
   return htmlContent;
