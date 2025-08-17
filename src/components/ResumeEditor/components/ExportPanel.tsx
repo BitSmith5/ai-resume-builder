@@ -197,7 +197,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   return (
     <>
-
       <Drawer
         anchor="right"
         open={open}
@@ -212,6 +211,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           }
         }}
         sx={{
+          zIndex: 1500,
           '& .MuiDrawer-paper': {
             width: 1200,
             backgroundColor: 'white',
@@ -219,6 +219,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
             boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
             borderTopLeftRadius: 20,
             borderBottomLeftRadius: 20,
+            zIndex: 1400,
           },
         }}
       >
