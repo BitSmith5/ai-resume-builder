@@ -57,6 +57,8 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     handleExportClick,
     handleExportClose,
     handleDownloadPDF,
+    refreshTrigger,
+    refreshPreview,
     cleanup: cleanupExport,
   } = useExportSettings(resumeId, resumeData.title);
 
@@ -130,6 +132,14 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     // This effect ensures the preview updates when export settings change
     // The preview is already reactive to exportSettings changes
   }, [exportSettings]);
+
+  // Auto-refresh export panel when resume data changes
+  useEffect(() => {
+    // If the export panel is open and resume data changes, refresh the preview
+    if (exportPanelOpen && refreshPreview) {
+      refreshPreview();
+    }
+  }, [resumeData, sectionOrder, exportPanelOpen, refreshPreview]);
 
 
   // Drag and drop functionality
@@ -251,6 +261,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         resumeId={resumeId || ''}
         onDownloadPDF={handlePDFDownload}
         pdfDownloading={pdfDownloading}
+        refreshTrigger={refreshTrigger}
       />
 
       {/* Delete Confirmation Dialog */}

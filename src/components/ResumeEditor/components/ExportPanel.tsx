@@ -45,7 +45,7 @@ interface ExportPanelProps {
   exportSettings: ExportSettings;
   setExportSettings: React.Dispatch<React.SetStateAction<ExportSettings>>;
   resumeId: string;
-
+  refreshTrigger?: number;
   onDownloadPDF: () => Promise<void>;
   pdfDownloading: boolean;
 }
@@ -56,7 +56,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   exportSettings,
   setExportSettings,
   resumeId,
-
+  refreshTrigger,
   onDownloadPDF,
   pdfDownloading,
 }) => {
@@ -86,6 +86,13 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       }
     };
   }, []);
+
+  // Clear cache when refreshTrigger changes to ensure fresh data
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      previewCache.current.clear();
+    }
+  }, [refreshTrigger]);
 
   // Load PDF preview when export panel opens or settings change
   useEffect(() => {
@@ -149,7 +156,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         abortController.abort();
       };
     }
-  }, [open, resumeId, getCacheKey, exportSettings]);
+  }, [open, resumeId, getCacheKey, exportSettings, refreshTrigger]);
 
   const handleClose = () => {
     onClose();

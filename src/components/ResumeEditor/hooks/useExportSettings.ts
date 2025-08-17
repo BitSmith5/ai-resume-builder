@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 export interface ExportSettings {
   template: string;
@@ -26,6 +26,9 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
   // Fallback timeout ref for export panel transitions
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refresh trigger to force preview updates
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   // Default export settings
   const [exportSettings, setExportSettings] = useState<ExportSettings>({
     template: 'standard',
@@ -48,6 +51,8 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
   // Export panel handlers
   const handleExportClick = useCallback(() => {
     setExportPanelOpen(true);
+    // Trigger a refresh when opening the export panel to show latest data
+    setRefreshTrigger(prev => prev + 1);
   }, []);
 
   const handleExportClose = useCallback(() => {
@@ -56,6 +61,11 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
     exportPanelFallbackTimeoutRef.current = setTimeout(() => {
       // Fallback timeout for transition end
     }, 300); // 300ms should be enough for the transition
+  }, []);
+
+  // Function to manually refresh the preview
+  const refreshPreview = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
   }, []);
 
   // PDF download handler
@@ -140,6 +150,7 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
     exportPanelOpen,
     pdfDownloading,
     exportSettings,
+    refreshTrigger,
     
     // Setters
     setExportPanelOpen,
@@ -149,6 +160,7 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
     handleExportClick,
     handleExportClose,
     handleDownloadPDF,
+    refreshPreview,
     
     // Cleanup
     cleanup,
