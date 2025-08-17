@@ -34,12 +34,16 @@ export const VolunteerExperienceSection: React.FC<VolunteerExperienceSectionProp
 }) => {
   const { datePickerOpen, datePickerPosition, openDatePicker, closeDatePicker, handleDateSelect } = useDatePicker();
   const [newBulletId, setNewBulletId] = useState<string | null>(null);
-  const bulletRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const bulletRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Focus on new bullet point when it's added
   useEffect(() => {
     if (newBulletId && bulletRefs.current[newBulletId]) {
-      bulletRefs.current[newBulletId]?.focus();
+      // Find the input element within the div and focus it
+      const inputElement = bulletRefs.current[newBulletId]?.querySelector('input') as HTMLInputElement;
+      if (inputElement) {
+        inputElement.focus();
+      }
       setNewBulletId(null);
     }
   }, [newBulletId]);

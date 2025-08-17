@@ -31,12 +31,16 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
   onDeleteSection,
 }) => {
   const [newLanguageId, setNewLanguageId] = useState<string | null>(null);
-  const languageRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const languageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Focus on new language when it's added
   useEffect(() => {
     if (newLanguageId && languageRefs.current[newLanguageId]) {
-      languageRefs.current[newLanguageId]?.focus();
+      // Find the input element within the div and focus it
+      const inputElement = languageRefs.current[newLanguageId]?.querySelector('input') as HTMLInputElement;
+      if (inputElement) {
+        inputElement.focus();
+      }
       setNewLanguageId(null);
     }
   }, [newLanguageId]);
