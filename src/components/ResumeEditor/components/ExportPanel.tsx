@@ -14,7 +14,6 @@ import {
   CircularProgress,
   Slider,
   TextField,
-  OutlinedInput,
   InputLabel,
 } from '@mui/material';
 import {
