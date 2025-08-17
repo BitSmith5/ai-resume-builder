@@ -180,16 +180,16 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     } else if (currentTemplate === 'compact') {
       setExportSettings(prev => ({
         ...prev,
-        fontFamily: 'Arial',
-        nameSize: 32,
-        sectionHeadersSize: 12,
-        subHeadersSize: 10,
-        bodyTextSize: 10,
+        fontFamily: 'Times New Roman',
+        nameSize: 36,
+        sectionHeadersSize: 13.5,
+        subHeadersSize: 10.5,
+        bodyTextSize: 10.5,
         sectionSpacing: 8,
         entrySpacing: 6,
         lineSpacing: 10,
         topBottomMargin: 25,
-        sideMargins: 25,
+        sideMargins: 24,
         alignTextLeftRight: false,
       }));
     }
@@ -373,7 +373,24 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                 <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                   <Button
                     variant={exportSettings.template === 'standard' ? 'contained' : 'outlined'}
-                    onClick={() => setExportSettings(prev => ({ ...prev, template: 'standard' }))}
+                    onClick={() => {
+                      setExportSettings(prev => ({
+                        ...prev,
+                        template: 'standard',
+                        // Font settings for standard
+                        fontFamily: 'Times New Roman',
+                        nameSize: 40,
+                        sectionHeadersSize: 14,
+                        subHeadersSize: 10.5,
+                        bodyTextSize: 11,
+                        // Spacing settings for standard
+                        sectionSpacing: 12,
+                        entrySpacing: 9,
+                        lineSpacing: 12,
+                        topBottomMargin: 33,
+                        sideMargins: 33,
+                      }));
+                    }}
                     sx={{
                       flex: 1,
                       height: 32,
@@ -392,7 +409,24 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                   </Button>
                   <Button
                     variant={exportSettings.template === 'compact' ? 'contained' : 'outlined'}
-                    onClick={() => setExportSettings(prev => ({ ...prev, template: 'compact' }))}
+                    onClick={() => {
+                      setExportSettings(prev => ({
+                        ...prev,
+                        template: 'compact',
+                        // Font settings for compact
+                        fontFamily: 'Times New Roman',
+                        nameSize: 36,
+                        sectionHeadersSize: 13.5,
+                        subHeadersSize: 10.5,
+                        bodyTextSize: 10.5,
+                        // Spacing settings for compact
+                        sectionSpacing: 8,
+                        entrySpacing: 6,
+                        lineSpacing: 10,
+                        topBottomMargin: 25,
+                        sideMargins: 24,
+                      }));
+                    }}
                     sx={{
                       flex: 1,
                       height: 32,
