@@ -13,7 +13,6 @@ import {
   Stack,
   CircularProgress,
   Slider,
-  TextField,
   InputLabel,
 } from '@mui/material';
 import {
