@@ -1,6 +1,8 @@
 // Unified PDF generation library
 // This ensures both preview and PDF download use the exact same rendering logic
 
+import { TransformedResumeData } from './resumeDataTransformer';
+
 export interface ExportSettings {
   template: string;
   pageSize: 'letter' | 'a4';
@@ -73,7 +75,7 @@ const formatPhoneNumber = (phone: string): string => {
 
 
 // Function to render sections based on the active sections order
-const renderSection = (sectionName: string, resumeData: any): string => {
+const renderSection = (sectionName: string, resumeData: TransformedResumeData): string => {
 
   switch (sectionName) {
     case 'Personal Info':
@@ -91,7 +93,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
 
     case 'Work Experience':
       if (resumeData.workExperience && resumeData.workExperience.length > 0) {
-        const workHtml = resumeData.workExperience.map((work: any) => {
+        const workHtml = resumeData.workExperience.map((work) => {
           return `
             <div class="entry">
               <div class="entry-header">
@@ -101,7 +103,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
               <div class="entry-position body-text">${work.position}</div>
               ${work.bulletPoints && work.bulletPoints.length > 0 ? `
                 <div class="bullet-points">
-                  ${work.bulletPoints.map((bullet: any) => `
+                  ${work.bulletPoints.map((bullet) => `
                     <div class="bullet-point">• ${bullet.description}</div>
                   `).join('')}
                 </div>
@@ -126,7 +128,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
 
     case 'Projects':
       if (resumeData.projects && resumeData.projects.length > 0) {
-        const projectsHtml = resumeData.projects.map((project: any) => {
+        const projectsHtml = resumeData.projects.map((project) => {
           return `
             <div class="entry">
               <div class="entry-header">
@@ -158,7 +160,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
 
     case 'Education':
       if (resumeData.education && resumeData.education.length > 0) {
-        const educationHtml = resumeData.education.map((edu: any) => {
+        const educationHtml = resumeData.education.map((edu) => {
           return `
             <div class="entry">
               <div class="entry-header">
@@ -191,10 +193,10 @@ const renderSection = (sectionName: string, resumeData: any): string => {
         return `
           <div class="section">
             <div class="section-header">Technical Skills</div>
-            ${resumeData.skillCategories.map((category: any) => `
+            ${resumeData.skillCategories.map((category) => `
               <div class="entry">
                 <div class="entry-title">${category.title}</div>
-                <div class="body-text">${category.skills.map((skill: any) => skill.name).join(', ')}</div>
+                <div class="body-text">${category.skills.map((skill) => skill.name).join(', ')}</div>
               </div>
             `).join('')}
           </div>
@@ -203,7 +205,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
         return `
           <div class="section">
             <div class="section-header">Technical Skills</div>
-            <div class="body-text">${resumeData.strengths.map((skill: any) => skill.skillName).join(', ')}</div>
+            <div class="body-text">${resumeData.strengths.map((skill) => skill.skillName).join(', ')}</div>
           </div>
         `;
       }
@@ -218,7 +220,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return resumeData.courses && resumeData.courses.length > 0 ? `
         <div class="section">
           <div class="section-header">Courses</div>
-          ${resumeData.courses.map((course: any) => `
+          ${resumeData.courses.map((course) => `
             <div class="entry">
               <div class="entry-title">${course.title}</div>
               <div class="body-text">${course.provider}</div>
@@ -231,7 +233,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return resumeData.interests && resumeData.interests.length > 0 ? `
         <div class="section">
           <div class="section-header">Interests</div>
-          <div class="body-text">${resumeData.interests.map((interest: any) => interest.name).join(', ')}</div>
+          <div class="body-text">${resumeData.interests.map((interest) => interest.name).join(', ')}</div>
         </div>
       ` : '';
 
@@ -239,7 +241,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return resumeData.languages && resumeData.languages.length > 0 ? `
         <div class="section">
           <div class="section-header">Languages</div>
-          <div class="body-text">${resumeData.languages.map((lang: any) => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
+          <div class="body-text">${resumeData.languages.map((lang) => `${lang.name} (${lang.proficiency})`).join(', ')}</div>
         </div>
       ` : '';
 
@@ -247,7 +249,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return resumeData.publications && resumeData.publications.length > 0 ? `
         <div class="section">
           <div class="section-header">Publications</div>
-          ${resumeData.publications.map((pub: any) => `
+          ${resumeData.publications.map((pub) => `
             <div class="entry">
               <div class="entry-title">${pub.title}</div>
               <div class="body-text">${pub.authors}</div>
@@ -261,7 +263,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return resumeData.awards && resumeData.awards.length > 0 ? `
         <div class="section">
           <div class="section-header">Awards</div>
-          ${resumeData.awards.map((award: any) => `
+          ${resumeData.awards.map((award) => `
             <div class="entry">
               <div class="entry-title">${award.title}</div>
               <div class="body-text">${award.issuer}, ${award.year}</div>
@@ -275,7 +277,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return resumeData.volunteerExperience && resumeData.volunteerExperience.length > 0 ? `
         <div class="section">
           <div class="section-header">Volunteer Experience</div>
-          ${resumeData.volunteerExperience.map((vol: any) => `
+          ${resumeData.volunteerExperience.map((vol) => `
             <div class="entry">
               <div class="entry-header">
                 <div class="entry-title">${vol.position}</div>
@@ -292,7 +294,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
       return resumeData.references && resumeData.references.length > 0 ? `
         <div class="section">
           <div class="section-header">References</div>
-          ${resumeData.references.map((ref: any) => `
+          ${resumeData.references.map((ref) => `
             <div class="entry">
               <div class="entry-title">${ref.name}</div>
               <div class="body-text">${ref.title} at ${ref.company}</div>
@@ -308,7 +310,7 @@ const renderSection = (sectionName: string, resumeData: any): string => {
 };
 
 // Generate the HTML content for PDF (used by both preview and PDF download)
-export function generatePdfHtml(resumeData: any, activeSections: string[], exportSettings: ExportSettings): string {
+export function generatePdfHtml(resumeData: TransformedResumeData, activeSections: string[], exportSettings: ExportSettings): string {
 
   // Create the HTML content with proper styling
   const htmlContent = `
@@ -767,7 +769,7 @@ function createPageContainer(content: string, pageWidthPx: number, pageHeightPx:
 
 
 // Generate the complete HTML document with styling
-export function generateCompleteHtml(resumeData: any, activeSections: string[], exportSettings: ExportSettings, isPreview: boolean = false): string {
+export function generateCompleteHtml(resumeData: TransformedResumeData, activeSections: string[], exportSettings: ExportSettings): string {
 
   // Generate the HTML content with pagination
   const htmlContent = generatePdfHtml(resumeData, activeSections, exportSettings);
