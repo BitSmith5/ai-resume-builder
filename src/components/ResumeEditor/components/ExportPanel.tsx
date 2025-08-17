@@ -14,6 +14,8 @@ import {
   CircularProgress,
   Slider,
   TextField,
+  OutlinedInput,
+  InputLabel,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -213,7 +215,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         sx={{
           zIndex: 1500,
           '& .MuiDrawer-paper': {
-            width: 1200,
+            width: 'fit-content',
             backgroundColor: 'white',
             borderLeft: '1px solid #e0e0e0',
             boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
@@ -223,7 +225,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           },
         }}
       >
-        <Box sx={{ py: 2, px: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ py: 2, px: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
           {/* Header */}
           <Box sx={{
             display: 'flex',
@@ -242,23 +244,23 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           </Box>
 
           {/* Content - Two Column Layout */}
-          <Box sx={{ display: 'flex', gap: 2, overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, overflow: 'hidden' }}>
             {/* Left Column - Resume Preview */}
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
                 overflowY: 'auto',
                 overflowX: 'hidden',
                 height: '100%',
-                width: '850px',
-                paddingRight: '8px',
-              }}>
+                width: 'fit-content',
+              }}
+            >
               {/* Resume Preview */}
               <Box sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
                 overflowY: 'visible',
                 height: '100%',
-                display: 'flex',
+                marginRight: '8px',
                 pb: 2,
               }}>
                 {previewLoading ? (
@@ -273,7 +275,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     height: '100%',
                     color: 'error.main',
                     textAlign: 'center',
-                    px: 2
                   }}>
                     <Typography variant="body2" color="error">
                       {previewError}
@@ -284,6 +285,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     component="div"
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                     sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
                       width: '100%',
                       maxWidth: '100%',
                       height: 'auto',
@@ -315,9 +318,18 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                   Resume Template
                 </Typography>
-                <FormControl fullWidth sx={{ mb: 2 }}>
+                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Page Size</InputLabel>
                   <Select
+                    key={`page-size-${exportSettings.pageSize}`}
                     value={exportSettings.pageSize}
+                    label="Page Size"
+                    variant="outlined"
+                    MenuProps={{
+                      sx: {
+                        zIndex: 9999,
+                      },
+                    }}
                     onChange={(e) => {
                       const newPageSize = e.target.value;
                       setExportSettings(prev => ({
@@ -326,43 +338,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         pageWidth: newPageSize === 'letter' ? 850 : 794,
                         pageHeight: newPageSize === 'letter' ? 1100 : 1123,
                       }));
-                    }}
-                    sx={{
-                      height: 33,
-                      fontSize: 14,
-                      backgroundColor: '#f5f5f5',
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: '#f5f5f5',
-                        '& fieldset': {
-                          border: 'none',
-                        },
-                        '&:hover fieldset': {
-                          border: 'none',
-                        },
-                        '&.Mui-focused fieldset': {
-                          border: 'none',
-                        },
-                        '&.Mui-focused': {
-                          border: `2px solid ${'rgb(173, 126, 233)'}`,
-                          outline: 'none',
-                        },
-                      },
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        border: 'none',
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        border: 'none',
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        border: `2px solid ${'rgb(173, 126, 233)'} !important`,
-                      },
-                      '& .MuiMenuItem-root.Mui-selected': {
-                        backgroundColor: 'rgb(173, 126, 233)',
-                        color: 'white',
-                        '&:hover': {
-                          backgroundColor: 'rgb(193, 146, 253)',
-                        },
-                      },
                     }}
                   >
                     <MenuItem value="letter">Letter (8.5&quot; × 11&quot;)</MenuItem>

@@ -256,13 +256,11 @@ export const theme: Theme = createTheme({
         root: {
           borderRadius: 8,
           backgroundColor: themeColors.white,
-          '&:hover': {
-            backgroundColor: themeColors.gray[50],
+          '&:hover .MuiOutlinedInput-notchedOutline': {
             border: `1px solid ${themeColors.hover}`,
           },
-          '&.Mui-focused': {
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
             border: `1px solid ${themeColors.primary}`,
-            backgroundColor: themeColors.white,
           },
         },
       },

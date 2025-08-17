@@ -596,9 +596,9 @@ export function generatePdfHtml(resumeData: any, activeSections: string[], expor
         </style>
       </head>
       <body>
-                         <div style="width: 816px; min-width: 816px; max-width: 816px; margin: 0 auto;">
-                   ${finalHtml}
-                 </div>
+        <div>
+          ${finalHtml}
+        </div>
       </body>
     </html>
   `;

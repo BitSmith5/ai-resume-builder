@@ -68,12 +68,11 @@ export async function GET(
       awards: (resume.content as Record<string, unknown>)?.awards || [],
       volunteerExperience: resume.volunteerExperience || [],
       references: resume.references || [],
+      // Add deletedSections, sectionOrder, and exportSettings to the response
+      deletedSections: resume.deletedSections || [],
+      sectionOrder: resume.sectionOrder || [],
+      exportSettings: resume.exportSettings || {},
     };
-
-    // Add deletedSections, sectionOrder, and exportSettings to the response
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).sectionOrder = (resume as { sectionOrder?: unknown }).sectionOrder || [];
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).exportSettings = (resume as { exportSettings?: unknown }).exportSettings || {};
 
     return NextResponse.json(processedResume);
   } catch (error) {
@@ -588,12 +587,11 @@ export async function PUT(
       awards: (resume.content as Record<string, unknown>)?.awards || [],
       volunteerExperience: resume.volunteerExperience || [],
       references: resume.references || [],
+      // Add deletedSections, sectionOrder, and exportSettings to the response
+      deletedSections: resume.deletedSections || [],
+      sectionOrder: resume.sectionOrder || [],
+      exportSettings: resume.exportSettings || {},
     };
-
-    // Add deletedSections, sectionOrder, and exportSettings to the response
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).deletedSections = (resume as { deletedSections?: unknown }).deletedSections || [];
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).sectionOrder = (resume as { sectionOrder?: unknown }).sectionOrder || [];
-    (processedResume as { deletedSections?: unknown; sectionOrder?: unknown; exportSettings?: unknown }).exportSettings = (resume as { exportSettings?: unknown }).exportSettings || {};
 
     return NextResponse.json(processedResume);
   } catch (error) {
