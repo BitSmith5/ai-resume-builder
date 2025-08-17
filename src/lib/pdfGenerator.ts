@@ -336,14 +336,7 @@ export function generatePdfHtml(resumeData: TransformedResumeData, activeSection
 
 
 
-    ${resumeData.content?.personalInfo?.summary ? `
-      <div class="section">
-        <div class="section-header">Professional Summary</div>
-        <div class="body-text">${resumeData.content.personalInfo.summary}</div>
-      </div>
-    ` : ''}
-
-    ${activeSections.filter(sectionName => sectionName !== 'Professional Summary').map(sectionName => {
+    ${activeSections.map(sectionName => {
         return renderSection(sectionName, resumeData);
       }).join('')}
   `;
@@ -630,7 +623,6 @@ function splitContentIntoSections(htmlContent: string): string[] {
   // First, extract header and contact info as one section
   const headerMatch = htmlContent.match(/<div class="header">[\s\S]*?<\/div>/);
   const contactMatch = htmlContent.match(/<div class="contact-info">[\s\S]*?<\/div>/);
-  const summaryMatch = htmlContent.match(/<div class="section"[^>]*style="text-align: left;">\s*<div class="section-header">Professional Summary<\/div>[\s\S]*?<\/div>\s*<\/div>/);
 
   // Add header and contact as one section
   if (headerMatch || contactMatch) {
@@ -638,11 +630,6 @@ function splitContentIntoSections(htmlContent: string): string[] {
     if (headerMatch) headerContactSection += headerMatch[0];
     if (contactMatch) headerContactSection += contactMatch[0];
     sections.push(headerContactSection);
-  }
-
-  // Add Professional Summary as separate section
-  if (summaryMatch) {
-    sections.push(summaryMatch[0]);
   }
 
   // Use a robust HTML parser to find all section divs and their complete content
