@@ -16,11 +16,10 @@ import {
   Close as CloseIcon,
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ResumeData } from '../../types';
 import { DatePicker } from '../DatePicker';
 import { useDatePicker } from '../../hooks/useDatePicker';
-
-
 
 interface WorkExperienceSectionProps {
   resumeData: ResumeData;
@@ -114,6 +113,16 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
     }));
   };
 
+  const handleWorkExperienceDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const newWorkExperience = Array.from((resumeData.workExperience || []));
+    const [removed] = newWorkExperience.splice(result.source.index, 1);
+    newWorkExperience.splice(result.destination.index, 0, removed);
+
+    setResumeData(prev => ({ ...prev, workExperience: newWorkExperience }));
+  };
+
   return (
     <Box sx={{ py: 2, }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
@@ -142,174 +151,205 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
       </Box>
 
       {/* Work Experience Entries */}
-      {(resumeData.workExperience || []).map((work) => (
-        <Card key={work.id} sx={{ mb: 3, p: 2, mr: 2 }}>
-          {/* Company and Position */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, mt: 1, gap: 2 }}>
-            <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0' }} />
-            <TextField
-              value={work.company}
-              onChange={(e) => updateWorkExperience(work.id, { company: e.target.value })}
-              placeholder="Company"
-              variant="outlined"
-              label="Company"
-              size="small"
-              sx={{ fontWeight: 600, minWidth: 200 }}
-            />
-            <TextField
-              value={work.position}
-              onChange={(e) => updateWorkExperience(work.id, { position: e.target.value })}
-              placeholder="Position"
-              variant="outlined"
-              label="Position"
-              size="small"
-              sx={{ minWidth: 400 }}
-            />
-            <IconButton
-              size="small"
-              onClick={() => deleteWorkExperience(work.id)}
-              sx={{
-                border: '1px solid #e0e0e0',
-                borderRadius: '50%',
-                backgroundColor: 'white',
-                '&:hover': {
-                  backgroundColor: '#e0e0e0',
-                  border: '1px solid #a0a0a0',
-                }
-              }}
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Box>
+      <DragDropContext onDragEnd={handleWorkExperienceDragEnd}>
+        <Droppable droppableId="workExperience" type="work">
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.workExperience || []).length === 0 ? 10 : 100 }}>
+              {(resumeData.workExperience || []).map((work, workIndex) => (
+                <React.Fragment key={work.id}>
+                  <Draggable draggableId={`work-${work.id}`} index={workIndex}>
+                    {(provided) => (
+                      <Card
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        data-work-id={work.id}
+                        sx={{ mb: 3, p: 2, mr: 2 }}
+                      >
+                        {/* Company and Position */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, mt: 1, gap: 2 }}>
+                          <Box
+                            {...provided.dragHandleProps}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: 'grab',
+                              userSelect: 'none',
+                              color: '#bbb',
+                            }}
+                          >
+                            <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0' }} />
+                          </Box>
+                          <TextField
+                            value={work.company}
+                            onChange={(e) => updateWorkExperience(work.id, { company: e.target.value })}
+                            placeholder="Company"
+                            variant="outlined"
+                            label="Company"
+                            size="small"
+                            sx={{ fontWeight: 600, minWidth: 200 }}
+                          />
+                          <TextField
+                            value={work.position}
+                            onChange={(e) => updateWorkExperience(work.id, { position: e.target.value })}
+                            placeholder="Position"
+                            variant="outlined"
+                            label="Position"
+                            size="small"
+                            sx={{ minWidth: 400 }}
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={() => deleteWorkExperience(work.id)}
+                            sx={{
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                              '&:hover': {
+                                backgroundColor: '#e0e0e0',
+                                border: '1px solid #a0a0a0',
+                              }
+                            }}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
 
-          {/* Location and Dates */}
-          <Box sx={{ display: 'flex', alignItems: 'center', my: 2, ml: 4.5, gap: 2 }}>
-            <TextField
-              value={work.location}
-              onChange={(e) => updateWorkExperience(work.id, { location: e.target.value })}
-              placeholder="Location"
-              variant="outlined"
-              label="Location"
-              size="small"
-              sx={{ minWidth: 150 }}
-            />
-            <Box sx={{ position: 'relative' }}>
-              <TextField
-                value={work.startDate}
-                placeholder="Start Date"
-                variant="outlined"
-                label="Start Date"
-                size="small"
-                sx={{ width: 150 }}
-                InputProps={{
-                  readOnly: true,
-                  endAdornment: (
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        openDatePicker(
-                          { x: rect.left, y: rect.bottom + 5 },
-                          (date) => updateWorkExperience(work.id, { startDate: date })
-                        );
-                      }}
-                      sx={{ p: 0.5 }}
-                    >
-                      <CalendarIcon fontSize="small" />
-                    </IconButton>
-                  ),
-                }}
-              />
-            </Box>
-            <Box sx={{ position: 'relative' }}>
-              <TextField
-                value={work.endDate}
-                placeholder="End Date"
-                variant="outlined"
-                label="End Date"
-                size="small"
-                sx={{ width: 150 }}
-                disabled={work.current}
-                InputProps={{
-                  readOnly: true,
-                  endAdornment: (
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        if (!work.current) {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          openDatePicker(
-                            { x: rect.left, y: rect.bottom + 5 },
-                            (date) => updateWorkExperience(work.id, { endDate: date })
-                          );
-                        }
-                      }}
-                      sx={{ p: 0.5 }}
-                      disabled={work.current}
-                    >
-                      <CalendarIcon fontSize="small" />
-                    </IconButton>
-                  ),
-                }}
-              />
-            </Box>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={work.current}
-                  onChange={(e) => updateWorkExperience(work.id, { current: e.target.checked })}
-                />
-              }
-              label="Current"
-            />
-          </Box>
+                        {/* Location and Dates */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', my: 2, ml: 4.5, gap: 2 }}>
+                          <TextField
+                            value={work.location}
+                            onChange={(e) => updateWorkExperience(work.id, { location: e.target.value })}
+                            placeholder="Location"
+                            variant="outlined"
+                            label="Location"
+                            size="small"
+                            sx={{ minWidth: 150 }}
+                          />
+                          <Box sx={{ position: 'relative' }}>
+                            <TextField
+                              value={work.startDate}
+                              placeholder="Start Date"
+                              variant="outlined"
+                              label="Start Date"
+                              size="small"
+                              sx={{ width: 150 }}
+                              InputProps={{
+                                readOnly: true,
+                                endAdornment: (
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      openDatePicker(
+                                        { x: rect.left, y: rect.bottom + 5 },
+                                        (date) => updateWorkExperience(work.id, { startDate: date })
+                                      );
+                                    }}
+                                    sx={{ p: 0.5 }}
+                                  >
+                                    <CalendarIcon fontSize="small" />
+                                  </IconButton>
+                                ),
+                              }}
+                            />
+                          </Box>
+                          <Box sx={{ position: 'relative' }}>
+                            <TextField
+                              value={work.endDate}
+                              placeholder="End Date"
+                              variant="outlined"
+                              label="End Date"
+                              size="small"
+                              sx={{ width: 150 }}
+                              disabled={work.current}
+                              InputProps={{
+                                readOnly: true,
+                                endAdornment: (
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                      if (!work.current) {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        openDatePicker(
+                                          { x: rect.left, y: rect.bottom + 5 },
+                                          (date) => updateWorkExperience(work.id, { endDate: date })
+                                        );
+                                      }
+                                    }}
+                                    sx={{ p: 0.5 }}
+                                    disabled={work.current}
+                                  >
+                                    <CalendarIcon fontSize="small" />
+                                  </IconButton>
+                                ),
+                              }}
+                            />
+                          </Box>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={work.current}
+                                onChange={(e) => updateWorkExperience(work.id, { current: e.target.checked })}
+                              />
+                            }
+                            label="Current"
+                          />
+                        </Box>
 
-          {/* Bullet Points */}
-          <Box sx={{ ml: 3 }}>
-            {work.bulletPoints.map((bullet) => (
-              <Box key={bullet.id} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography sx={{ mr: 1, color: 'black', fontSize: '0.875rem' }}>•</Typography>
-                <TextField
-                  value={bullet.description}
-                  onChange={(e) => updateBulletPoint(work.id, bullet.id, e.target.value)}
-                  placeholder="Bullet point description..."
-                  variant="outlined"
-                  size="small"
-                  multiline
-                  maxRows={3}
-                  sx={{ flex: 1 }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={() => deleteBulletPoint(work.id, bullet.id)}
-                  sx={{ p: 0.5, ml: 1 }}
-                >
-                  <CloseIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
-            ))}
+                        {/* Bullet Points */}
+                        <Box sx={{ ml: 3 }}>
+                          {work.bulletPoints.map((bullet) => (
+                            <Box key={bullet.id} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                              <Typography sx={{ mr: 1, color: 'black', fontSize: '0.875rem' }}>•</Typography>
+                              <TextField
+                                value={bullet.description}
+                                onChange={(e) => updateBulletPoint(work.id, bullet.id, e.target.value)}
+                                placeholder="Bullet point description..."
+                                variant="outlined"
+                                size="small"
+                                multiline
+                                maxRows={3}
+                                sx={{ flex: 1 }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => deleteBulletPoint(work.id, bullet.id)}
+                                sx={{ p: 0.5, ml: 1 }}
+                              >
+                                <CloseIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          ))}
 
-            {/* Add Bullet Point Button */}
-            <Button
-              startIcon={<AddIcon />}
-              onClick={() => addBulletPoint(work.id)}
-              variant="text"
-              size="small"
-              sx={{
-                textTransform: 'none',
-                mt: 1,
-                px: 1,
-                color: 'rgb(143, 96, 203)',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                }
-              }}
-            >
-              Add Bullet Point
-            </Button>
-          </Box>
-        </Card>
-      ))}
+                          {/* Add Bullet Point Button */}
+                          <Button
+                            startIcon={<AddIcon />}
+                            onClick={() => addBulletPoint(work.id)}
+                            variant="text"
+                            size="small"
+                            sx={{
+                              textTransform: 'none',
+                              mt: 1,
+                              px: 1,
+                              color: 'rgb(143, 96, 203)',
+                              '&:hover': {
+                                backgroundColor: 'transparent',
+                              }
+                            }}
+                          >
+                            Add Bullet Point
+                          </Button>
+                        </Box>
+                      </Card>
+                    )}
+                  </Draggable>
+                  {provided.placeholder}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {/* Add Work Experience Button */}
       <Button
@@ -328,8 +368,6 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
         onSelect={handleDateSelect}
         position={datePickerPosition}
       />
-
-
     </Box>
   );
 };

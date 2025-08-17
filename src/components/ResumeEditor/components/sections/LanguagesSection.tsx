@@ -6,12 +6,17 @@ import {
   IconButton,
   Button,
   Card,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   DeleteOutline as DeleteOutlineIcon,
   Add as AddIcon,
   DragIndicator as DragIndicatorIcon,
 } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ResumeData } from '../../types';
 
 interface LanguagesSectionProps {
@@ -68,6 +73,16 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
     }));
   };
 
+  const handleLanguageDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const newLanguages = Array.from((resumeData.languages || []));
+    const [removed] = newLanguages.splice(result.source.index, 1);
+    newLanguages.splice(result.destination.index, 0, removed);
+
+    setResumeData(prev => ({ ...prev, languages: newLanguages }));
+  };
+
   const proficiencyLevels = ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Native'];
 
   return (
@@ -98,77 +113,93 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
       </Box>
 
       {/* Languages List */}
-      <Box>
-        {(resumeData.languages || []).map((language) => (
-          <Card key={language.id} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f5f5f5', mr: 2 }}>
-            {/* Language Header */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'grab',
-                userSelect: 'none',
-                color: '#bbb',
-              }}>
-                <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0' }} />
-              </Box>
-              <TextField
-                inputRef={(el) => {
-                  languageRefs.current[language.id] = el;
-                }}
-                value={language.name}
-                onChange={(e) => updateLanguage(language.id, { name: e.target.value })}
-                variant="outlined"
-                label="Language"
-                size="small"
-                sx={{ width: 200 }}
-                placeholder="Enter language name..."
-              />
-              <IconButton
-                size="small"
-                onClick={() => deleteLanguage(language.id)}
-                sx={{
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '50%',
-                  backgroundColor: 'white',
-                  '&:hover': {
-                    backgroundColor: '#e0e0e0',
-                    border: '1px solid #a0a0a0',
-                  }
-                }}
-              >
-                <DeleteOutlineIcon fontSize="small" />
-              </IconButton>
-            </Box>
-
-            {/* Proficiency Selection */}
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2, ml: 4.5 }}>
-              {proficiencyLevels.map((level) => (
-                <Button
-                  key={level}
-                  variant={language.proficiency === level ? "contained" : "outlined"}
-                  size="small"
-                  onClick={() => updateLanguage(language.id, { proficiency: level })}
-                >
-                  {level}
-                </Button>
+      <DragDropContext onDragEnd={handleLanguageDragEnd}>
+        <Droppable droppableId="languages" type="language">
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.languages || []).length === 0 ? 10 : 100 }}>
+              {(resumeData.languages || []).map((language, languageIndex) => (
+                <React.Fragment key={language.id}>
+                  <Draggable draggableId={`language-${language.id}`} index={languageIndex}>
+                    {(provided) => (
+                      <Card
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        data-language-id={language.id}
+                        sx={{ mb: 2, p: 2, mr: 2 }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Box
+                            {...provided.dragHandleProps}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: 'grab',
+                              userSelect: 'none',
+                              color: '#bbb',
+                            }}
+                          >
+                            <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0' }} />
+                          </Box>
+                          <TextField
+                            ref={(el) => { languageRefs.current[language.id] = el; }}
+                            value={language.name}
+                            onChange={(e) => updateLanguage(language.id, { name: e.target.value })}
+                            placeholder="Language name"
+                            variant="outlined"
+                            label="Language"
+                            size="small"
+                            sx={{ minWidth: 150 }}
+                          />
+                          <FormControl size="small" sx={{ minWidth: 200 }}>
+                            <InputLabel>Proficiency</InputLabel>
+                            <Select
+                              value={language.proficiency}
+                              onChange={(e) => updateLanguage(language.id, { proficiency: e.target.value })}
+                              label="Proficiency"
+                            >
+                              {proficiencyLevels.map((level) => (
+                                <MenuItem key={level} value={level}>
+                                  {level}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <IconButton
+                            size="small"
+                            onClick={() => deleteLanguage(language.id)}
+                            sx={{
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                              '&:hover': {
+                                backgroundColor: '#e0e0e0',
+                                border: '1px solid #a0a0a0',
+                              }
+                            }}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Card>
+                    )}
+                  </Draggable>
+                  {provided.placeholder}
+                </React.Fragment>
               ))}
-            </Box>
-          </Card>
-        ))}
-      </Box>
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {/* Add Language Button */}
-      <Box>
-        <Button
-          startIcon={<AddIcon />}
-          onClick={addLanguage}
-          variant="outlined"
-          size="small"
-        >
-          Add Language
-        </Button>
-      </Box>
+      <Button
+        startIcon={<AddIcon />}
+        onClick={addLanguage}
+        variant="outlined"
+        size="small"
+      >
+        Add Language
+      </Button>
     </Box>
   );
 };
