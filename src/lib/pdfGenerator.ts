@@ -579,7 +579,7 @@ function generatePreviewPages(htmlContent: string, exportSettings: ExportSetting
 
   for (let i = 0; i < sections.length; i++) {
     const section = sections[i];
-    const sectionHeight = estimateSectionPartHeight(section, exportSettings);
+    const sectionHeight = estimateSectionPartHeight(section, exportSettings, pageWidthPx);
 
     // Check if this section would fit on the current page
     if (currentPageHeight + sectionHeight <= maxPageHeight) {
@@ -682,9 +682,6 @@ function splitContentIntoSections(htmlContent: string): string[] {
   return sections;
 }
 
-// Helper function to split a long section into smaller parts
-
-
 // Helper function to estimate the height of a section part
 // Shared spacing constants for consistent calculations
 const SPACING_CONSTANTS = {
@@ -694,10 +691,10 @@ const SPACING_CONSTANTS = {
   BODY_TEXT_MARGIN_BOTTOM: 4,
   BULLET_POINT_MARGIN_BOTTOM: 2,
   SECTION_HEADER_PADDING_BOTTOM: 1,
-  BUFFER: 0
+  BUFFER: -4
 };
 
-function estimateSectionPartHeight(part: string, exportSettings: ExportSettings): number {
+function estimateSectionPartHeight(part: string, exportSettings: ExportSettings, pageWidthPx: number): number {
   const entryMatches = part.match(/<div class="entry">/g) || [];
   const bulletMatches = part.match(/<div class="bullet-point">/g) || [];
   const headerMatches = part.match(/<div class="section-header">/g) || [];
@@ -721,19 +718,36 @@ function estimateSectionPartHeight(part: string, exportSettings: ExportSettings)
     SPACING_CONSTANTS.ENTRY_POSITION_MARGIN_BOTTOM // Entry position margin
   );
 
-  // Bullet point heights (including margins)
-  height += bulletMatches.length * (
-    exportSettings.bodyTextSize * (exportSettings.lineSpacing / 10) + // Font height
-    SPACING_CONSTANTS.BULLET_POINT_MARGIN_BOTTOM // Margin below bullet
-  );
+  // Bullet point heights (including margins) - now with multi-line support
+  if (bulletMatches.length > 0) {
+    // Extract all bullet point content to calculate actual heights
+    const bulletPointRegex = /<div class="bullet-point">•\s*([^<]+)<\/div>/g;
+    let bulletMatch;
+    let totalBulletHeight = 0;
+    
+    // Calculate actual available width for bullet points
+    const bulletIndent = 16; // This matches the CSS margin-left: 16px for .bullet-points
+    const availableWidth = pageWidthPx - (exportSettings.sideMargins * 2) - bulletIndent;
+    
+    while ((bulletMatch = bulletPointRegex.exec(part)) !== null) {
+      const bulletText = bulletMatch[1];
+      const charsPerLine = Math.floor(availableWidth / (exportSettings.bodyTextSize * 0.6)); // Rough character width estimation
+      
+      // Calculate how many lines this bullet point will take
+      const lines = Math.ceil(bulletText.length / charsPerLine);
+      const bulletHeight = lines * exportSettings.bodyTextSize * (exportSettings.lineSpacing / 10);
+      
+      totalBulletHeight += bulletHeight + SPACING_CONSTANTS.BULLET_POINT_MARGIN_BOTTOM;
+    }
+    
+    height += totalBulletHeight;
+  }
 
   // Body text margins
   height += bodyTextMatches.length * SPACING_CONSTANTS.BODY_TEXT_MARGIN_BOTTOM;
 
   return height + SPACING_CONSTANTS.BUFFER; // Add buffer
 }
-
-
 
 // Helper function to create a page container
 function createPageContainer(content: string, pageWidthPx: number, pageHeightPx: number, exportSettings: ExportSettings): string {
@@ -745,15 +759,6 @@ function createPageContainer(content: string, pageWidthPx: number, pageHeightPx:
     </div>
   `;
 }
-
-
-
-
-
-
-
-
-
 
 // Generate the complete HTML document with styling
 export function generateCompleteHtml(resumeData: TransformedResumeData, activeSections: string[], exportSettings: ExportSettings): string {

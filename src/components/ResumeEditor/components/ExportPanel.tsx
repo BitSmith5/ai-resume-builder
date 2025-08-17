@@ -258,6 +258,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                 overflowY: 'visible',
                 height: '100%',
                 marginRight: '8px',
+                marginLeft: '8px',
                 pb: 2,
               }}>
                 {previewLoading ? (
