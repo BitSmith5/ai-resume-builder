@@ -140,6 +140,10 @@ export const EditResumeInfoModal: React.FC<EditResumeInfoModalProps> = ({
               color: '#222',
               textTransform: 'none',
               px: 3,
+              '&:hover': {
+                backgroundColor: '#f5f5f5',
+                border: '1px solid transparent',
+              },
             }}
           >
             Cancel
