@@ -25,7 +25,7 @@ import {
   GitHub as GitHubIcon,
   Language as LanguageIcon,
 } from "@mui/icons-material";
-import DashboardLayout from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/shared/components";
 
 
 interface ProfileData {

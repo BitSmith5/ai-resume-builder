@@ -22,7 +22,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
-import DashboardLayout from '@/components/DashboardLayout';
+import { DashboardLayout } from '@/shared/components';
 
 
 interface Resume {

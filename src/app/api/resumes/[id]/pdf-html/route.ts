@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../../../../lib/auth';
 import { prisma } from '../../../../../lib/prisma';
-import { transformResumeData } from '../../../../../lib/resumeDataTransformer';
+import { transformResumeData } from '../../../../../services';
 import puppeteer from 'puppeteer';
 
 
@@ -10,7 +10,7 @@ import puppeteer from 'puppeteer';
 export const runtime = 'nodejs';
 
 // Import the unified PDF generation logic
-import { generatePdfHtml, ExportSettings as PdfExportSettings } from '../../../../../lib/pdfGenerator';
+import { generatePdfHtml, ExportSettings as PdfExportSettings } from '../../../../../services';
 
 console.log('🎯 PDF-HTML ROUTE LOADED');
 
