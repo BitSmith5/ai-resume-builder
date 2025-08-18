@@ -128,7 +128,7 @@ src/
 ├── lib/                   # Utility functions
 │   ├── auth.ts           # NextAuth configuration
 │   ├── prisma.ts         # Database client
-│   └── graphql.ts        # Data access functions
+│   └── pdfGenerator.ts   # PDF generation utilities
 └── hooks/                 # Custom React hooks
 ```
 
