@@ -1124,7 +1124,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
       default:
         return [{ id: sectionName.toLowerCase().replace(/\s+/g, '-'), name: sectionName, isFirst: true }];
     }
-  }, [data.strengths, data.skillCategories, data.workExperience, data.education, data.projects, data.courses, data.languages, data.publications, data.awards, data.volunteerExperience, data.references]);
+  }, [data.strengths, data.skillCategories, data.workExperience, data.education, data.projects, data.courses, data.publications, data.awards, data.volunteerExperience, data.references]);
   
   // Filter out sections that have no data
   const sectionsWithData = validSections.filter(section => {
@@ -1357,7 +1357,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({ data }) =
           return subHeaderHeight + (bodyLineHeight * 2) + entrySpacing;
       }
     }
-  }, [data.sectionHeadersSize, data.subHeadersSize, data.bodyTextSize, data.lineSpacing, data.entrySpacing, data.strengths, data.skillCategories, data.workExperience, data.education, data.projects, data.courses, data.languages, data.publications, data.awards, data.volunteerExperience, data.references]);
+  }, [data.sectionHeadersSize, data.subHeadersSize, data.bodyTextSize, data.lineSpacing, data.entrySpacing, data.strengths, data.skillCategories, data.workExperience, data.education, data.projects, data.courses, data.languages, data.publications, data.awards, data.volunteerExperience, data.references, data.interests]);
 
 
 

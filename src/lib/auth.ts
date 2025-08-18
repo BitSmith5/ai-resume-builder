@@ -59,7 +59,6 @@ export const authOptions = {
     strategy: "jwt" as const,
   },
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     signIn: async ({ user, account }: { user: any; account: any }) => {
       if (account?.provider === "google" || account?.provider === "github") {
         try {
@@ -95,7 +94,6 @@ export const authOptions = {
       }
       return true;
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     jwt: async ({ token, user }: { token: any; user: any }) => {
       if (user) {
         token.id = user.id;
@@ -104,7 +102,6 @@ export const authOptions = {
       }
       return token;
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: async ({ session, token }: { session: any; token: any }) => {
       if (session?.user && token) {
         session.user = {

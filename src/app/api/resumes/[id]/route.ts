@@ -11,8 +11,7 @@ export async function GET(
 ) {
   try {
     const resolvedParams = await params;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await getServerSession(authOptions as any) as Session;
+    const session = await getServerSession(authOptions) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
     
     if (!user?.id) {
@@ -133,6 +132,81 @@ export async function PUT(
       );
     }
 
+    // Clean the content field to remove any fields that should be handled by separate models
+    const cleanContent = { ...content };
+    const fieldsToRemove = [
+      'workExperience', 'projects', 'languages', 'publications', 
+      'awards', 'volunteerExperience', 'references', 'strengths',
+      'education', 'courses', 'interests'
+    ];
+    
+    fieldsToRemove.forEach(field => {
+      if (cleanContent[field as keyof typeof cleanContent]) {
+        console.log(`🔍 PUT DEBUG - Removing ${field} from content as it's handled by separate model`);
+        delete cleanContent[field as keyof typeof cleanContent];
+      }
+    });
+
+    console.log('🔍 PUT DEBUG - Cleaned content:', cleanContent);
+
+    // Validate data types and structure
+    const validationErrors = [];
+    
+    // Check if arrays are actually arrays
+    if (strengths && !Array.isArray(strengths)) {
+      validationErrors.push("strengths must be an array");
+    }
+    if (workExperience && !Array.isArray(workExperience)) {
+      validationErrors.push("workExperience must be an array");
+    }
+    if (education && !Array.isArray(education)) {
+      validationErrors.push("education must be an array");
+    }
+    if (courses && !Array.isArray(courses)) {
+      validationErrors.push("courses must be an array");
+    }
+    if (interests && !Array.isArray(interests)) {
+      validationErrors.push("interests must be an array");
+    }
+    if (projects && !Array.isArray(projects)) {
+      validationErrors.push("projects must be an array");
+    }
+    if (languages && !Array.isArray(languages)) {
+      validationErrors.push("languages must be an array");
+    }
+    if (publications && !Array.isArray(publications)) {
+      validationErrors.push("publications must be an array");
+    }
+    if (awards && !Array.isArray(awards)) {
+      validationErrors.push("awards must be an array");
+    }
+    if (volunteerExperience && !Array.isArray(volunteerExperience)) {
+      validationErrors.push("volunteerExperience must be an array");
+    }
+    if (references && !Array.isArray(references)) {
+      validationErrors.push("references must be an array");
+    }
+    
+    // Check for unexpected fields that might cause issues
+    const expectedFields = [
+      'title', 'jobTitle', 'template', 'content', 'profilePicture',
+      'deletedSections', 'sectionOrder', 'exportSettings', 'strengths',
+      'workExperience', 'education', 'courses', 'interests', 'projects',
+      'languages', 'publications', 'awards', 'volunteerExperience', 'references'
+    ];
+    
+    const unexpectedFields = Object.keys(body).filter(key => !expectedFields.includes(key));
+    if (unexpectedFields.length > 0) {
+      console.warn("Unexpected fields in request:", unexpectedFields);
+    }
+    
+    if (validationErrors.length > 0) {
+      return NextResponse.json(
+        { error: "Data validation failed", details: validationErrors },
+        { status: 400 }
+      );
+    }
+
     // Validate that the resume exists and belongs to the user
     const existingResume = await prisma.resume.findFirst({
       where: {
@@ -148,13 +222,14 @@ export async function PUT(
       );
     }
 
+    console.log("🔍 PUT DEBUG - Processing work experience data...");
     // Convert string dates to Date objects for workExperience and remove id/resumeId fields
     const processedWorkExperience = (workExperience || [])
       .filter((exp: { company: string; position: string; startDate: string; [key: string]: unknown }) => {
         // Allow work experience to be saved even if partially filled - just need at least one field
         return exp.company || exp.position || exp.startDate || exp.location;
       })
-      .map((exp: { id?: number; resumeId?: number; startDate: string; endDate?: string; company: string; position: string; location?: string; [key: string]: unknown }) => {
+      .map((exp: { id?: number; resumeId?: number; startDate: string; endDate?: string; company: string; position: string; location?: string; bulletPoints?: unknown[]; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, resumeId, ...rest } = exp;
         
@@ -193,8 +268,11 @@ export async function PUT(
           ...restWithoutLocation,
           startDate: parseDate(exp.startDate),
           endDate: exp.endDate ? parseDate(exp.endDate) : null,
+          bulletPoints: Array.isArray(exp.bulletPoints) ? exp.bulletPoints : [],
         };
       });
+
+    console.log("🔍 PUT DEBUG - Processed work experience:", processedWorkExperience.length, "entries");
 
     // Convert string dates to Date objects for education and remove id/resumeId fields
     const processedEducation = (education || [])
@@ -264,9 +342,9 @@ export async function PUT(
         // Allow courses to be saved even if partially filled - just need at least one field
         return course.title || course.provider;
       })
-      .map((course: { id?: number; resumeId?: number; [key: string]: unknown }) => {
+      .map((course: { id?: number; resumeId?: number; title: string; provider: string; link?: string; startDate?: string; endDate?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, resumeId, ...rest } = course;
+        const { id, resumeId, startDate, endDate, ...rest } = course;
         return rest;
       });
 
@@ -288,7 +366,7 @@ export async function PUT(
         // Allow projects to be saved even if partially filled - just need at least one field
         return project.title || project.startDate || project.endDate || (project.technologies && project.technologies.length > 0) || project.link;
       })
-      .map((project: { id?: string; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
+      .map((project: { id?: string; resumeId?: number; startDate: string; endDate?: string; technologies?: unknown[]; bulletPoints?: unknown[]; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, resumeId, ...rest } = project;
         
@@ -323,6 +401,8 @@ export async function PUT(
           ...rest,
           startDate: parseDate(project.startDate),
           endDate: project.endDate ? parseDate(project.endDate) : null,
+          technologies: Array.isArray(project.technologies) ? project.technologies : [],
+          bulletPoints: Array.isArray(project.bulletPoints) ? project.bulletPoints : [],
         };
       });
 
@@ -344,9 +424,9 @@ export async function PUT(
         // Allow publications to be saved even if partially filled - just need at least one field
         return publication.title || publication.authors || publication.journal || publication.year || publication.doi || publication.link;
       })
-      .map((publication: { id?: string; resumeId?: number; [key: string]: unknown }) => {
+      .map((publication: { id?: string; resumeId?: number; title: string; authors: string; journal: string; year: string; doi?: string; link?: string; date?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, resumeId, ...rest } = publication;
+        const { id, resumeId, date, ...rest } = publication;
         return rest;
       });
 
@@ -356,15 +436,27 @@ export async function PUT(
         // Allow awards to be saved even if partially filled - just need at least one field
         return award.title || award.organization || award.year;
       })
-      .map((award: { id?: string; resumeId?: number; [key: string]: unknown }) => {
+      .map((award: { id?: string; resumeId?: number; title?: string; organization?: string; year?: string; bulletPoints?: unknown[]; date?: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, resumeId, ...rest } = award;
-        return rest;
+        const { id, resumeId, date, ...rest } = award;
+        
+        // Ensure bulletPoints is properly formatted as an array
+        const processedAward = {
+          ...rest,
+          bulletPoints: Array.isArray(award.bulletPoints) ? award.bulletPoints : [],
+        };
+        
+        console.log('🔍 PUT DEBUG - Processing award:', {
+          original: award,
+          processed: processedAward
+        });
+        
+        return processedAward;
       });
 
     // Process volunteer experience data
     const processedVolunteerExperience = (volunteerExperience || [])
-      .map((volunteer: { id?: string; resumeId?: number; startDate: string; endDate?: string; [key: string]: unknown }) => {
+      .map((volunteer: { id?: string; resumeId?: number; organization: string; position: string; location?: string; startDate: string; endDate?: string; hoursPerWeek?: string; bulletPoints?: unknown[]; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, resumeId, ...rest } = volunteer;
         
@@ -399,6 +491,7 @@ export async function PUT(
           ...rest,
           startDate: parseDate(volunteer.startDate),
           endDate: volunteer.endDate ? parseDate(volunteer.endDate) : null,
+          bulletPoints: Array.isArray(volunteer.bulletPoints) ? volunteer.bulletPoints : [],
         };
       });
     
@@ -410,7 +503,7 @@ export async function PUT(
         // Allow references to be saved even if partially filled - just need at least one field
         return reference.name || reference.title || reference.company || reference.email || reference.phone || reference.relationship;
       })
-      .map((reference: { id?: string; resumeId?: number; [key: string]: unknown }) => {
+      .map((reference: { id?: string; resumeId?: number; name: string; title: string; company: string; email: string; phone?: string; relationship: string; [key: string]: unknown }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, resumeId, ...rest } = reference;
         return rest;
@@ -421,18 +514,19 @@ export async function PUT(
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: skillCategories || [],
-      workExperience: workExperience || [], // Include work experience with location in content
-      projects: projects || [],
-      languages: languages || [],
-      publications: publications || [],
-      awards: awards || [],
-      volunteerExperience: volunteerExperience || [],
-      references: references || [],
+      // Don't include these in content as they're handled by separate models
+      // workExperience: workExperience || [], 
+      // projects: projects || [], 
+      // languages: languages || [], 
+      // publications: publications || [], 
+      // awards: awards || [], 
+      // volunteerExperience: volunteerExperience || [], 
+      // references: references || [], 
     };
     
-          console.log('🔍 PUT DEBUG - Skill Categories:', additionalData.skillCategories);
-      console.log('🔍 PUT DEBUG - Content with skillCategories:', { ...content, ...additionalData });
-      console.log('🔍 PUT DEBUG - Full additionalData:', additionalData);
+    console.log('🔍 PUT DEBUG - Skill Categories:', additionalData.skillCategories);
+    console.log('🔍 PUT DEBUG - Content with skillCategories:', { ...content, ...additionalData });
+    console.log('🔍 PUT DEBUG - Full additionalData:', additionalData);
 
     // Get the current resume to check for profile picture changes
     const currentResume = await prisma.resume.findFirst({
@@ -498,6 +592,30 @@ export async function PUT(
         exportSettings,
       });
       
+      console.log("🔍 PUT DEBUG - Final data structure for resume update:", {
+        title,
+        jobTitle,
+        template: template || "modern",
+        content: { ...cleanContent, ...additionalData },
+        profilePicture: profilePicture || null,
+        deletedSections: deletedSections || [],
+        sectionOrder: sectionOrder || [],
+        exportSettings: exportSettings || {},
+      });
+      
+      console.log("🔍 PUT DEBUG - Related data to create:");
+      console.log("  - Strengths:", processedStrengths.length);
+      console.log("  - Work Experience:", processedWorkExperience.length);
+      console.log("  - Education:", processedEducation.length);
+      console.log("  - Courses:", processedCourses.length);
+      console.log("  - Interests:", processedInterests.length);
+      console.log("  - Projects:", processedProjects.length);
+      console.log("  - Languages:", processedLanguages.length);
+      console.log("  - Publications:", processedPublications.length);
+      console.log("  - Awards:", processedAwards.length);
+      console.log("  - Volunteer Experience:", processedVolunteerExperience.length);
+      console.log("  - References:", processedReferences.length);
+      
       return await tx.resume.update({
         where: {
           id: parseInt(resolvedParams.id),
@@ -507,7 +625,7 @@ export async function PUT(
           title,
           jobTitle,
           template: template || "modern",
-          content: { ...content, ...additionalData },
+          content: { ...cleanContent, ...additionalData },
           profilePicture: profilePicture || null,
           deletedSections: deletedSections || [],
           sectionOrder: sectionOrder || [],
@@ -596,12 +714,77 @@ export async function PUT(
     return NextResponse.json(processedResume);
   } catch (error) {
     console.error("Error updating resume:", error);
+    
+    // Log detailed error information
     if (error instanceof Error) {
       console.error("Error message:", error.message);
       console.error("Error stack:", error.stack);
+      
+      // Check for specific Prisma errors
+      if (error.message.includes('Unique constraint')) {
+        return NextResponse.json(
+          { error: "Duplicate data detected", details: error.message },
+          { status: 400 }
+        );
+      }
+      
+      if (error.message.includes('Foreign key constraint')) {
+        return NextResponse.json(
+          { error: "Invalid reference data", details: error.message },
+          { status: 400 }
+        );
+      }
+      
+      if (error.message.includes('Invalid value')) {
+        return NextResponse.json(
+          { error: "Invalid data format", details: error.message },
+          { status: 400 }
+        );
+      }
     }
+    
+    // Check for Prisma-specific errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      const prismaError = error as any;
+      console.error("Prisma error code:", prismaError.code);
+      console.error("Prisma error meta:", prismaError.meta);
+      
+      switch (prismaError.code) {
+        case 'P2002':
+          return NextResponse.json(
+            { error: "Duplicate entry", details: "A record with this information already exists" },
+            { status: 400 }
+          );
+        case 'P2003':
+          return NextResponse.json(
+            { error: "Foreign key constraint failed", details: "Referenced data does not exist" },
+            { status: 400 }
+          );
+        case 'P2025':
+          return NextResponse.json(
+            { error: "Record not found", details: "The resume you're trying to update was not found" },
+            { status: 404 }
+          );
+        case 'P2014':
+          return NextResponse.json(
+            { error: "Invalid data", details: "The data format is invalid" },
+            { status: 400 }
+          );
+        default:
+          return NextResponse.json(
+            { error: "Database error", details: `Prisma error: ${prismaError.code}`, message: prismaError.message },
+            { status: 500 }
+          );
+      }
+    }
+    
+    // Generic error response
     return NextResponse.json(
-      { error: "Internal server error", details: error instanceof Error ? error.message : String(error) },
+      { 
+        error: "Internal server error", 
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }

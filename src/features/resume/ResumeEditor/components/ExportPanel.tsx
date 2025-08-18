@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box,
   Drawer,
@@ -50,7 +50,7 @@ interface ExportPanelProps {
   pdfDownloading: boolean;
 }
 
-export const ExportPanel: React.FC<ExportPanelProps> = ({
+const ExportPanelComponent: React.FC<ExportPanelProps> = ({
   open,
   onClose,
   exportSettings,
@@ -60,8 +60,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   onDownloadPDF,
   pdfDownloading,
 }) => {
-
-
 
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -73,10 +71,13 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   // Cache for preview results to avoid unnecessary API calls
   const previewCache = useRef<Map<string, string>>(new Map());
 
-  // Create a cache key from export settings
-  const getCacheKey = useCallback((): string => {
+  // Create a cache key from export settings - memoized to prevent unnecessary recalculations
+  const getCacheKey = useMemo((): string => {
     return JSON.stringify(exportSettings);
   }, [exportSettings]);
+
+  // Memoize the cache key function for use in effects
+  const cacheKey = useMemo(() => getCacheKey, [getCacheKey]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -101,7 +102,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       const abortController = new AbortController();
 
       // Check cache first
-      const cacheKey = getCacheKey();
       const cachedHtml = previewCache.current.get(cacheKey);
 
       if (cachedHtml) {
@@ -156,7 +156,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         abortController.abort();
       };
     }
-  }, [open, resumeId, getCacheKey, exportSettings, refreshTrigger]);
+  }, [open, resumeId, cacheKey, exportSettings]);
 
   const handleClose = () => {
     onClose();
@@ -933,3 +933,5 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     </>
   );
 };
+
+export const ExportPanel = React.memo(ExportPanelComponent);

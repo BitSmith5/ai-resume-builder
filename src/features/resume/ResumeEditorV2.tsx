@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Box } from "@mui/material";
 
@@ -63,12 +63,12 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   } = useExportSettings(resumeId, resumeData.title);
 
   // Wrapper function for PDF download that provides success/error callbacks
-  const handlePDFDownload = async () => {
+  const handlePDFDownload = useMemo(() => async () => {
     await handleDownloadPDF(
       (message: string) => setSuccess(message),
       (message: string) => setError(message)
     );
-  };
+  }, [handleDownloadPDF, setSuccess, setError]);
 
   // Modal state management
   const modalState = useModalState();
@@ -101,8 +101,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     };
   }, [cleanupExport]);
 
-
-
   // Section management functionality
   const { handleAddSection, handleDeleteSection: handleDeleteSectionFromHook } = useSectionManagement({
     sectionOrder,
@@ -127,12 +125,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     setDeleteConfirmOpen
   });
 
-  // Real-time preview update effect
-  useEffect(() => {
-    // This effect ensures the preview updates when export settings change
-    // The preview is already reactive to exportSettings changes
-  }, [exportSettings]);
-
   // Auto-refresh export panel when resume data changes
   useEffect(() => {
     // If the export panel is open and resume data changes, refresh the preview
@@ -141,7 +133,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     }
   }, [resumeData, sectionOrder, exportPanelOpen, refreshPreview]);
 
-
   // Drag and drop functionality
   const { handleDragStart, handleDragEnd: baseHandleDragEnd } = useDragAndDrop({
     sectionOrder,
@@ -149,7 +140,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   });
 
   // Enhanced drag end that ensures scroll cleanup
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = useMemo(() => (result: any) => {
     // Always clear any active scroll interval
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
@@ -158,27 +149,29 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     
     // Call the base handler
     baseHandleDragEnd(result);
-  };
-
-
+  }, [scrollIntervalRef, baseHandleDragEnd]);
 
   // Use the hook's delete function
   const handleDeleteSection = handleDeleteSectionFromHook;
 
-  if (loading) {
-    return <LoadingComponent />;
-  }
-
-  // Helper: map section titles to render functions
-  const SECTION_COMPONENTS = createSectionComponents({
+  // Helper: map section titles to render functions - memoized to prevent recreation
+  const SECTION_COMPONENTS = useMemo(() => createSectionComponents({
     profileData,
     resumeData,
     setProfileData,
     setResumeData,
     onDeleteSection: handleDeleteSection
-  });
+  }), [profileData, resumeData, setProfileData, setResumeData, handleDeleteSection]);
 
+  // Memoize the save handler to prevent unnecessary re-renders
+  const handleSaveResumeInfo = useMemo(() => async (updatedData: any) => {
+    setResumeData(updatedData);
+    await saveResumeInfo(updatedData, sectionOrder);
+  }, [setResumeData, saveResumeInfo, sectionOrder]);
 
+  if (loading) {
+    return <LoadingComponent />;
+  }
 
   return (
     <Box sx={{
@@ -247,10 +240,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         open={editResumeInfoOpen}
         onClose={() => setEditResumeInfoOpen(false)}
         resumeData={resumeData}
-                onSave={async (updatedData) => {
-          setResumeData(updatedData);
-          await saveResumeInfo(updatedData, sectionOrder);
-        }}
+        onSave={handleSaveResumeInfo}
       />
 
       <ExportPanel

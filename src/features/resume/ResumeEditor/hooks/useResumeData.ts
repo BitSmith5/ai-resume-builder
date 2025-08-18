@@ -259,7 +259,7 @@ export const useResumeData = (resumeId?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session?.user?.name, session?.user?.email]);
 
   // Load resume data
   const loadResumeData = useCallback(async () => {
@@ -299,50 +299,28 @@ export const useResumeData = (resumeId?: string) => {
             ...strength,
             id: String(strength.id || Math.random())
           })),
-          skillCategories: resume.skillCategories || [],
-          workExperience: (() => {
-            // Get work experience from database (has dates but no location)
-            const dbWorkExperience = resume.workExperience || [];
-            // Get work experience from content (has location but dates might be strings)
-            const contentWorkExperience = (resume.content as Record<string, unknown>)?.workExperience as Array<Record<string, unknown>> || [];
-
-            // Merge the data, prioritizing content data for location
-            const mergedWorkExperience = dbWorkExperience.map((dbWork: Record<string, unknown>, index: number) => {
-              const contentWork = contentWorkExperience[index] || {};
-
-              return {
-                ...dbWork,
-                ...contentWork, // This will include location from content
-                id: String(dbWork.id || contentWork.id || Math.random()),
-                startDate: formatDate(dbWork.startDate as string | Date),
-                endDate: formatDate(dbWork.endDate as string | Date),
-                bulletPoints: ((dbWork.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
-                  ...bullet,
-                  id: String(bullet.id || Math.random())
-                }))
-              };
-            });
-
-            // Deduplicate work experience entries based on company and position
-            const seen = new Set();
-            const deduplicatedWorkExperience = mergedWorkExperience.filter((work: Record<string, unknown>) => {
-              const key = `${work.company}-${work.position}`;
-              if (seen.has(key)) {
-                return false; // Remove duplicate
-              }
-              seen.add(key);
-              return true; // Keep first occurrence
-            });
-
-            return deduplicatedWorkExperience;
-          })(),
+          skillCategories: (resume.skillCategories || []).map((category: Record<string, unknown>) => ({
+            ...category,
+            id: String(category.id || Math.random())
+          })),
+          workExperience: (resume.workExperience || []).map((exp: Record<string, unknown>) => ({
+            ...exp,
+            id: String(exp.id || Math.random()),
+            startDate: exp.startDate ? formatDate(exp.startDate as string) : "",
+            endDate: exp.endDate ? formatDate(exp.endDate as string) : "",
+          })),
           education: (resume.education || []).map((edu: Record<string, unknown>) => ({
             ...edu,
             id: String(edu.id || Math.random()),
-            startDate: formatDate(edu.startDate as string | Date),
-            endDate: formatDate(edu.endDate as string | Date),
+            startDate: edu.startDate ? formatDate(edu.startDate as string) : "",
+            endDate: edu.endDate ? formatDate(edu.endDate as string) : "",
           })),
-          courses: resume.courses || [],
+          courses: (resume.courses || []).map((course: Record<string, unknown>) => ({
+            ...course,
+            id: String(course.id || Math.random()),
+            startDate: course.startDate ? formatDate(course.startDate as string) : "",
+            endDate: course.endDate ? formatDate(course.endDate as string) : "",
+          })),
           interests: (resume.interests || []).map((interest: Record<string, unknown>) => ({
             ...interest,
             id: String(interest.id || Math.random())
@@ -350,53 +328,42 @@ export const useResumeData = (resumeId?: string) => {
           projects: (resume.projects || []).map((project: Record<string, unknown>) => ({
             ...project,
             id: String(project.id || Math.random()),
-            startDate: formatDate(project.startDate as string | Date),
-            endDate: formatDate(project.endDate as string | Date),
-            bulletPoints: ((project.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
-              ...bullet,
-              id: String(bullet.id || Math.random())
-            }))
+            startDate: project.startDate ? formatDate(project.startDate as string) : "",
+            endDate: project.endDate ? formatDate(project.endDate as string) : "",
           })),
           languages: (resume.languages || []).map((language: Record<string, unknown>) => ({
             ...language,
             id: String(language.id || Math.random())
           })),
-          publications: (resume.publications || []).map((publication: Record<string, unknown>) => ({
-            ...publication,
-            id: String(publication.id || Math.random())
+          publications: (resume.publications || []).map((pub: Record<string, unknown>) => ({
+            ...pub,
+            id: String(pub.id || Math.random()),
+            date: pub.date ? formatDate(pub.date as string) : "",
           })),
           awards: (resume.awards || []).map((award: Record<string, unknown>) => ({
             ...award,
             id: String(award.id || Math.random()),
-            bulletPoints: ((award.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
-              ...bullet,
-              id: String(bullet.id || Math.random())
-            }))
+            date: award.date ? formatDate(award.date as string) : "",
           })),
-          volunteerExperience: (resume.volunteerExperience || []).map((volunteer: Record<string, unknown>) => ({
-            ...volunteer,
-            id: String(volunteer.id || Math.random()),
-            startDate: formatDate(volunteer.startDate as string | Date),
-            endDate: formatDate(volunteer.endDate as string | Date),
-            bulletPoints: ((volunteer.bulletPoints as Array<Record<string, unknown>>) || []).map((bullet: Record<string, unknown>) => ({
-              ...bullet,
-              id: String(bullet.id || Math.random())
-            }))
+          volunteerExperience: (resume.volunteerExperience || []).map((vol: Record<string, unknown>) => ({
+            ...vol,
+            id: String(vol.id || Math.random()),
+            startDate: vol.startDate ? formatDate(vol.startDate as string) : "",
+            endDate: vol.endDate ? formatDate(vol.endDate as string) : "",
           })),
-          references: (resume.references || []).map((reference: Record<string, unknown>) => ({
-            ...reference,
-            id: String(reference.id || Math.random())
+          references: (resume.references || []).map((ref: Record<string, unknown>) => ({
+            ...ref,
+            id: String(ref.id || Math.random())
           })),
         });
 
-        // Load sectionOrder from database
-        if (resume.sectionOrder && Array.isArray(resume.sectionOrder)) {
-          // Filter out deleted sections from the loaded section order
-          const deletedSections = resume.deletedSections || [];
-          const filteredSectionOrder = resume.sectionOrder.filter((section: string) => !deletedSections.includes(section));
-
+        // Set section order from resume data or use default
+        if (resume.sectionOrder && resume.sectionOrder.length > 0) {
+          const filteredSectionOrder = resume.sectionOrder.filter((section: string) => 
+            !resume.deletedSections?.includes(section)
+          );
           setSectionOrder(filteredSectionOrder);
-
+          
           // Also set sectionOrder in resumeData
           setResumeData(prev => ({
             ...prev,
@@ -411,7 +378,7 @@ export const useResumeData = (resumeId?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [resumeId, session, formatDate]);
+  }, [resumeId, session?.user, formatDate]);
 
   // Save resume data
   const saveResume = useCallback(async (data: ResumeData, profileData: ProfileData, currentSectionOrder: string[]) => {
