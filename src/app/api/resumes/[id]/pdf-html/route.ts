@@ -146,7 +146,7 @@ export async function POST(
          console.log('🎯 HTML PDF - PDF generated successfully');
          
          // Return PDF with proper headers
-         return new NextResponse(pdf, {
+         return new NextResponse(pdf as any, {
            headers: {
              'Content-Type': 'application/pdf',
              'Content-Disposition': `attachment; filename="${resume.title || 'resume'}.pdf"`,

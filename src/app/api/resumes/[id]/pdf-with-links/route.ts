@@ -499,7 +499,7 @@ export async function POST(
 
     await browser.close();
 
-    return new NextResponse(pdf, {
+    return new NextResponse(pdf as any, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${resume.title || 'resume'}.pdf"`,
