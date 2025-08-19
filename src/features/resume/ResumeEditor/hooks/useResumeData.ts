@@ -269,12 +269,6 @@ export const useResumeData = (resumeId?: string) => {
       const response = await fetch(`/api/resumes/${resumeId}`);
       if (response.ok) {
         const resume = await response.json();
-        console.log('📥 API Response for resume:', {
-          id: resume.id,
-          skillCategories: resume.skillCategories,
-          content: resume.content,
-          hasSkillCategories: !!resume.skillCategories?.length
-        });
 
         setResumeData({
           title: resume.title || "",

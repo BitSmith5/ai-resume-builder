@@ -126,41 +126,32 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
     try {
       let date: Date;
       
-      console.log('ModernTemplate formatDate input:', dateString);
-      
       // Handle YYYY-MM-DD format (from API) to avoid timezone issues
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
         const [year, month, day] = dateString.split('-').map(Number);
         date = new Date(year, month - 1, day); // month is 0-indexed
-        console.log('ModernTemplate parsed YYYY-MM-DD:', { year, month, day, result: date });
       } else if (/^[A-Za-z]{3} \d{4}$/.test(dateString)) { // Handle "MMM YYYY" format
         const [monthStr, yearStr] = dateString.split(' ');
         const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthStr);
         const year = parseInt(yearStr);
         if (monthIndex !== -1 && !isNaN(year)) {
           date = new Date(year, monthIndex, 1); // Set to 1st day of the month to avoid timezone issues with month end
-          console.log('ModernTemplate parsed MMM YYYY:', { monthStr, year, result: date });
         } else {
           date = new Date(dateString); // Fallback if parsing fails
-          console.log('ModernTemplate parsed other format (fallback):', date);
         }
       } else {
         date = new Date(dateString);
-        console.log('ModernTemplate parsed other format:', date);
       }
       
       if (isNaN(date.getTime())) {
-        console.log('ModernTemplate Invalid Date, returning original string:', dateString);
         return dateString;
       }
       
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       const result = `${month}/${year}`;
-      console.log('ModernTemplate formatDate result:', result);
       return result;
     } catch (e) {
-      console.error('ModernTemplate formatDate error:', e);
       return dateString; // Return original if parsing fails
     }
   };

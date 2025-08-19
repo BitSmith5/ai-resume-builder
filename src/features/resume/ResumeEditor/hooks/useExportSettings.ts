@@ -76,9 +76,6 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
     }
 
     try {
-      console.log('🎯 Starting PDF download with export settings for resume:', resumeId);
-      console.log('🎯 Export settings:', exportSettings);
-
       // Show loading state
       setPdfDownloading(true);
 
@@ -86,8 +83,6 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
       const pdfExportSettings = {
         ...exportSettings
       };
-
-      console.log('🎯 PDF export settings (scaled):', pdfExportSettings);
 
       // Call the unified PDF generation API
       const response = await fetch(`/api/resumes/${resumeId}/pdf-html`, {
@@ -126,8 +121,6 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
 
       // Close the export panel
       setExportPanelOpen(false);
-
-      console.log('🎯 PDF download completed successfully');
 
     } catch (error) {
       console.error('🎯 PDF download error:', error);

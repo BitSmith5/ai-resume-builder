@@ -97,8 +97,6 @@ export async function PUT(
     }
 
     const body = await request.json();
-    console.log("PUT request body received:", JSON.stringify(body, null, 2));
-    console.log("🔍 PUT DEBUG - Body skillCategories field:", body.skillCategories);
     
     const { 
       title, 
@@ -122,8 +120,6 @@ export async function PUT(
       volunteerExperience,
       references
     } = body;
-    
-    console.log("🔍 PUT DEBUG - Destructured skillCategories:", skillCategories);
 
     if (!title || !content) {
       return NextResponse.json(
@@ -139,15 +135,11 @@ export async function PUT(
       'awards', 'volunteerExperience', 'references', 'strengths',
       'education', 'courses', 'interests'
     ];
-    
     fieldsToRemove.forEach(field => {
       if (cleanContent[field as keyof typeof cleanContent]) {
-        console.log(`🔍 PUT DEBUG - Removing ${field} from content as it's handled by separate model`);
         delete cleanContent[field as keyof typeof cleanContent];
       }
     });
-
-    console.log('🔍 PUT DEBUG - Cleaned content:', cleanContent);
 
     // Validate data types and structure
     const validationErrors = [];
@@ -222,7 +214,6 @@ export async function PUT(
       );
     }
 
-    console.log("🔍 PUT DEBUG - Processing work experience data...");
     // Convert string dates to Date objects for workExperience and remove id/resumeId fields
     const processedWorkExperience = (workExperience || [])
       .filter((exp: { company: string; position: string; startDate: string; [key: string]: unknown }) => {
@@ -272,8 +263,6 @@ export async function PUT(
         };
       });
 
-    console.log("🔍 PUT DEBUG - Processed work experience:", processedWorkExperience.length, "entries");
-
     // Convert string dates to Date objects for education and remove id/resumeId fields
     const processedEducation = (education || [])
       .filter((edu: { institution: string; degree: string; field: string; startDate: string; [key: string]: unknown }) => {
@@ -318,10 +307,6 @@ export async function PUT(
         };
       });
 
-    console.log('🔍 PUT DEBUG - Received strengths:', strengths);
-    console.log('🔍 PUT DEBUG - Received volunteerExperience:', volunteerExperience);
-    console.log('🔍 PUT DEBUG - Received references:', references);
-    
     // Filter out id and resumeId fields from strengths
     const processedStrengths = (strengths || [])
       .filter((strength: { skillName: string; rating: number; [key: string]: unknown }) => {
@@ -334,7 +319,6 @@ export async function PUT(
         return rest;
       });
     
-    console.log('🔍 PUT DEBUG - Processed strengths:', processedStrengths);
 
     // Filter out id and resumeId fields from courses
     const processedCourses = (courses || [])
@@ -446,11 +430,6 @@ export async function PUT(
           bulletPoints: Array.isArray(award.bulletPoints) ? award.bulletPoints : [],
         };
         
-        console.log('🔍 PUT DEBUG - Processing award:', {
-          original: award,
-          processed: processedAward
-        });
-        
         return processedAward;
       });
 
@@ -495,8 +474,6 @@ export async function PUT(
         };
       });
     
-    console.log('🔍 PUT DEBUG - Processed volunteerExperience:', processedVolunteerExperience);
-
     // Process references data
     const processedReferences = (references || [])
       .filter((reference: { name: string; title: string; company: string; [key: string]: unknown }) => {
@@ -508,8 +485,6 @@ export async function PUT(
         const { id, resumeId, ...rest } = reference;
         return rest;
       });
-    
-    console.log('🔍 PUT DEBUG - Processed references:', processedReferences);
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
@@ -524,9 +499,7 @@ export async function PUT(
       // references: references || [], 
     };
     
-    console.log('🔍 PUT DEBUG - Skill Categories:', additionalData.skillCategories);
-    console.log('🔍 PUT DEBUG - Content with skillCategories:', { ...content, ...additionalData });
-    console.log('🔍 PUT DEBUG - Full additionalData:', additionalData);
+
 
     // Get the current resume to check for profile picture changes
     const currentResume = await prisma.resume.findFirst({
@@ -536,17 +509,9 @@ export async function PUT(
       },
     });
 
-    // Delete old profile picture if it's being replaced or removed
-    // For data URLs, we don't need to delete anything from storage
-    // The old data URL will be replaced with the new one
-    if (currentResume && currentResume.profilePicture && currentResume.profilePicture !== profilePicture) {
-      console.log("Profile picture being replaced - old data URL will be overwritten");
-    }
 
     // Use a transaction to ensure data consistency
-    console.log("Starting database transaction...");
     const resume = await prisma.$transaction(async (tx) => {
-      console.log("Deleting existing data...");
       // Delete existing related data within the transaction
       await tx.strength.deleteMany({
         where: { resumeId: parseInt(resolvedParams.id) },
@@ -583,39 +548,6 @@ export async function PUT(
       });
 
       // Update the resume and recreate related data within the same transaction
-      console.log("Updating resume with basic data:", {
-        title,
-        jobTitle,
-        template,
-        deletedSections,
-        sectionOrder,
-        exportSettings,
-      });
-      
-      console.log("🔍 PUT DEBUG - Final data structure for resume update:", {
-        title,
-        jobTitle,
-        template: template || "modern",
-        content: { ...cleanContent, ...additionalData },
-        profilePicture: profilePicture || null,
-        deletedSections: deletedSections || [],
-        sectionOrder: sectionOrder || [],
-        exportSettings: exportSettings || {},
-      });
-      
-      console.log("🔍 PUT DEBUG - Related data to create:");
-      console.log("  - Strengths:", processedStrengths.length);
-      console.log("  - Work Experience:", processedWorkExperience.length);
-      console.log("  - Education:", processedEducation.length);
-      console.log("  - Courses:", processedCourses.length);
-      console.log("  - Interests:", processedInterests.length);
-      console.log("  - Projects:", processedProjects.length);
-      console.log("  - Languages:", processedLanguages.length);
-      console.log("  - Publications:", processedPublications.length);
-      console.log("  - Awards:", processedAwards.length);
-      console.log("  - Volunteer Experience:", processedVolunteerExperience.length);
-      console.log("  - References:", processedReferences.length);
-      
       return await tx.resume.update({
         where: {
           id: parseInt(resolvedParams.id),

@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log("POST request body received:", JSON.stringify(body, null, 2));
     
     const { 
       title, 
@@ -256,12 +255,13 @@ export async function POST(request: NextRequest) {
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
       skillCategories: (content as Record<string, unknown>)?.skillCategories || [],
-      projects: projects || [],
-      languages: languages || [],
-      publications: publications || [],
-      awards: awards || [],
-      volunteerExperience: volunteerExperience || [],
-      references: references || [],
+      // Don't include these in content as they're handled by separate models
+      // projects: projects || [],
+      // languages: languages || [],
+      // publications: publications || [],
+      // awards: awards || [],
+      // volunteerExperience: volunteerExperience || [],
+      // references: references || [],
     };
 
     const resume = await prisma.resume.create({

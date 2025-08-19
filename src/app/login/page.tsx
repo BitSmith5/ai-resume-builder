@@ -131,7 +131,6 @@ export default function LoginPage() {
     setError("");
 
     try {
-      console.log("Starting registration process...");
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -141,12 +140,10 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
-      console.log("Registration response:", data);
 
       if (!response.ok) {
         setError(data.error || "Registration failed.");
       } else {
-        console.log("Registration successful, attempting auto-sign-in...");
         // Auto-sign in after successful registration
         const result = await signIn("credentials", {
           username: formData.username,
@@ -154,10 +151,7 @@ export default function LoginPage() {
           redirect: false,
         });
 
-        console.log("Auto-sign-in result:", result);
-
         if (result?.ok) {
-          console.log("Auto-sign-in successful, redirecting to dashboard...");
           router.push("/resume");
         } else {
           console.error("Auto-sign-in failed:", result?.error);
