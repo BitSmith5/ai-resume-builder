@@ -79,9 +79,7 @@ export async function POST(
 
     const deletedSections = (resume.deletedSections as string[]) || [];
     const activeSections = sectionOrder.filter(section => !deletedSections.includes(section));
-    
-    // Use the same rendering logic as the PDF route
-    const template = exportSettings.template === 'standard' ? 'classic' : 'modern';
+  
     
          // Generate HTML using the unified PDF generator - SAME CODE FOR BOTH
      const html = generatePdfHtml(resumeData, activeSections, exportSettings);

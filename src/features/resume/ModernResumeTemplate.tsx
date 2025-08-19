@@ -151,7 +151,7 @@ const ModernResumeTemplate: React.FC<ModernResumeTemplateProps> = ({ data }) => 
       const year = date.getFullYear();
       const result = `${month}/${year}`;
       return result;
-    } catch (e) {
+    } catch {
       return dateString; // Return original if parsing fails
     }
   };

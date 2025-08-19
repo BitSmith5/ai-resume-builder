@@ -498,17 +498,6 @@ export async function PUT(
       // volunteerExperience: volunteerExperience || [], 
       // references: references || [], 
     };
-    
-
-
-    // Get the current resume to check for profile picture changes
-    const currentResume = await prisma.resume.findFirst({
-      where: {
-        id: parseInt(resolvedParams.id),
-        userId: user.id,
-      },
-    });
-
 
     // Use a transaction to ensure data consistency
     const resume = await prisma.$transaction(async (tx) => {

@@ -56,6 +56,7 @@ export async function GET() {
       // Extract additional data from content JSON
       skillCategories: (resume.content as Record<string, unknown>)?.skillCategories || [],
       languages: resume.languages || [],
+      references: resume.references || [],
       deletedSections: (resume as { deletedSections?: string[] }).deletedSections || [],
       sectionOrder: (resume as { sectionOrder?: string[] }).sectionOrder || [],
     }));
@@ -102,6 +103,33 @@ export async function POST(request: NextRequest) {
       volunteerExperience,
       references
     } = body;
+
+    // Convert "MMM YYYY" format to Date object for database storage
+    const parseDate = (dateStr: string): Date => {
+      if (!dateStr || dateStr.trim() === '') return new Date();
+      
+      // Handle different date formats
+      if (dateStr.includes(' ')) {
+        // "MMM YYYY" format
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const parts = dateStr.split(' ');
+        if (parts.length >= 2) {
+          const month = parts[0];
+          const year = parts[1];
+          const monthIndex = months.indexOf(month);
+          if (monthIndex !== -1 && !isNaN(parseInt(year))) {
+            return new Date(parseInt(year), monthIndex, 1);
+          }
+        }
+      } else if (dateStr.includes('-')) {
+        // ISO date format (YYYY-MM-DD)
+        return new Date(dateStr);
+      }
+      
+      // Fallback to current date if parsing fails
+      console.warn(`Failed to parse date: ${dateStr}, using current date`);
+      return new Date();
+    };
 
     if (!title || !content) {
       return NextResponse.json(
@@ -158,33 +186,6 @@ export async function POST(request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, resumeId, ...rest } = project;
       
-      // Convert "MMM YYYY" format to Date object for database storage
-      const parseDate = (dateStr: string): Date => {
-        if (!dateStr || dateStr.trim() === '') return new Date();
-        
-        // Handle different date formats
-        if (dateStr.includes(' ')) {
-          // "MMM YYYY" format
-          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          const parts = dateStr.split(' ');
-          if (parts.length >= 2) {
-            const month = parts[0];
-            const year = parts[1];
-            const monthIndex = months.indexOf(month);
-            if (monthIndex !== -1 && !isNaN(parseInt(year))) {
-              return new Date(parseInt(year), monthIndex, 1);
-            }
-          }
-        } else if (dateStr.includes('-')) {
-          // ISO date format (YYYY-MM-DD)
-          return new Date(dateStr);
-        }
-        
-        // Fallback to current date if parsing fails
-        console.warn(`Failed to parse date: ${dateStr}, using current date`);
-        return new Date();
-      };
-
       return {
         ...rest,
         startDate: parseDate(project.startDate),
@@ -214,43 +215,31 @@ export async function POST(request: NextRequest) {
     });
 
     // Process volunteer experience data
-    const processedVolunteerExperience = (volunteerExperience || []).map((volunteer: { id?: string; resumeId?: string; startDate: string; endDate?: string; [key: string]: unknown }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, resumeId, ...rest } = volunteer;
-      
-      // Convert "MMM YYYY" format to Date object for database storage
-      const parseDate = (dateStr: string): Date => {
-        if (!dateStr || dateStr.trim() === '') return new Date();
-        
-        // Handle different date formats
-        if (dateStr.includes(' ')) {
-          // "MMM YYYY" format
-          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          const parts = dateStr.split(' ');
-          if (parts.length >= 2) {
-            const month = parts[0];
-            const year = parts[1];
-            const monthIndex = months.indexOf(month);
-            if (monthIndex !== -1 && !isNaN(parseInt(year))) {
-              return new Date(parseInt(year), monthIndex, 1);
-            }
-          }
-        } else if (dateStr.includes('-')) {
-          // ISO date format (YYYY-MM-DD)
-          return new Date(dateStr);
-        }
-        
-        // Fallback to current date if parsing fails
-        console.warn(`Failed to parse date: ${dateStr}, using current date`);
-        return new Date();
-      };
+    const processedVolunteerExperience = (volunteerExperience || [])
+      .filter((volunteer: { organization: string; position: string; startDate: string; [key: string]: unknown }) => {
+        return volunteer.organization && volunteer.position && volunteer.startDate;
+      })
+      .map((volunteer: { id?: string; resumeId?: number; organization: string; position: string; location?: string; startDate: string; endDate?: string; current?: boolean; hoursPerWeek?: string; bulletPoints?: string[]; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = volunteer;
+        return {
+          ...rest,
+          startDate: parseDate(volunteer.startDate),
+          endDate: volunteer.endDate ? parseDate(volunteer.endDate) : null,
+        };
+      });
 
-      return {
-        ...rest,
-        startDate: parseDate(volunteer.startDate),
-        endDate: volunteer.endDate ? parseDate(volunteer.endDate) : null,
-      };
-    });
+    // Process references data
+    const processedReferences = (references || [])
+      .filter((reference: { name: string; title: string; company: string; [key: string]: unknown }) => {
+        // Allow references to be saved even if partially filled - just need at least one field
+        return reference.name || reference.title || reference.company || reference.email || reference.phone || reference.relationship;
+      })
+      .map((reference: { id?: string; resumeId?: number; name: string; title: string; company: string; email: string; phone?: string; relationship: string; [key: string]: unknown }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, resumeId, ...rest } = reference;
+        return rest;
+      });
 
     // Process additional fields (will be stored in content JSON for now)
     const additionalData = {
@@ -305,6 +294,9 @@ export async function POST(request: NextRequest) {
         volunteerExperience: {
           create: processedVolunteerExperience,
         },
+        references: {
+          create: processedReferences,
+        },
       },
       include: {
         strengths: true,
@@ -317,6 +309,7 @@ export async function POST(request: NextRequest) {
         publications: true,
         awards: true,
         volunteerExperience: true,
+        references: true,
       },
     });
 
@@ -344,7 +337,7 @@ export async function POST(request: NextRequest) {
       publications: resume.publications || [],
       awards: resume.awards || [],
       volunteerExperience: resume.volunteerExperience || [],
-      references: (resume.content as Record<string, unknown>)?.references || [],
+      references: resume.references || [],
     };
 
     return NextResponse.json(processedResume, { status: 201 });
