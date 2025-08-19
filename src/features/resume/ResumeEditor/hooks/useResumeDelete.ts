@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 interface UseResumeDeleteProps {
   resumeId?: string;
-  deleteResume: () => Promise<void>;
+  deleteResume: () => Promise<boolean>;
   setError: (message: string) => void;
   setDeleteConfirmOpen: (open: boolean) => void;
 }

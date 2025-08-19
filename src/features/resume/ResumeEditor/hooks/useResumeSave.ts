@@ -1,21 +1,19 @@
 import { useCallback } from 'react';
+import { useNotificationActions } from '@/hooks';
 
 interface UseResumeSaveProps {
   resumeId?: string;
-  setSuccess: (message: string) => void;
-  setError: (message: string) => void;
 }
 
 export const useResumeSave = ({ 
-  resumeId, 
-  setSuccess, 
-  setError 
+  resumeId
 }: UseResumeSaveProps) => {
+  const { showSuccess, showError } = useNotificationActions();
   
   const saveResumeData = useCallback(async (resumeData: any, sectionOrder: string[]) => {
     if (!resumeId) {
-      setError('No resume ID available');
-      return false;
+      showError('No resume ID available');
+      return;
     }
 
     try {
@@ -34,17 +32,15 @@ export const useResumeSave = ({
         throw new Error('Failed to save resume');
       }
 
-      setSuccess('Resume updated successfully');
-      return true;
+      showSuccess('Resume updated successfully');
     } catch (error) {
       console.error('Error saving resume:', error);
-      setError('Failed to save resume changes');
-      return false;
+      showError('Failed to save resume changes');
     }
-  }, [resumeId, setSuccess, setError]);
+  }, [resumeId, showSuccess, showError]);
 
   const saveResumeInfo = useCallback(async (updatedData: any, sectionOrder: string[]) => {
-    return await saveResumeData(updatedData, sectionOrder);
+    await saveResumeData(updatedData, sectionOrder);
   }, [saveResumeData]);
 
   return {

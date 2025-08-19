@@ -103,6 +103,4 @@ export const useAppStore = create<AppState>()(
 );
 
 // Selectors for better performance
-export const useUser = () => useAppStore((state) => state.user);
-export const useIsAuthenticated = () => useAppStore((state) => state.isAuthenticated);
 export const useNotifications = () => useAppStore((state) => state.notifications);

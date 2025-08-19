@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -23,6 +23,7 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from '@/shared/components';
+import { useNotificationActions } from '@/hooks';
 
 
 interface Resume {
@@ -59,6 +60,7 @@ interface Resume {
 
 export default function ResumePage() {
   const router = useRouter();
+  const { showSuccess, showError, showInfo } = useNotificationActions();
   
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,11 +68,7 @@ export default function ResumePage() {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchResumes();
-  }, []);
-
-  const fetchResumes = async () => {
+  const fetchResumes = useCallback(async () => {
     try {
       const response = await fetch('/api/resumes');
       if (!response.ok) {
@@ -78,12 +76,19 @@ export default function ResumePage() {
       }
       const data = await response.json();
       setResumes(data);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    fetchResumes();
+  }, [fetchResumes]);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -142,6 +147,7 @@ export default function ResumePage() {
   const handleExportResume = async () => {
     if (selectedResumeId) {
       try {
+        showInfo('Preparing resume for export...');
         // Use the same export settings as ResumeEditorV2
         const exportSettings = {
           template: 'standard',
@@ -182,11 +188,12 @@ export default function ResumePage() {
           a.click();
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
+          showSuccess('Resume exported successfully!');
         } else {
-          console.error('Failed to export resume');
+          showError('Failed to export resume');
         }
-      } catch (error) {
-        console.error('Error exporting resume:', error);
+      } catch {
+        showError('Error exporting resume');
       }
     }
     handleMenuClose();
@@ -202,11 +209,12 @@ export default function ResumePage() {
         if (response.ok) {
           // Remove the resume from the local state
           setResumes(prevResumes => prevResumes.filter(resume => resume.id !== selectedResumeId));
+          showSuccess('Resume deleted successfully');
         } else {
-          console.error('Failed to delete resume');
+          showError('Failed to delete resume');
         }
-      } catch (error) {
-        console.error('Error deleting resume:', error);
+      } catch {
+        showError('Error deleting resume');
       }
     }
     handleMenuClose();

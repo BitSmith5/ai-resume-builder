@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
+import { useNotificationActions } from '@/hooks';
 
 interface ResumeData {
   title: string;
@@ -139,8 +140,9 @@ interface ProfileData {
 }
 
 export const useResumeData = (resumeId?: string) => {
-  const router = useRouter();
   const { data: session } = useSession();
+  const router = useRouter();
+  const { showSuccess, showError } = useNotificationActions();
 
   // State
   const [loading, setLoading] = useState(true);
@@ -478,42 +480,49 @@ export const useResumeData = (resumeId?: string) => {
         const errorText = await response.text();
         console.error('Save error details:', errorText);
       }
-    } catch (error) {
-      console.error('Save error:', error);
+    } catch {
+      console.error('Save error');
     }
   }, [resumeId, session, router]);
+
+  // Enhanced setError that also shows notification
+  const setErrorWithNotification = useCallback((message: string) => {
+    setError(message);
+    showError(message);
+  }, [showError]);
+  
+  // Enhanced setSuccess that also shows notification
+  const setSuccessWithNotification = useCallback((message: string) => {
+    setSuccess(message);
+    showSuccess(message);
+  }, [showSuccess]);
 
   // Delete resume
   const deleteResume = useCallback(async () => {
     if (!resumeId) {
-      setError("No resume ID found");
-      return;
+      setErrorWithNotification("No resume ID found");
+      return false;
     }
 
     try {
-      setLoading(true);
-
       const response = await fetch(`/api/resumes/${resumeId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (response.ok) {
-        setSuccess("Resume deleted successfully");
-        // Redirect to resume page after a short delay
-        setTimeout(() => {
-          router.push("/resume");
-        }, 1000);
+        setSuccessWithNotification("Resume deleted successfully");
+        router.push('/resume');
+        return true;
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to delete resume");
+        setErrorWithNotification(errorData.error || "Failed to delete resume");
+        return false;
       }
-    } catch (error) {
-      console.error("Error deleting resume:", error);
-      setError("An error occurred while deleting the resume");
-    } finally {
-      setLoading(false);
+    } catch {
+      setErrorWithNotification("An error occurred while deleting the resume");
+      return false;
     }
-  }, [resumeId, router]);
+  }, [resumeId, router, setErrorWithNotification, setSuccessWithNotification]);
 
   // Debounced save function
   const debouncedSave = useDebouncedCallback(saveResume, 2000);
@@ -569,8 +578,8 @@ export const useResumeData = (resumeId?: string) => {
     setResumeData,
     setProfileData,
     setSectionOrder,
-    setError,
-    setSuccess,
+    setError: setErrorWithNotification,
+    setSuccess: setSuccessWithNotification,
 
     // Actions
     loadProfileData,

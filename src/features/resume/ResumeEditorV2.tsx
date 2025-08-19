@@ -14,7 +14,7 @@ import { DeleteConfirmationDialog } from "./ResumeEditor/components/DeleteConfir
 import { FloatingActionButton } from "./ResumeEditor/components/FloatingActionButton";
 import { MainContentArea } from "./ResumeEditor/components/MainContentArea";
 import { LoadingComponent } from "./ResumeEditor/components/LoadingComponent";
-import { AlertMessages } from "./ResumeEditor/components/AlertMessages";
+
 import { createSectionComponents } from "./ResumeEditor/components/SectionComponents";
 import { useResumeData } from "./ResumeEditor/hooks/useResumeData";
 import { useExportSettings } from "./ResumeEditor/hooks/useExportSettings";
@@ -36,8 +36,6 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   // Use the custom hooks
   const {
     loading,
-    error,
-    success,
     resumeData,
     profileData,
     sectionOrder,
@@ -112,9 +110,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
 
   // Resume save functionality
   const { saveResumeInfo } = useResumeSave({
-    resumeId,
-    setSuccess,
-    setError
+    resumeId
   });
 
   // Resume deletion functionality
@@ -184,7 +180,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
       overflow: "hidden", // Prevent main scrollbar
     }}>
 
-      <AlertMessages error={error} success={success} />
+      {/* Global notifications are now handled by the notification system */}
 
       {/* Resume Header */}
       <ResumeHeader
