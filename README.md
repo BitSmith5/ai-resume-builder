@@ -134,6 +134,347 @@ The application uses an intelligent save queue that:
 - **Linting**: ESLint 9 with Next.js configuration
 - **Package Manager**: npm/pnpm support
 - **Database Migrations**: Prisma migrations with auto-generation
+- **Testing**: Jest 30 with React Testing Library and comprehensive coverage
+
+## 🧪 Testing
+
+The AI Resume Builder includes a comprehensive testing suite built with Jest and React Testing Library, ensuring code quality and reliability.
+
+### Testing Stack
+
+- **Jest 30**: Modern JavaScript testing framework with enhanced performance
+- **React Testing Library**: User-centric testing utilities for React components
+- **Jest DOM**: Custom Jest matchers for DOM testing
+- **TypeScript Support**: Full type safety in tests with custom type definitions
+
+### Test Coverage Requirements
+
+The project maintains strict testing standards with the following coverage thresholds:
+- **Statements**: 70%
+- **Branches**: 70%
+- **Lines**: 70%
+- **Functions**: 70%
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests in CI mode
+npm run test:ci
+
+# Run specific test file
+npm test -- src/features/resume/ResumeEditor/components/__tests__/AlertMessages.test.tsx
+
+# Run tests matching a pattern
+npm test -- --testNamePattern="should render"
+```
+
+### Test File Structure
+
+Tests are organized alongside the code they test, following the `__tests__` convention:
+
+```
+src/
+├── features/
+│   └── resume/
+│       ├── ResumeEditor/
+│       │   ├── components/
+│       │   │   ├── __tests__/           # Component tests
+│       │   │   │   ├── AlertMessages.test.tsx
+│       │   │   │   └── ...
+│       │   │   └── AlertMessages.tsx
+│       │   └── hooks/
+│       │       ├── __tests__/           # Hook tests
+│       │       │   ├── useDatePicker.test.ts
+│       │       │   └── ...
+│       │       └── useDatePicker.ts
+│       └── __tests__/                   # Feature-level tests
+│           └── ResumeTemplateRegistry.test.tsx
+├── lib/
+│   ├── __tests__/                       # Utility tests
+│   │   ├── store.test.ts
+│   │   └── utils.test.ts
+│   └── store.ts
+└── services/
+    ├── __tests__/                       # Service tests
+    │   ├── imageStorage.test.ts
+    │   ├── pdfGenerator.test.ts
+    │   └── resumeDataTransformer.test.ts
+    └── imageStorage.ts
+```
+
+### Writing Tests
+
+#### Component Testing
+
+```tsx
+import React from 'react'
+import { render, screen } from '@testing-library/react'
+import { AlertMessages } from '../AlertMessages'
+
+describe('AlertMessages', () => {
+  it('should render nothing when no messages are provided', () => {
+    render(<AlertMessages />)
+    
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('should render error message when error prop is provided', () => {
+    const errorMessage = 'Something went wrong!'
+    render(<AlertMessages error={errorMessage} />)
+    
+    const errorAlert = screen.getByRole('alert')
+    expect(errorAlert).toBeInTheDocument()
+    expect(errorAlert).toHaveTextContent(errorMessage)
+    expect(errorAlert).toHaveClass('MuiAlert-standardError')
+  })
+})
+```
+
+#### Hook Testing
+
+```tsx
+import { renderHook, act } from '@testing-library/react'
+import { useDatePicker } from '../useDatePicker'
+
+describe('useDatePicker', () => {
+  it('should initialize with default values', () => {
+    const { result } = renderHook(() => useDatePicker())
+    
+    expect(result.current.selectedDate).toBeNull()
+    expect(result.current.isOpen).toBe(false)
+  })
+
+  it('should open date picker when openPicker is called', () => {
+    const { result } = renderHook(() => useDatePicker())
+    
+    act(() => {
+      result.current.openPicker()
+    })
+    
+    expect(result.current.isOpen).toBe(true)
+  })
+})
+```
+
+#### Service Testing
+
+```tsx
+import { resumeDataTransformer } from '../resumeDataTransformer'
+
+describe('resumeDataTransformer', () => {
+  it('should transform raw data to resume format', () => {
+    const rawData = { /* test data */ }
+    const result = resumeDataTransformer.transform(rawData)
+    
+    expect(result).toHaveProperty('personalInfo')
+    expect(result).toHaveProperty('workExperience')
+    expect(result.workExperience).toHaveLength(2)
+  })
+})
+```
+
+### Testing Utilities
+
+#### Custom Jest Matchers
+
+The project includes custom Jest DOM matchers for enhanced testing:
+
+```tsx
+// Available custom matchers
+expect(element).toBeInTheDocument()
+expect(element).toHaveTextContent('expected text')
+expect(element).toHaveClass('expected-class')
+```
+
+#### Test Setup
+
+Tests are configured with comprehensive mocks and setup:
+
+```tsx
+// jest.setup.js
+import '@testing-library/jest-dom'
+
+// Mock Next.js router
+jest.mock('next/navigation', () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+      replace: jest.fn(),
+      prefetch: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
+    }
+  },
+  useSearchParams() {
+    return new URLSearchParams()
+  },
+  usePathname() {
+    return '/'
+  },
+}))
+
+// Mock Next.js image component
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => <img {...props} />,
+}))
+
+// Mock browser APIs
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+})
+```
+
+### Testing Best Practices
+
+#### 1. **User-Centric Testing**
+- Test behavior, not implementation
+- Use semantic queries (`getByRole`, `getByLabelText`)
+- Avoid testing internal state or implementation details
+
+#### 2. **Accessibility Testing**
+- Test with screen readers in mind
+- Verify proper ARIA labels and roles
+- Ensure keyboard navigation works correctly
+
+#### 3. **Component Isolation**
+- Mock external dependencies
+- Test components in isolation
+- Use proper cleanup between tests
+
+#### 4. **Data Testing**
+- Test with realistic data structures
+- Verify data transformations
+- Test edge cases and error conditions
+
+#### 5. **Performance Testing**
+- Test component rendering performance
+- Verify efficient re-renders
+- Test memory leaks and cleanup
+
+### Mocking Strategies
+
+#### API Mocking
+
+```tsx
+// Mock API responses
+jest.mock('../api', () => ({
+  fetchResume: jest.fn(() => Promise.resolve(mockResumeData)),
+  saveResume: jest.fn(() => Promise.resolve({ success: true })),
+}))
+
+// Mock fetch globally
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve(mockData),
+  })
+)
+```
+
+#### Component Mocking
+
+```tsx
+// Mock complex components
+jest.mock('../ComplexComponent', () => {
+  return function MockComplexComponent({ data }: any) {
+    return <div data-testid="complex-component">{data.title}</div>
+  }
+})
+```
+
+### Debugging Tests
+
+#### Console Logging
+
+```tsx
+// Enable verbose logging in tests
+beforeEach(() => {
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+})
+
+afterEach(() => {
+  console.log.mockRestore()
+})
+```
+
+#### Test Debugging
+
+```tsx
+// Debug test output
+it('should work correctly', () => {
+  const { debug } = render(<Component />)
+  debug() // Prints the rendered HTML
+  
+  // Or debug specific elements
+  const element = screen.getByText('Hello')
+  debug(element)
+})
+```
+
+### Continuous Integration
+
+Tests are automatically run in CI/CD pipelines:
+
+```yaml
+# Example GitHub Actions workflow
+- name: Run Tests
+  run: npm run test:ci
+  
+- name: Upload Coverage
+  uses: codecov/codecov-action@v3
+  with:
+    file: ./coverage/lcov.info
+```
+
+### Coverage Reports
+
+Generate detailed coverage reports:
+
+```bash
+npm run test:coverage
+```
+
+Coverage reports include:
+- **Line Coverage**: Percentage of code lines executed
+- **Branch Coverage**: Percentage of conditional branches tested
+- **Function Coverage**: Percentage of functions called
+- **Statement Coverage**: Overall code execution percentage
+
+### Testing Checklist
+
+Before submitting code, ensure:
+
+- [ ] All new components have tests
+- [ ] All new hooks have tests
+- [ ] All new services have tests
+- [ ] Tests cover happy path scenarios
+- [ ] Tests cover error conditions
+- [ ] Tests cover edge cases
+- [ ] Coverage meets 70% threshold
+- [ ] Tests pass in CI environment
+- [ ] No console warnings in tests
+- [ ] Proper cleanup in tests
 
 ## 🚀 Getting Started
 
