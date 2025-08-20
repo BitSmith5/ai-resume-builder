@@ -5,8 +5,6 @@ import { prisma } from '../../../../../lib/prisma';
 import { transformResumeData } from '../../../../../services';
 import puppeteer from 'puppeteer';
 
-
-
 export const runtime = 'nodejs';
 
 // Import the unified PDF generation logic

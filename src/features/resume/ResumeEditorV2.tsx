@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Box } from "@mui/material";
 
@@ -61,7 +61,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   } = useExportSettings(resumeId, resumeData.title);
 
   // Wrapper function for PDF download that provides success/error callbacks
-  const handlePDFDownload = useMemo(() => async () => {
+  const handlePDFDownload = useCallback(async () => {
     await handleDownloadPDF(
       (message: string) => setSuccess(message),
       (message: string) => setError(message)
