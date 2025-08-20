@@ -10,7 +10,6 @@ import {
   TextField,
   Button,
   Avatar,
-  Alert,
   CircularProgress,
   Chip,
 } from "@mui/material";
@@ -25,8 +24,8 @@ import {
   GitHub as GitHubIcon,
   Language as LanguageIcon,
 } from "@mui/icons-material";
-import DashboardLayout from "@/components/DashboardLayout";
-
+import { DashboardLayout } from "@/shared/components";
+import { useNotificationActions } from "@/hooks";
 
 interface ProfileData {
   name: string;
@@ -46,8 +45,9 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-
   const { data: session, status } = useSession();
+  const { showSuccess, showError } = useNotificationActions();
+  
   const [profileData, setProfileData] = useState<ProfileData>({
     name: "",
     email: "",
@@ -66,8 +66,6 @@ export default function ProfilePage() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   // Load profile data from API
   const loadProfileData = async () => {
@@ -100,44 +98,30 @@ export default function ProfilePage() {
         name: session.user?.name || "",
         email: session.user?.email || "",
       }));
-      // Load additional profile data from API
       loadProfileData();
     }
   }, [session]);
 
   const handleSave = async () => {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
     try {
+      setLoading(true);
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: profileData.name,
-          email: profileData.email,
-          bio: profileData.bio,
-          location: profileData.location,
-          linkedinUrl: profileData.linkedinUrl,
-          portfolioUrl: profileData.portfolioUrl,
-          githubUrl: profileData.githubUrl,
-          phone: profileData.phone,
-          preferences: profileData.preferences,
-        }),
+        body: JSON.stringify(profileData),
       });
 
       if (response.ok) {
-        setSuccess("Profile updated successfully!");
+        showSuccess("Profile updated successfully!");
         setIsEditing(false);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to update profile. Please try again.");
+        showError(errorData.error || "Failed to update profile. Please try again.");
       }
     } catch {
-      setError("Failed to update profile. Please try again.");
+      showError("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -145,10 +129,14 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setError(null);
-    setSuccess(null);
     // Reset to original data
-    loadProfileData();
+    if (session?.user) {
+      setProfileData(prev => ({
+        ...prev,
+        name: session.user?.name || "",
+        email: session.user?.email || "",
+      }));
+    }
   };
 
   // Show loading state while session is loading
@@ -195,18 +183,6 @@ export default function ProfilePage() {
             </Button>
           )}
         </Box>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {success}
-          </Alert>
-        )}
 
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
           {/* Profile Information */}

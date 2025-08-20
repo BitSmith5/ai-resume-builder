@@ -11,7 +11,6 @@ import {
   Container,
   Typography,
   Divider,
-  Alert,
   TextField,
   FormControl,
   InputLabel,
@@ -22,6 +21,7 @@ import {
   Tab,
 } from "@mui/material";
 import { Google as GoogleIcon, GitHub as GitHubIcon, Visibility, VisibilityOff } from "@mui/icons-material";
+import { useNotificationActions } from "@/hooks";
 
 
 interface TabPanelProps {
@@ -49,7 +49,6 @@ function TabPanel(props: TabPanelProps) {
 export default function LoginPage() {
   
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const [tabValue, setTabValue] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -60,6 +59,7 @@ export default function LoginPage() {
   });
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { showError, showSuccess } = useNotificationActions();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -70,7 +70,6 @@ export default function LoginPage() {
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-    setError("");
   };
 
   const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +78,6 @@ export default function LoginPage() {
 
   const handleSignIn = async (provider: "google" | "github") => {
     setIsLoading(true);
-    setError("");
 
     try {
       const result = await signIn(provider, {
@@ -88,22 +86,21 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError(`Authentication failed: ${result.error}`);
+        showError(`Authentication failed: ${result.error}`);
       } else if (result?.ok) {
         router.push("/resume");
       }
     } catch (error) {
       console.error("Sign in error:", error);
-      setError("An unexpected error occurred. Please try again.");
+      showError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCredentialsSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsLoading(true);
-    setError("");
 
     try {
       const result = await signIn("credentials", {
@@ -113,60 +110,48 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid username or password.");
+        showError("Invalid username or password.");
       } else if (result?.ok) {
         router.push("/resume");
       }
     } catch (error) {
-      console.error("Sign in error:", error);
-      setError("An unexpected error occurred. Please try again.");
+      console.error("Login error:", error);
+      showError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRegister = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsLoading(true);
-    setError("");
 
     try {
-      console.log("Starting registration process...");
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+        }),
       });
 
       const data = await response.json();
-      console.log("Registration response:", data);
 
-      if (!response.ok) {
-        setError(data.error || "Registration failed.");
+      if (response.ok) {
+        showSuccess("Registration successful! Please sign in.");
+        setTabValue(0); // Switch to login tab
+        setFormData({ username: "", email: "", password: "", name: "" });
       } else {
-        console.log("Registration successful, attempting auto-sign-in...");
-        // Auto-sign in after successful registration
-        const result = await signIn("credentials", {
-          username: formData.username,
-          password: formData.password,
-          redirect: false,
-        });
-
-        console.log("Auto-sign-in result:", result);
-
-        if (result?.ok) {
-          console.log("Auto-sign-in successful, redirecting to dashboard...");
-          router.push("/resume");
-        } else {
-          console.error("Auto-sign-in failed:", result?.error);
-          setError("Registration successful but auto-sign-in failed. Please sign in manually.");
-        }
+        showError(data.error || "Registration failed.");
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setError("An unexpected error occurred. Please try again.");
+      showError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -211,12 +196,6 @@ export default function LoginPage() {
             </Typography>
           </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
-
           <Tabs 
             value={tabValue} 
             onChange={handleTabChange} 
@@ -239,7 +218,7 @@ export default function LoginPage() {
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
-            <Box component="form" onSubmit={handleCredentialsSignIn} display="flex" flexDirection="column" gap={2}>
+            <Box component="form" onSubmit={handleLogin} display="flex" flexDirection="column" gap={2}>
               <TextField
                 label="Username or Email"
                 value={formData.username}
@@ -315,7 +294,7 @@ export default function LoginPage() {
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
-            <Box component="form" onSubmit={handleSignUp} display="flex" flexDirection="column" gap={2}>
+            <Box component="form" onSubmit={handleRegister} display="flex" flexDirection="column" gap={2}>
               <TextField
                 label="Name"
                 value={formData.name}

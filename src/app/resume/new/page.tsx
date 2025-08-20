@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
-import ResumeEditorV2 from '@/components/ResumeEditorV2';
+import { DashboardLayout } from '@/shared/components';
+import { ResumeEditorV2 } from '@/features/resume';
 import { useSearchParams } from 'next/navigation';
 
 function NewResumeContent() {

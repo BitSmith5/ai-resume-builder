@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../../../../lib/auth';
 import { prisma } from '../../../../../lib/prisma';
 import puppeteer from 'puppeteer';
-import { transformResumeData } from '../../../../../lib/resumeDataTransformer';
+import { transformResumeData } from '../../../../../services';
 
 
 
@@ -43,10 +43,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log('🎯 PDF-WITH-LINKS - Starting PDF generation');
   try {
     const { id } = await params;
-    console.log('🎯 PDF-WITH-LINKS - Resume ID:', id);
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
@@ -56,10 +54,6 @@ export async function POST(
     // Get export settings from request body
     const body = await request.json();
     const exportSettings: ExportSettings = body.exportSettings;
-
-         
-     
-           console.log('🔍 PDF DEBUG - Starting database query for resume ID:', id);
       
       const resume = await prisma.resume.findFirst({
         where: {
@@ -83,14 +77,6 @@ export async function POST(
           references: true
         }
       });
-      
-      console.log('🔍 PDF DEBUG - Resume found:', !!resume);
-      console.log('🔍 PDF DEBUG - Resume title:', resume?.title);
-      console.log('🔍 PDF DEBUG - Raw strengths count:', resume?.strengths?.length || 0);
-      console.log('🔍 PDF DEBUG - Raw volunteerExperience count:', resume?.volunteerExperience?.length || 0);
-      console.log('🔍 PDF DEBUG - Raw references count:', resume?.references?.length || 0);
-     
-     
 
     if (!resume) {
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
@@ -133,13 +119,6 @@ export async function POST(
     };
 
     // Debug logging to see what data we have
-    console.log('🔍 PDF DEBUG - Data Summary:');
-    console.log('🔍 Strengths count:', resumeData.strengths?.length || 0);
-    console.log('🔍 Skill Categories count:', resumeData.skillCategories?.length || 0);
-    console.log('🔍 Volunteer Experience count:', resumeData.volunteerExperience?.length || 0);
-    console.log('🔍 References count:', resumeData.references?.length || 0);
-    console.log('🔍 Section Order:', sectionOrder);
-    console.log('🔍 Active Sections:', activeSections);
 
     // Function to render sections based on the active sections order
     const renderSection = (sectionName: string): string => {
@@ -499,7 +478,7 @@ export async function POST(
 
     await browser.close();
 
-    return new NextResponse(pdf, {
+    return new NextResponse(pdf as any, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${resume.title || 'resume'}.pdf"`,

@@ -6,11 +6,8 @@ import type { Session } from "next-auth";
 
 export async function GET() {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await getServerSession(authOptions as any) as Session;
+    const session = await getServerSession(authOptions) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
-    
-    console.log('Profile API called with user:', user);
     
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -96,8 +93,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await getServerSession(authOptions as any) as Session;
+    const session = await getServerSession(authOptions) as Session;
     const user = session?.user as { id: string; name?: string | null; email?: string | null; image?: string | null };
     
     if (!user?.id) {

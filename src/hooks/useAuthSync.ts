@@ -1,15 +1,28 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useAppStore, User } from '@/lib/store';
+import { useUserActions, User } from '@/lib/store';
 
 export const useAuthSync = () => {
   const { data: session, status } = useSession();
-  const { setUser, setAuthenticated } = useAppStore();
+  const [shouldSync, setShouldSync] = useState(false);
+  
+  // Always call the hook, but we'll conditionally use its return value
+  const userActions = useUserActions();
+  const { setUser, setAuthenticated } = userActions;
+  
+  // Set shouldSync to true after a delay to ensure we're on client side
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldSync(true);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
-    if (status === 'loading') {
+    if (!shouldSync || status === 'loading') {
       return;
     }
 
@@ -19,11 +32,14 @@ export const useAuthSync = () => {
     } else {
       setUser(null);
     }
-  }, [session, status, setUser]);
+  }, [session, status, setUser, shouldSync]);
 
   useEffect(() => {
+    if (!shouldSync) {
+      return;
+    }
     setAuthenticated(status === 'authenticated');
-  }, [status, setAuthenticated]);
+  }, [status, setAuthenticated, shouldSync]);
 
   return {
     user: session?.user,
