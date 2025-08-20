@@ -52,7 +52,7 @@ const initialState = {
 // Counter for generating unique IDs
 let idCounter = 1;
 
-// Create the store
+// Create the store with SSR-safe configuration
 export const useAppStore = create<AppState>()(
   devtools(
     persist(
@@ -94,6 +94,14 @@ export const useAppStore = create<AppState>()(
           isAuthenticated: state.isAuthenticated,
           // Don't persist notifications
         }),
+        // Add proper SSR handling
+        skipHydration: true,
+        // Add storage configuration that's SSR-safe
+        storage: typeof window !== 'undefined' ? undefined : {
+          getItem: () => Promise.resolve(null),
+          setItem: () => Promise.resolve(),
+          removeItem: () => Promise.resolve(),
+        },
       }
     ),
     {

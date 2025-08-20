@@ -1,16 +1,13 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { useAuthSync } from '@/hooks/useAuthSync';
 
 interface AuthSyncProviderProps {
   children: ReactNode;
 }
 
 export const AuthSyncProvider: React.FC<AuthSyncProviderProps> = ({ children }) => {
-  // This component just calls the hook to sync auth state
-  // The hook handles all the synchronization logic
-  useAuthSync();
-  
+  // For now, just render children without auth sync to avoid SSR issues
+  // We'll implement auth sync later in a different way
   return <>{children}</>;
 }; 
