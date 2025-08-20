@@ -2,11 +2,13 @@
 
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useAppStore, User } from '@/lib/store';
+import { useUserActions, User } from '@/lib/store';
 
 export const useAuthSync = () => {
   const { data: session, status } = useSession();
-  const { setUser, setAuthenticated } = useAppStore();
+  
+  // Use the action selector to get only the user-related actions
+  const { setUser, setAuthenticated } = useUserActions();
 
   useEffect(() => {
     if (status === 'loading') {

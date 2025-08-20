@@ -104,3 +104,25 @@ export const useAppStore = create<AppState>()(
 
 // Selectors for better performance
 export const useNotifications = () => useAppStore((state) => state.notifications);
+
+// User-related selectors
+export const useUser = () => useAppStore((state) => state.user);
+export const useIsAuthenticated = () => useAppStore((state) => state.isAuthenticated);
+
+// Combined user state selector
+export const useUserState = () => useAppStore((state) => ({
+  user: state.user,
+  isAuthenticated: state.isAuthenticated,
+}));
+
+// Action selectors
+export const useUserActions = () => useAppStore((state) => ({
+  setUser: state.setUser,
+  setAuthenticated: state.setAuthenticated,
+}));
+
+export const useNotificationActions = () => useAppStore((state) => ({
+  addNotification: state.addNotification,
+  removeNotification: state.removeNotification,
+  clearNotifications: state.clearNotifications,
+}));
