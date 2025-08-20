@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -68,27 +68,27 @@ export default function ResumePage() {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
 
-  const fetchResumes = useCallback(async () => {
-    try {
-      const response = await fetch('/api/resumes');
-      if (!response.ok) {
-        throw new Error('Failed to fetch resumes');
-      }
-      const data = await response.json();
-      setResumes(data);
-      setError(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setError(errorMessage);
-      showError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [showError]);
-
   useEffect(() => {
+    const fetchResumes = async () => {
+      try {
+        const response = await fetch('/api/resumes');
+        if (!response.ok) {
+          throw new Error('Failed to fetch resumes');
+        }
+        const data = await response.json();
+        setResumes(data);
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        setError(errorMessage);
+        // Use direct error state instead of showError to avoid dependency issues
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchResumes();
-  }, [fetchResumes]);
+  }, []); // Only run on mount
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);

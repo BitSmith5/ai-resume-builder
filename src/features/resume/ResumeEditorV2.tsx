@@ -2,7 +2,9 @@
 
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Box } from "@mui/material";
+import { useState } from "react";
 
 import { ResumeHeader } from './ResumeEditor/components/ResumeHeader';
 import { ExportPanel } from "./ResumeEditor/components/ExportPanel";
@@ -32,6 +34,7 @@ interface ResumeEditorV2Props {
 
 export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   // Use the custom hooks
   const {
@@ -45,8 +48,10 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     setError,
     setSuccess,
     deleteResume,
+    forceSave,
   } = useResumeData(resumeId);
 
+  // Export panel state management
   const {
     exportPanelOpen,
     pdfDownloading,
@@ -58,7 +63,27 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
     refreshTrigger,
     refreshPreview,
     cleanup: cleanupExport,
-  } = useExportSettings(resumeId, resumeData.title);
+  } = useExportSettings(resumeId, resumeData.title, () => {
+    // This callback captures the current state and saves it
+    return forceSave(resumeData, profileData, sectionOrder);
+  });
+
+  // State to track when export panel is waiting for save to complete
+  const [exportPanelWaitingForSave, setExportPanelWaitingForSave] = useState(false);
+
+  // Enhanced export click handler that shows loading state and ensures current data is saved
+  const handleExportWithLoading = useCallback(async () => {
+    setExportPanelWaitingForSave(true);
+    try {
+      // The useExportSettings hook will handle the save through the callback
+      await handleExportClick();
+    } catch (error) {
+      console.error('Export failed:', error);
+      setError('Failed to export resume');
+    } finally {
+      setExportPanelWaitingForSave(false);
+    }
+  }, [handleExportClick, setError]);
 
   // Wrapper function for PDF download that provides success/error callbacks
   const handlePDFDownload = useCallback(async () => {
@@ -98,6 +123,15 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
       cleanupExport();
     };
   }, [cleanupExport]);
+
+  // Save resume data on component unmount
+  useEffect(() => {
+    return () => {
+      if (resumeId && session?.user) {
+        forceSave();
+      }
+    };
+  }, [resumeId, session?.user, forceSave]);
 
   // Section management functionality
   const { handleAddSection, handleDeleteSection: handleDeleteSectionFromHook } = useSectionManagement({
@@ -190,8 +224,9 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         onEditResumeInfo={() => {
           setEditResumeInfoOpen(true);
         }}
-        onExport={handleExportClick}
+        onExport={handleExportWithLoading}
         onDelete={handleDeleteResume}
+        onSaveBeforeClose={() => forceSave(resumeData, profileData, sectionOrder)}
       />
       {/* Main Content Area */}
       <MainContentArea
@@ -248,6 +283,7 @@ export default function ResumeEditorV2({ resumeId }: ResumeEditorV2Props) {
         onDownloadPDF={handlePDFDownload}
         pdfDownloading={pdfDownloading}
         refreshTrigger={refreshTrigger}
+        waitingForSave={exportPanelWaitingForSave}
       />
 
       {/* Delete Confirmation Dialog */}

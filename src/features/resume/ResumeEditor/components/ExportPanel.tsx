@@ -48,6 +48,7 @@ interface ExportPanelProps {
   refreshTrigger?: number;
   onDownloadPDF: () => Promise<void>;
   pdfDownloading: boolean;
+  waitingForSave?: boolean;
 }
 
 const ExportPanelComponent: React.FC<ExportPanelProps> = ({
@@ -59,6 +60,7 @@ const ExportPanelComponent: React.FC<ExportPanelProps> = ({
   refreshTrigger,
   onDownloadPDF,
   pdfDownloading,
+  waitingForSave = false,
 }) => {
 
   const exportPanelFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,7 +99,7 @@ const ExportPanelComponent: React.FC<ExportPanelProps> = ({
 
   // Load PDF preview when export panel opens or settings change
   useEffect(() => {
-    if (open && resumeId) {
+    if (open && resumeId && !waitingForSave) {
       // Create AbortController for request cancellation
       const abortController = new AbortController();
 
@@ -156,7 +158,7 @@ const ExportPanelComponent: React.FC<ExportPanelProps> = ({
         abortController.abort();
       };
     }
-  }, [open, resumeId, cacheKey, exportSettings]);
+  }, [open, resumeId, cacheKey, exportSettings, waitingForSave]);
 
   const handleClose = () => {
     onClose();
@@ -268,7 +270,14 @@ const ExportPanelComponent: React.FC<ExportPanelProps> = ({
                 marginLeft: '8px',
                 pb: 2,
               }}>
-                {previewLoading ? (
+                {waitingForSave ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '820px'}}>
+                    <CircularProgress />
+                    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+                      Saving resume...
+                    </Typography>
+                  </Box>
+                ) : previewLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '820px'}}>
                     <CircularProgress />
                   </Box>

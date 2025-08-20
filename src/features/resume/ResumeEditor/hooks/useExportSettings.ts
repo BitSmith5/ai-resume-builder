@@ -18,7 +18,7 @@ export interface ExportSettings {
   pageHeight: number;
 }
 
-export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
+export const useExportSettings = (resumeId?: string, resumeTitle?: string, onSaveBeforeExport?: () => Promise<void>) => {
   // Export panel state
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [pdfDownloading, setPdfDownloading] = useState(false);
@@ -49,11 +49,21 @@ export const useExportSettings = (resumeId?: string, resumeTitle?: string) => {
   });
 
   // Export panel handlers
-  const handleExportClick = useCallback(() => {
+  const handleExportClick = useCallback(async () => {
+    // If a save callback is provided, call it first
+    if (onSaveBeforeExport) {
+      try {
+        await onSaveBeforeExport();
+      } catch (error) {
+        console.error('Failed to save before export:', error);
+        throw error; // Re-throw to let caller handle the error
+      }
+    }
+    
     setExportPanelOpen(true);
     // Trigger a refresh when opening the export panel to show latest data
     setRefreshTrigger(prev => prev + 1);
-  }, []);
+  }, [onSaveBeforeExport]);
 
   const handleExportClose = useCallback(() => {
     setExportPanelOpen(false);

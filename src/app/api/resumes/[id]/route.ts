@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import { prisma } from "../../../../lib/prisma";
 import type { Session } from "next-auth";
-import { Prisma } from "@prisma/client";
 
 export async function GET(
   request: NextRequest,
@@ -501,43 +500,8 @@ export async function PUT(
 
     // Use a transaction to ensure data consistency
     const resume = await prisma.$transaction(async (tx) => {
-      // Delete existing related data within the transaction
-      await tx.strength.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.workExperience.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.education.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.course.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.interest.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.project.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.language.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.publication.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.award.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.volunteerExperience.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-      await tx.reference.deleteMany({
-        where: { resumeId: parseInt(resolvedParams.id) },
-      });
-
-      // Update the resume and recreate related data within the same transaction
-      return await tx.resume.update({
+      // Update the resume first
+      await tx.resume.update({
         where: {
           id: parseInt(resolvedParams.id),
           userId: user.id,
@@ -551,40 +515,147 @@ export async function PUT(
           deletedSections: deletedSections || [],
           sectionOrder: sectionOrder || [],
           exportSettings: exportSettings || {},
-          strengths: {
-            create: processedStrengths,
-          },
-          workExperience: {
-            create: processedWorkExperience,
-          },
-          education: {
-            create: processedEducation,
-          },
-          courses: {
-            create: processedCourses,
-          },
-          interests: {
-            create: processedInterests,
-          },
-          projects: {
-            create: processedProjects,
-          },
-          languages: {
-            create: processedLanguages,
-          },
-          publications: {
-            create: processedPublications,
-          },
-          awards: {
-            create: processedAwards,
-          },
-          volunteerExperience: {
-            create: processedVolunteerExperience,
-          },
-          references: {
-            create: processedReferences,
-          },
-        } as Prisma.ResumeUpdateInput,
+        },
+      });
+
+      // Use upsert operations for related data - more efficient than delete + create
+      if (processedStrengths.length > 0) {
+        await tx.strength.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.strength.createMany({
+          data: processedStrengths.map((strength: any) => ({
+            ...strength,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedWorkExperience.length > 0) {
+        await tx.workExperience.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.workExperience.createMany({
+          data: processedWorkExperience.map((exp: any) => ({
+            ...exp,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedEducation.length > 0) {
+        await tx.education.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.education.createMany({
+          data: processedEducation.map((edu: any) => ({
+            ...edu,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedCourses.length > 0) {
+        await tx.course.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.course.createMany({
+          data: processedCourses.map((course: any) => ({
+            ...course,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedInterests.length > 0) {
+        await tx.interest.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.interest.createMany({
+          data: processedInterests.map((interest: any) => ({
+            ...interest,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedProjects.length > 0) {
+        await tx.project.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.project.createMany({
+          data: processedProjects.map((project: any) => ({
+            ...project,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedLanguages.length > 0) {
+        await tx.language.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.language.createMany({
+          data: processedLanguages.map((language: any) => ({
+            ...language,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedPublications.length > 0) {
+        await tx.publication.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.publication.createMany({
+          data: processedPublications.map((publication: any) => ({
+            ...publication,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedAwards.length > 0) {
+        await tx.award.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.award.createMany({
+          data: processedAwards.map((award: any) => ({
+            ...award,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedVolunteerExperience.length > 0) {
+        await tx.volunteerExperience.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.volunteerExperience.createMany({
+          data: processedVolunteerExperience.map((volunteer: any) => ({
+            ...volunteer,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      if (processedReferences.length > 0) {
+        await tx.reference.deleteMany({
+          where: { resumeId: parseInt(resolvedParams.id) },
+        });
+        await tx.reference.createMany({
+          data: processedReferences.map((reference: any) => ({
+            ...reference,
+            resumeId: parseInt(resolvedParams.id),
+          })),
+        });
+      }
+
+      // Fetch the updated resume with all related data
+      const resume = await tx.resume.findUnique({
+        where: {
+          id: parseInt(resolvedParams.id),
+        },
         include: {
           strengths: true,
           workExperience: true,
@@ -599,6 +670,15 @@ export async function PUT(
           references: true,
         },
       });
+
+      if (!resume) {
+        throw new Error('Failed to fetch updated resume');
+      }
+
+      return resume;
+    }, {
+      timeout: 30000, // Increase timeout to 30 seconds
+      maxWait: 10000, // Maximum time to wait for a transaction to start
     });
 
     // Convert dates to YYYY-MM-DD format for HTML date inputs and extract additional data from content

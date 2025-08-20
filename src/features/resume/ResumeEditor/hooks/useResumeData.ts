@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useDebouncedCallback } from 'use-debounce';
 import { useNotificationActions } from '@/hooks';
 
 interface ResumeData {
@@ -139,6 +138,172 @@ interface ProfileData {
   portfolioUrl: string;
 }
 
+// Save queue for efficient background syncing
+class SaveQueue {
+  private queue: Array<{ data: ResumeData; profileData: ProfileData; sectionOrder: string[]; timestamp: number }> = [];
+  private processing = false;
+  private resumeId: string;
+  private onError: (error: string) => void;
+  private lastSaveTime = 0;
+  private saveInterval = 2000; // Save every 2 seconds max
+  private maxQueueSize = 5; // Keep last 5 changes
+
+  constructor(resumeId: string, onError: (error: string) => void) {
+    this.resumeId = resumeId;
+    this.onError = onError;
+    
+    // Load existing queue from localStorage
+    this.loadQueueFromStorage();
+  }
+
+  private loadQueueFromStorage() {
+    const storedQueue = localStorage.getItem(`save-queue-${this.resumeId}`);
+    if (storedQueue) {
+      try {
+        const parsed = JSON.parse(storedQueue);
+        this.queue = parsed.queue || [];
+        this.lastSaveTime = parsed.lastSaveTime || 0;
+                
+        // Process any pending items if enough time has passed
+        if (this.queue.length > 0 && Date.now() - this.lastSaveTime >= this.saveInterval) {
+          this.process();
+        }
+      } catch (e) {
+        console.warn('Failed to load queue from storage:', e);
+        this.queue = [];
+        this.lastSaveTime = 0;
+      }
+    }
+  }
+
+  private saveQueueToStorage() {
+    const queueData = {
+      queue: this.queue,
+      lastSaveTime: this.lastSaveTime,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(`save-queue-${this.resumeId}`, JSON.stringify(queueData));
+  }
+
+  add(data: ResumeData, profileData: ProfileData, sectionOrder: string[]) {
+    const now = Date.now();
+    
+    // Add to queue with timestamp
+    this.queue.push({ data, profileData, sectionOrder, timestamp: now });
+    
+    // Keep only the last N items to prevent memory bloat
+    if (this.queue.length > this.maxQueueSize) {
+      this.queue = this.queue.slice(-this.maxQueueSize);
+    }
+    
+    // Save queue to localStorage
+    this.saveQueueToStorage();
+        
+    // Smart processing logic
+    if (!this.processing) {
+      // If enough time has passed, process immediately
+      if (now - this.lastSaveTime >= this.saveInterval) {
+        this.process();
+      } else {
+        // Otherwise, schedule processing after the interval
+        setTimeout(() => {
+          if (!this.processing && this.queue.length > 0) {
+            this.process();
+          }
+        }, this.saveInterval - (now - this.lastSaveTime));
+      }
+    }
+  }
+
+  private async process() {
+    if (this.processing || this.queue.length === 0) return;
+    
+    this.processing = true;
+    
+    try {
+      // Get the most recent data (latest wins)
+      const latest = this.queue[this.queue.length - 1];
+      
+      // Clear queue since we're processing the latest
+      this.queue = [];
+      
+      // Update last save time
+      this.lastSaveTime = Date.now();
+      
+      // Update localStorage
+      this.saveQueueToStorage();
+      
+      await this.saveToServer(latest.data, latest.profileData, latest.sectionOrder);
+      
+    } catch (error) {
+      console.error('Background save failed:', error);
+      this.onError('Background save failed - changes saved locally');
+    } finally {
+      this.processing = false;
+      
+      // Process any new items that came in while processing
+      if (this.queue.length > 0) {
+        this.process();
+      }
+    }
+  }
+
+  // Get queue status for debugging
+  getStatus() {
+    return {
+      queueLength: this.queue.length,
+      processing: this.processing,
+      lastSaveTime: this.lastSaveTime,
+      timeSinceLastSave: Date.now() - this.lastSaveTime,
+      hasPendingSaves: this.queue.length > 0
+    };
+  }
+
+  // Clear queue (useful for cleanup)
+  clear() {
+    this.queue = [];
+    this.lastSaveTime = 0;
+    this.saveQueueToStorage();
+    console.log('🧹 Save queue cleared');
+  }
+
+  private async saveToServer(data: ResumeData, profileData: ProfileData, sectionOrder: string[]) {
+    const url = `/api/resumes/${this.resumeId}`;
+    
+    const savePayload = {
+      title: data.title || "Untitled Resume",
+      jobTitle: data.jobTitle || "",
+      template: data.template || "modern",
+      content: data.content,
+      profilePicture: data.profilePicture || "",
+      deletedSections: data.deletedSections || [],
+      sectionOrder: sectionOrder,
+      strengths: data.strengths || [],
+      skillCategories: data.skillCategories || [],
+      workExperience: data.workExperience || [],
+      education: data.education || [],
+      courses: data.courses || [],
+      interests: data.interests || [],
+      projects: data.projects || [],
+      languages: data.languages || [],
+      publications: data.publications || [],
+      awards: data.awards || [],
+      volunteerExperience: data.volunteerExperience || [],
+      references: data.references || [],
+    };
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(savePayload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Save failed: ${response.status}`);
+    }
+  }
+}
+
 export const useResumeData = (resumeId?: string) => {
   const { data: session } = useSession();
   const router = useRouter();
@@ -198,6 +363,41 @@ export const useResumeData = (resumeId?: string) => {
     "Education",
   ]);
 
+  // Save queue for background syncing
+  const saveQueueRef = useRef<SaveQueue | null>(null);
+  
+  // Track if we have unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Use refs to access current values without causing re-renders
+  const resumeDataRef = useRef(resumeData);
+  const profileDataRef = useRef(profileData);
+  const sectionOrderRef = useRef(sectionOrder);
+  
+  // Store function refs to break dependency cycles
+  const loadProfileDataRef = useRef<() => Promise<void>>();
+  const loadResumeDataRef = useRef<() => Promise<void>>();
+
+  // Update refs when state changes
+  useEffect(() => {
+    resumeDataRef.current = resumeData;
+  }, [resumeData]);
+
+  useEffect(() => {
+    profileDataRef.current = profileData;
+  }, [profileData]);
+
+  useEffect(() => {
+    sectionOrderRef.current = sectionOrder;
+  }, [sectionOrder]);
+
+  // Initialize save queue
+  useEffect(() => {
+    if (resumeId) {
+      saveQueueRef.current = new SaveQueue(resumeId, setError);
+    }
+  }, [resumeId]);
+
   // Helper function to format dates
   const formatDate = useCallback((date: Date | string): string => {
     if (!date) return '';
@@ -216,63 +416,137 @@ export const useResumeData = (resumeId?: string) => {
     return `${months[d.getMonth()]} ${d.getFullYear()}`;
   }, []);
 
+  // Save to localStorage immediately (optimistic)
+  const saveToLocalStorage = useCallback((data: ResumeData, profileData: ProfileData, sectionOrder: string[]) => {
+    if (!resumeId) return;
+    
+    const saveData = {
+      resumeData: data,
+      profileData,
+      sectionOrder,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem(`resume-draft-${resumeId}`, JSON.stringify(saveData));
+    setHasUnsavedChanges(true);
+  }, [resumeId]);
+
+  // Enhanced setResumeData that saves immediately
+  const setResumeDataWithSave = useCallback((updater: ResumeData | ((prev: ResumeData) => ResumeData)) => {
+    setResumeData(prev => {
+      const newData = typeof updater === 'function' ? updater(prev) : updater;
+      
+      // Save to localStorage immediately
+      saveToLocalStorage(newData, profileDataRef.current, sectionOrderRef.current);
+      
+      // Queue background server sync
+      if (saveQueueRef.current) {
+        saveQueueRef.current.add(newData, profileDataRef.current, sectionOrderRef.current);
+      }
+      
+      return newData;
+    });
+  }, [saveToLocalStorage]);
+
+  // Enhanced setProfileData that saves immediately
+  const setProfileDataWithSave = useCallback((updater: ProfileData | ((prev: ProfileData) => ProfileData)) => {
+    setProfileData(prev => {
+      const newData = typeof updater === 'function' ? updater(prev) : updater;
+      
+      // Save to localStorage immediately
+      saveToLocalStorage(resumeDataRef.current, newData, sectionOrderRef.current);
+      
+      // Queue background server sync
+      if (saveQueueRef.current) {
+        saveQueueRef.current.add(resumeDataRef.current, newData, sectionOrderRef.current);
+      }
+      
+      return newData;
+    });
+  }, [saveToLocalStorage]);
+
+  // Enhanced setSectionOrder that saves immediately
+  const setSectionOrderWithSave = useCallback((updater: string[] | ((prev: string[]) => string[])) => {
+    setSectionOrder(prev => {
+      const newData = typeof updater === 'function' ? updater(prev) : updater;
+      
+      // Save to localStorage immediately
+      saveToLocalStorage(resumeDataRef.current, profileDataRef.current, newData);
+      
+      // Queue background server sync
+      if (saveQueueRef.current) {
+        saveQueueRef.current.add(resumeDataRef.current, profileDataRef.current, newData);
+      }
+      
+      return newData;
+    });
+  }, [saveToLocalStorage]);
+
+  // Enhanced setError that also shows notification
+  const setErrorWithNotification = useCallback((message: string) => {
+    setError(message);
+    showError(message);
+  }, [showError]);
+
+  // Enhanced setSuccess that also shows notification
+  const setSuccessWithNotification = useCallback((message: string) => {
+    setSuccess(message);
+    showSuccess(message);
+  }, [showSuccess]);
+
   // Load profile data
   const loadProfileData = useCallback(async () => {
+    if (!session?.user?.email || !session?.user?.name) return;
+
     try {
       const response = await fetch('/api/profile');
-
       if (response.ok) {
-        const userData = await response.json();
-
-        setProfileData({
-          name: userData.name || session?.user?.name || "",
-          email: userData.email || session?.user?.email || "",
-          phone: userData.phone || "",
-          location: userData.location || "",
-          linkedinUrl: userData.linkedinUrl || "",
-          githubUrl: userData.githubUrl || "",
-          portfolioUrl: userData.portfolioUrl || "",
-        });
-      } else {
-        console.error('Profile response not ok:', response.status, response.statusText);
-        // Fallback to session data only
-        setProfileData({
-          name: session?.user?.name || "",
-          email: session?.user?.email || "",
-          phone: "",
-          location: "",
-          linkedinUrl: "",
-          githubUrl: "",
-          portfolioUrl: "",
-        });
+        const profile = await response.json();
+        setProfileData(profile);
       }
     } catch (error) {
       console.error('Failed to load profile data:', error);
-      // Fallback to session data only
-      setProfileData({
-        name: session?.user?.name || "",
-        email: session?.user?.email || "",
-        phone: "",
-        location: "",
-        linkedinUrl: "",
-        githubUrl: "",
-        portfolioUrl: "",
-      });
-    } finally {
-      setLoading(false);
     }
-  }, [session?.user?.name, session?.user?.email]);
+  }, [session?.user?.email, session?.user?.name]);
 
-  // Load resume data
+  // Store the function in ref after it's defined
+  useEffect(() => {
+    loadProfileDataRef.current = loadProfileData;
+  }, [loadProfileData]);
+
+  // Load resume data with localStorage fallback
   const loadResumeData = useCallback(async () => {
     if (!resumeId || !session?.user) return;
 
     try {
+      // Try to load from localStorage first (for instant loading)
+      const localDraft = localStorage.getItem(`resume-draft-${resumeId}`);
+      if (localDraft) {
+        try {
+          const parsed = JSON.parse(localDraft);
+          const { resumeData: localResumeData, profileData: localProfileData, sectionOrder: localSectionOrder } = parsed;
+          
+          // Check if local data is recent (within last hour)
+          const isRecent = Date.now() - parsed.timestamp < 60 * 60 * 1000;
+          
+          if (isRecent) {
+            setResumeData(localResumeData);
+            setProfileData(localProfileData);
+            setSectionOrder(localSectionOrder);
+            setHasUnsavedChanges(true);
+            setLoading(false);
+          }
+        } catch (e) {
+          console.warn('Failed to parse local draft:', e);
+        }
+      }
+
+      // Load from server (will override local data if more recent)
       const response = await fetch(`/api/resumes/${resumeId}`);
       if (response.ok) {
         const resume = await response.json();
 
-        setResumeData({
+        const serverData = {
           title: resume.title || "",
           jobTitle: resume.jobTitle || "",
           template: resume.template || "modern",
@@ -338,8 +612,7 @@ export const useResumeData = (resumeId?: string) => {
           })),
           awards: (resume.awards || []).map((award: Record<string, unknown>) => ({
             ...award,
-            id: String(award.id || Math.random()),
-            date: award.date ? formatDate(award.date as string) : "",
+            id: String(award.id || Math.random())
           })),
           volunteerExperience: (resume.volunteerExperience || []).map((vol: Record<string, unknown>) => ({
             ...vol,
@@ -351,151 +624,83 @@ export const useResumeData = (resumeId?: string) => {
             ...ref,
             id: String(ref.id || Math.random())
           })),
-        });
+        };
+
+        setResumeData(serverData);
 
         // Set section order from resume data or use default
         if (resume.sectionOrder && resume.sectionOrder.length > 0) {
-          const filteredSectionOrder = resume.sectionOrder.filter((section: string) => 
-            !resume.deletedSections?.includes(section)
-          );
-          setSectionOrder(filteredSectionOrder);
-          
-          // Also set sectionOrder in resumeData
-          setResumeData(prev => ({
-            ...prev,
-            sectionOrder: filteredSectionOrder
-          }));
+          setSectionOrder(resume.sectionOrder);
+        } else {
+          setSectionOrder([
+            'personalInfo',
+            'professionalSummary',
+            'workExperience',
+            'education',
+            'strengths',
+            'projects',
+            'courses',
+            'publications',
+            'awards',
+            'volunteerExperience',
+            'languages',
+            'interests',
+            'references',
+          ]);
         }
+
+        setLoading(false);
       } else {
-        console.error('Failed to load resume:', response.status);
+        // Use direct setError instead of setErrorWithNotification to avoid dependency issues
+        setError("Failed to load resume");
+        setLoading(false);
       }
     } catch (error) {
-      console.error('Error loading resume:', error);
-    } finally {
+      console.error('Failed to load resume data:', error);
+      // Use direct setError instead of setErrorWithNotification to avoid dependency issues
+      setError("Failed to load resume");
       setLoading(false);
     }
   }, [resumeId, session?.user, formatDate]);
 
-  // Save resume data
-  const saveResume = useCallback(async (data: ResumeData, profileData: ProfileData, currentSectionOrder: string[]) => {
-    if (!session?.user) return;
+  // Store the function in ref after it's defined
+  useEffect(() => {
+    loadResumeDataRef.current = loadResumeData;
+  }, [loadResumeData]);
 
-    try {
-      // Save profile data first
-      if (profileData.name || profileData.email || profileData.phone || profileData.location ||
-        profileData.linkedinUrl || profileData.githubUrl || profileData.portfolioUrl) {
-        await fetch('/api/profile', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: profileData.name || session.user.name || '',
-            email: profileData.email || session.user.email || '',
-            phone: profileData.phone || '',
-            location: profileData.location || '',
-            linkedinUrl: profileData.linkedinUrl || '',
-            githubUrl: profileData.githubUrl || '',
-            portfolioUrl: profileData.portfolioUrl || '',
-          }),
-        });
-      }
-
-      // Filter out data for deleted sections
-      const deletedSections = data.deletedSections || [];
-
-      // Sync profileData with resumeData.content.personalInfo
-      const updatedContent = {
-        ...data.content,
-        personalInfo: {
-          ...data.content.personalInfo,
-          name: profileData.name || data.content.personalInfo.name || '',
-          email: profileData.email || data.content.personalInfo.email || '',
-          phone: profileData.phone || data.content.personalInfo.phone || '',
-          city: profileData.location || data.content.personalInfo.city || '',
-          state: data.content.personalInfo.state || '',
-          summary: data.content.personalInfo.summary || '',
-          website: profileData.portfolioUrl || data.content.personalInfo.website || '',
-          linkedin: profileData.linkedinUrl || data.content.personalInfo.linkedin || '',
-          github: profileData.githubUrl || data.content.personalInfo.github || '',
-        }
-      };
-
-      const filteredData = {
-        ...data,
-        content: updatedContent,
-        // Only include data for sections that are not deleted
-        strengths: deletedSections.includes('Technical Skills') ? [] : (data.strengths || []),
-        skillCategories: deletedSections.includes('Technical Skills') ? [] : (data.skillCategories || []),
-        workExperience: deletedSections.includes('Work Experience') ? [] : (data.workExperience || []),
-        education: deletedSections.includes('Education') ? [] : (data.education || []),
-        courses: deletedSections.includes('Courses') ? [] : (data.courses || []),
-        interests: deletedSections.includes('Interests') ? [] : (data.interests || []),
-        projects: deletedSections.includes('Projects') ? [] : (data.projects || []),
-        languages: deletedSections.includes('Languages') ? [] : (data.languages || []),
-        publications: deletedSections.includes('Publications') ? [] : (data.publications || []),
-        awards: deletedSections.includes('Awards') ? [] : (data.awards || []),
-        volunteerExperience: deletedSections.includes('Volunteer Experience') ? [] : (data.volunteerExperience || []),
-        references: deletedSections.includes('References') ? [] : (data.references || []),
-      };
-
-      const url = resumeId ? `/api/resumes/${resumeId}` : "/api/resumes";
-      const method = resumeId ? "PUT" : "POST";
-
-      const savePayload = {
-        title: filteredData.title || "Untitled Resume",
-        jobTitle: filteredData.jobTitle || "",
-        template: filteredData.template || "modern",
-        content: filteredData.content,
-        profilePicture: filteredData.profilePicture || "",
-        deletedSections: filteredData.deletedSections || [],
-        sectionOrder: currentSectionOrder,
-        strengths: filteredData.strengths || [],
-        skillCategories: filteredData.skillCategories || [],
-        workExperience: filteredData.workExperience || [],
-        education: filteredData.education || [],
-        courses: filteredData.courses || [],
-        interests: filteredData.interests || [],
-        projects: filteredData.projects || [],
-        languages: filteredData.languages || [],
-        publications: filteredData.publications || [],
-        awards: filteredData.awards || [],
-        volunteerExperience: filteredData.volunteerExperience || [],
-        references: filteredData.references || [],
-      };
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(savePayload),
-      });
-
-      if (response.ok) {
-        const savedResume = await response.json();
-
-        // If this was a new resume, update the URL with the new ID
-        if (!resumeId && savedResume.id) {
-          router.replace(`/resume/new?id=${savedResume.id}`);
-        }
-      } else {
-        console.error('Save failed:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('Save error details:', errorText);
-      }
-    } catch {
-      console.error('Save error');
+  // Force save function for immediate saving (no debouncing)
+  const forceSave = useCallback(async (dataToSave?: ResumeData, profileDataToSave?: ProfileData, sectionOrderToSave?: string[]) => {
+    if (loading || !session?.user) {
+      return;
     }
-  }, [resumeId, session, router]);
+    
+    // Use provided data or fall back to current state from refs
+    const data = dataToSave || resumeDataRef.current;
+    const profile = profileDataToSave || profileDataRef.current;
+    const order = sectionOrderToSave || sectionOrderRef.current;
+    
+    try {
+      // Save to localStorage immediately
+      saveToLocalStorage(data, profile, order);
+      
+      // Force immediate server sync
+      if (saveQueueRef.current) {
+        await saveQueueRef.current.add(data, profile, order);
+      }
+      
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error('forceSave failed:', error);
+      throw error;
+    }
+  }, [loading, session?.user, saveToLocalStorage]);
 
-  // Enhanced setError that also shows notification
-  const setErrorWithNotification = useCallback((message: string) => {
-    setError(message);
-    showError(message);
-  }, [showError]);
-  
-  // Enhanced setSuccess that also shows notification
-  const setSuccessWithNotification = useCallback((message: string) => {
-    setSuccess(message);
-    showSuccess(message);
-  }, [showSuccess]);
+  // Clear save queue (useful for cleanup)
+  const clearSaveQueue = useCallback(() => {
+    if (saveQueueRef.current) {
+      saveQueueRef.current.clear();
+    }
+  }, []);
 
   // Delete resume
   const deleteResume = useCallback(async () => {
@@ -511,6 +716,10 @@ export const useResumeData = (resumeId?: string) => {
 
       if (response.ok) {
         setSuccessWithNotification("Resume deleted successfully");
+        // Clear local storage
+        localStorage.removeItem(`resume-draft-${resumeId}`);
+        // Clear save queue
+        clearSaveQueue();
         router.push('/resume');
         return true;
       } else {
@@ -522,48 +731,42 @@ export const useResumeData = (resumeId?: string) => {
       setErrorWithNotification("An error occurred while deleting the resume");
       return false;
     }
-  }, [resumeId, router, setErrorWithNotification, setSuccessWithNotification]);
-
-  // Debounced save function
-  const debouncedSave = useDebouncedCallback(saveResume, 2000);
+  }, [resumeId, router, setErrorWithNotification, setSuccessWithNotification, clearSaveQueue]);
 
   // Effects
   useEffect(() => {
-    if (session?.user) {
-      loadProfileData();
+    if (session?.user && loadProfileDataRef.current) {
+      loadProfileDataRef.current();
     }
-  }, [session, loadProfileData]);
+  }, [session?.user]); // Only depend on session.user, not the function
 
   useEffect(() => {
-    if (session?.user) {
-      loadResumeData();
+    if (session?.user && loadResumeDataRef.current) {
+      loadResumeDataRef.current();
     }
-  }, [session, loadResumeData]);
+  }, [session?.user]); // Only depend on session.user, not the function
 
-  // Autosave effect
+  // Check for unsaved changes on unmount
   useEffect(() => {
-    if (loading || !session?.user) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
 
-    // Don't save if we're still loading initial data
-    // Allow saving if there's any meaningful content, not just title and work experience
-    if (resumeId && 
-        !resumeData.title && 
-        resumeData.workExperience.length === 0 && 
-        resumeData.education.length === 0 && 
-        (resumeData.references?.length || 0) === 0 && 
-        (resumeData.projects?.length || 0) === 0 && 
-        (resumeData.languages?.length || 0) === 0 && 
-        (resumeData.publications?.length || 0) === 0 && 
-        (resumeData.awards?.length || 0) === 0 && 
-        (resumeData.volunteerExperience?.length || 0) === 0 && 
-        resumeData.interests.length === 0 && 
-        resumeData.courses.length === 0 && 
-        resumeData.strengths.length === 0) return;
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
-
-
-    debouncedSave(resumeData, profileData, sectionOrder);
-  }, [resumeData, profileData, sectionOrder, loading, session?.user, resumeId, debouncedSave]);
+  // Get save queue status for debugging
+  const getSaveQueueStatus = useCallback(() => {
+    if (saveQueueRef.current) {
+      return saveQueueRef.current.getStatus();
+    }
+    return null;
+  }, []);
 
   return {
     // State
@@ -573,19 +776,21 @@ export const useResumeData = (resumeId?: string) => {
     resumeData,
     profileData,
     sectionOrder,
+    hasUnsavedChanges,
 
-    // Setters
-    setResumeData,
-    setProfileData,
-    setSectionOrder,
+    // Setters (with automatic saving)
+    setResumeData: setResumeDataWithSave,
+    setProfileData: setProfileDataWithSave,
+    setSectionOrder: setSectionOrderWithSave,
     setError: setErrorWithNotification,
     setSuccess: setSuccessWithNotification,
 
     // Actions
     loadProfileData,
     loadResumeData,
-    saveResume,
     deleteResume,
-    debouncedSave,
+    forceSave,
+    getSaveQueueStatus,
+    clearSaveQueue, // Add this for cleanup
   };
 };
