@@ -48,9 +48,15 @@ export const LayoutModal: React.FC<LayoutModalProps> = ({
           zIndex: 1000,
         }}
         onClick={onClose}
+        aria-hidden="true"
       />
       {/* Popup content */}
       <Box
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="layout-modal-title"
+        aria-describedby="layout-modal-description"
+        aria-label="Edit Resume Layout"
         sx={{
           position: 'absolute',
           bottom: 180,
@@ -65,23 +71,42 @@ export const LayoutModal: React.FC<LayoutModalProps> = ({
       >
         <Box sx={{ px: 1.5, pt: 1.5 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-            <Typography variant="h6" fontWeight={600} sx={{ fontSize: '1.1rem' }}>
+            <Typography 
+              id="layout-modal-title" 
+              variant="h6" 
+              fontWeight={600} 
+              sx={{ fontSize: '1.1rem' }}
+            >
               Edit Resume Layout
             </Typography>
             <IconButton
               size="small"
               onClick={onClose}
+              aria-label="Close layout editor"
+              aria-describedby="close-layout-description"
               sx={{ color: '#666' }}
             >
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Box>
+          
+          <Typography 
+            id="layout-modal-description" 
+            variant="body2" 
+            color="text.secondary"
+            sx={{ mb: 2, fontSize: '0.875rem' }}
+          >
+            Drag and drop sections to reorder them, or add new sections to your resume.
+          </Typography>
+
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="section-order" type="section">
               {(provided) => (
                 <List 
                   ref={provided.innerRef} 
                   {...provided.droppableProps}
+                  aria-label="Resume sections list"
+                  aria-describedby="drag-drop-instructions"
                   sx={{ px: 0, pt: 0, pb: 0 }}
                 >
                   {sectionOrder.map((section, index) => (
@@ -90,6 +115,9 @@ export const LayoutModal: React.FC<LayoutModalProps> = ({
                         <ListItem
                           ref={provided.innerRef}
                           {...provided.draggableProps}
+                          role="listitem"
+                          aria-label={`${section} section`}
+                          aria-describedby={`section-${index}-description`}
                           sx={{
                             background: '#f5f5f5',
                             border: 'none',
@@ -110,6 +138,8 @@ export const LayoutModal: React.FC<LayoutModalProps> = ({
                               edge="end" 
                               sx={{ ml: 1 }}
                               onClick={() => onDeleteSection(section)}
+                              aria-label={`Remove ${section} section from resume`}
+                              aria-describedby={`delete-${section}-description`}
                             >
                               <DeleteOutlineIcon />
                             </IconButton>
@@ -117,6 +147,10 @@ export const LayoutModal: React.FC<LayoutModalProps> = ({
                         >
                           <Box 
                             {...provided.dragHandleProps}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Drag to reorder ${section} section`}
+                            aria-describedby={`drag-instructions-${section}`}
                             sx={{ 
                               display: 'flex', 
                               alignItems: 'center', 
@@ -140,12 +174,16 @@ export const LayoutModal: React.FC<LayoutModalProps> = ({
               )}
             </Droppable>
           </DragDropContext>
+          
           <Box sx={{ mb: 1.5 }}>
             <Button
               startIcon={<AddIcon />}
               variant="text"
               fullWidth
               onClick={onAddSection}
+              aria-label="Add new section to resume"
+              aria-describedby="add-section-description"
+              aria-haspopup="dialog"
               sx={{
                 borderRadius: 2,
                 background: 'white',
@@ -168,6 +206,32 @@ export const LayoutModal: React.FC<LayoutModalProps> = ({
             </Button>
           </Box>
         </Box>
+
+        {/* Hidden descriptions for screen readers */}
+        <div id="close-layout-description" className="sr-only">
+          Closes the layout editor and returns to the resume view.
+        </div>
+        <div id="drag-drop-instructions" className="sr-only">
+          Use the drag handle on the left of each section to reorder them. The order will be saved automatically.
+        </div>
+        <div id="add-section-description" className="sr-only">
+          Opens a dialog to select and add new sections to your resume.
+        </div>
+        {sectionOrder.map((section, index) => (
+          <div key={section} id={`section-${index}-description`} className="sr-only">
+            {section} section. Use the drag handle to reorder or the delete button to remove.
+          </div>
+        ))}
+        {sectionOrder.map((section) => (
+          <div key={section} id={`delete-${section}-description`} className="sr-only">
+            Removes the {section} section from your resume. This action cannot be undone.
+          </div>
+        ))}
+        {sectionOrder.map((section) => (
+          <div key={section} id={`drag-instructions-${section}`} className="sr-only">
+            Click and drag to move the {section} section to a new position in your resume.
+          </div>
+        ))}
       </Box>
     </>
   );

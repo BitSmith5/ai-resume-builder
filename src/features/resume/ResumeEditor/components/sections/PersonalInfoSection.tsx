@@ -13,7 +13,7 @@ import {
   GitHub as GitHubIcon,
   Language as WebsiteIcon,
 } from '@mui/icons-material';
-import { formatPhoneNumber } from '../../utils/dateUtils';
+// Removed unused import: formatPhoneNumber
 import { ProfileData } from '../../types';
 
 interface PersonalInfoSectionProps {
@@ -55,18 +55,33 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   }
 
   return (
-    <Box sx={{ py: 2 }}>
+    <Box 
+      component="section" 
+      aria-labelledby="personal-info-header"
+      sx={{ py: 2 }}
+    >
       {/* Name */}
-      <Typography variant="h5" fontWeight={700} mb={2} sx={{ fontSize: '1.5rem' }}>
+      <Typography 
+        id="personal-info-header"
+        variant="h5" 
+        fontWeight={700} 
+        mb={2} 
+        sx={{ fontSize: '1.5rem' }}
+        component="h1"
+      >
         {profileData.name || "Your Name"}
       </Typography>
       
       {/* Contact Information and Links Grid */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, mb: 3, maxWidth: '900px' }}>
+      <Box 
+        sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, mb: 3, maxWidth: '900px' }}
+        role="region"
+        aria-label="Contact information and professional links"
+      >
         {/* Email Column */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-            <EmailIcon fontSize="small" color="action" />
+            <EmailIcon fontSize="small" color="action" aria-hidden="true" />
             <Typography variant="body2">{profileData.email || "Email"}</Typography>
           </Box>
           <Box sx={{
@@ -82,7 +97,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               gap: 0.3, 
               p: 1,
             }}>
-              <LinkedInIcon fontSize="small" />
+              <LinkedInIcon fontSize="small" aria-hidden="true" />
               <Typography variant="body2" fontWeight={500}>LinkedIn</Typography>
             </Box>
             <Box sx={{ 
@@ -98,10 +113,15 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 onChange={(e) => setProfileData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
                 placeholder="https://linkedin.com/in/yourprofile"
                 variant="standard"
-                fullWidth
+                aria-label="LinkedIn profile URL"
+                aria-describedby="linkedin-help"
+                inputProps={{
+                  'aria-label': 'LinkedIn profile URL',
+                  'aria-describedby': 'linkedin-help'
+                }}
+                sx={{ width: '100%' }}
                 InputProps={{
-                  disableUnderline: true,
-                  style: { fontSize: '0.875rem', fontWeight: 500 }
+                  disableUnderline: true
                 }}
               />
             </Box>
@@ -111,10 +131,10 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
         {/* Phone Column */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-            <PhoneIcon fontSize="small" color="action" />
-            <Typography variant="body2">{profileData.phone ? formatPhoneNumber(profileData.phone) : "Phone number"}</Typography>
+            <PhoneIcon fontSize="small" color="action" aria-hidden="true" />
+            <Typography variant="body2">{profileData.phone || "Phone"}</Typography>
           </Box>
-          <Box sx={{ 
+          <Box sx={{
             bgcolor: '#f5f5f5', 
             borderRadius: 2,
             overflow: 'hidden'
@@ -127,7 +147,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               gap: 0.3, 
               p: 1,
             }}>
-              <GitHubIcon fontSize="small" />
+              <GitHubIcon fontSize="small" aria-hidden="true" />
               <Typography variant="body2" fontWeight={500}>GitHub</Typography>
             </Box>
             <Box sx={{ 
@@ -143,10 +163,15 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 onChange={(e) => setProfileData(prev => ({ ...prev, githubUrl: e.target.value }))}
                 placeholder="https://github.com/yourusername"
                 variant="standard"
-                fullWidth
+                aria-label="GitHub profile URL"
+                aria-describedby="github-help"
+                inputProps={{
+                  'aria-label': 'GitHub profile URL',
+                  'aria-describedby': 'github-help'
+                }}
+                sx={{ width: '100%' }}
                 InputProps={{
-                  disableUnderline: true,
-                  style: { fontSize: '0.875rem', fontWeight: 500 }
+                  disableUnderline: true
                 }}
               />
             </Box>
@@ -156,15 +181,15 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
         {/* Location Column */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-            <LocationIcon fontSize="small" color="action" />
+            <LocationIcon fontSize="small" color="action" aria-hidden="true" />
             <Typography variant="body2">{profileData.location || "Location"}</Typography>
           </Box>
-          <Box sx={{ 
+          <Box sx={{
             bgcolor: '#f5f5f5', 
             borderRadius: 2,
             overflow: 'hidden'
           }}>
-            {/* Website */}
+            {/* Portfolio/Website */}
             <Box sx={{ 
               display: "flex",
               direction: "row",
@@ -172,8 +197,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               gap: 0.3, 
               p: 1,
             }}>
-              <WebsiteIcon fontSize="small" />
-              <Typography variant="body2" fontWeight={500}>Website</Typography>
+              <WebsiteIcon fontSize="small" aria-hidden="true" />
+              <Typography variant="body2" fontWeight={500}>Portfolio</Typography>
             </Box>
             <Box sx={{ 
               display: "flex", 
@@ -186,18 +211,34 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 size="small"
                 value={profileData.portfolioUrl || ""}
                 onChange={(e) => setProfileData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
-                placeholder="https://yourwebsite.com"
+                placeholder="https://yourportfolio.com"
                 variant="standard"
-                fullWidth
+                aria-label="Portfolio or website URL"
+                aria-describedby="portfolio-help"
+                inputProps={{
+                  'aria-label': 'Portfolio or website URL',
+                  'aria-describedby': 'portfolio-help'
+                }}
+                sx={{ width: '100%' }}
                 InputProps={{
-                  disableUnderline: true,
-                  style: { fontSize: '0.875rem', fontWeight: 500 }
+                  disableUnderline: true
                 }}
               />
             </Box>
           </Box>
         </Box>
       </Box>
+
+      {/* Hidden descriptions for screen readers */}
+      <div id="linkedin-help" className="sr-only">
+        Enter your LinkedIn profile URL to help recruiters find your professional profile.
+      </div>
+      <div id="github-help" className="sr-only">
+        Enter your GitHub profile URL to showcase your code repositories and projects.
+      </div>
+      <div id="portfolio-help" className="sr-only">
+        Enter your personal portfolio or website URL to showcase your work and projects.
+      </div>
     </Box>
   );
 };

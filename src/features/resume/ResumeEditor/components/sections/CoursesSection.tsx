@@ -26,9 +26,37 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
+  // Clean up any existing duplicate IDs on component mount
+  React.useEffect(() => {
+    const courses = resumeData.courses || [];
+    let hasChanges = false;
+    
+    // Check for duplicate IDs and fix them
+    const seenIds = new Set<string>();
+    const cleanedCourses = courses.map(course => {
+      // Ensure course entry has unique ID
+      let courseId = course.id;
+      if (!courseId || seenIds.has(courseId)) {
+        courseId = `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        hasChanges = true;
+      }
+      seenIds.add(courseId);
+      return { ...course, id: courseId };
+    });
+    
+    // Update data if changes were made
+    if (hasChanges) {
+      setResumeData(prev => ({
+        ...prev,
+        courses: cleanedCourses
+      }));
+    }
+  }, [resumeData.courses, setResumeData]); // Include dependencies
+
   // Initialize courses if not exists
   const courses = resumeData.courses || [
     {
+      id: "default-course",
       title: "Advanced React Development",
       provider: "Udemy",
       link: "https://udemy.com/course/advanced-react",
@@ -37,6 +65,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
 
   const addCourse = () => {
     const newCourse = {
+      id: `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: "",
       provider: "",
       link: "",
@@ -47,23 +76,23 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
     }));
   };
 
-  const updateCourse = (index: number, updates: Partial<{
+  const updateCourse = (courseId: string, updates: Partial<{
     title: string;
     provider: string;
     link?: string;
   }>) => {
     setResumeData(prev => ({
       ...prev,
-      courses: (prev.courses || courses).map((course, i) =>
-        i === index ? { ...course, ...updates } : course
+      courses: (prev.courses || courses).map((course) =>
+        course.id === courseId ? { ...course, ...updates } : course
       )
     }));
   };
 
-  const deleteCourse = (index: number) => {
+  const deleteCourse = (courseId: string) => {
     setResumeData(prev => ({
       ...prev,
-      courses: (prev.courses || courses).filter((_, i) => i !== index)
+      courses: (prev.courses || courses).filter((course) => course.id !== courseId)
     }));
   };
 
@@ -110,8 +139,8 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
           {(provided) => (
             <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.courses || courses).length === 0 ? 10 : 100 }}>
               {(resumeData.courses || courses).map((course, courseIndex) => (
-                <React.Fragment key={courseIndex}>
-                  <Draggable draggableId={`course-${courseIndex}`} index={courseIndex}>
+                <React.Fragment key={course.id}>
+                  <Draggable draggableId={`course-${course.id}`} index={courseIndex}>
                     {(provided) => (
                       <Card
                         ref={provided.innerRef}
@@ -134,7 +163,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                           </Box>
                           <TextField
                             value={course.title || ''}
-                            onChange={(e) => updateCourse(courseIndex, { title: e.target.value })}
+                            onChange={(e) => updateCourse(course.id, { title: e.target.value })}
                             placeholder="Course Title..."
                             variant="outlined"
                             label="Course Title"
@@ -143,7 +172,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                           />
                           <IconButton
                             size="small"
-                            onClick={() => deleteCourse(courseIndex)}
+                            onClick={() => deleteCourse(course.id)}
                             sx={{
                               border: '1px solid #e0e0e0',
                               borderRadius: '50%',
@@ -162,7 +191,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                         <Box sx={{ ml: 4.5, mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <TextField
                             value={course.provider || ''}
-                            onChange={(e) => updateCourse(courseIndex, { provider: e.target.value })}
+                            onChange={(e) => updateCourse(course.id, { provider: e.target.value })}
                             placeholder="Provider (e.g., Udemy, Coursera)..."
                             variant="outlined"
                             label="Provider"
@@ -171,7 +200,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                           />
                           <TextField
                             value={course.link || ''}
-                            onChange={(e) => updateCourse(courseIndex, { link: e.target.value })}
+                            onChange={(e) => updateCourse(course.id, { link: e.target.value })}
                             placeholder="Course Link (optional)..."
                             variant="outlined"
                             label="Course Link"

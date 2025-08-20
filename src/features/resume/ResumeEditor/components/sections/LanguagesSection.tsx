@@ -32,6 +32,35 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
 }) => {
   const [newLanguageId, setNewLanguageId] = useState<string | null>(null);
   const languageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Removed unused languageIdCounter variable
+
+  // Clean up any existing duplicate IDs on component mount
+  useEffect(() => {
+    const languages = resumeData.languages || [];
+    let hasChanges = false;
+    
+    // Check for duplicate IDs and fix them
+    const seenIds = new Set<string>();
+    const cleanedLanguages = languages.map(language => {
+      // Ensure language entry has unique ID
+      let languageId = language.id;
+      if (!languageId || seenIds.has(languageId)) {
+        languageId = `language-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        hasChanges = true;
+      }
+      seenIds.add(languageId);
+      return { ...language, id: languageId };
+    });
+    
+    // Update data if changes were made
+    if (hasChanges) {
+      setResumeData(prev => ({
+        ...prev,
+        languages: cleanedLanguages
+      }));
+    }
+  }, [resumeData.languages, setResumeData]); // Include dependencies
 
   // Focus on new language when it's added
   useEffect(() => {
@@ -46,8 +75,9 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
   }, [newLanguageId]);
 
   const addLanguage = () => {
+    // Use a combination of timestamp and random string for unique IDs
     const newLanguage = {
-      id: Math.random().toString(),
+      id: `language-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: "",
       proficiency: "Beginner",
     };

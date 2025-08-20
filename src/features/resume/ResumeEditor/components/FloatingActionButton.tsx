@@ -20,6 +20,10 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     >
       <Button
         variant="contained"
+        onClick={onClick}
+        aria-label="Edit resume layout and section order"
+        aria-describedby="layout-button-description"
+        aria-haspopup="dialog"
         sx={{ 
           borderRadius: "50%", 
           width: 60, 
@@ -35,10 +39,14 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
             background: 'rgb(193, 146, 253)',
           }
         }}
-        onClick={onClick}
       >
         <ListIcon sx={{ fontSize: 28, color: 'black', fontWeight: 500 }} />
       </Button>
+      
+      {/* Hidden description for screen readers */}
+      <div id="layout-button-description" className="sr-only">
+        Opens a dialog to edit the resume layout, reorder sections, and add new sections to your resume.
+      </div>
     </Box>
   );
 };

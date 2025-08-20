@@ -133,10 +133,21 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
     }
   };
 
+  // Removed unused variables: skillCategoriesCount and totalSkillsCount
+
   return (
-    <Box sx={{ py: 2 }}>
+    <Box 
+      sx={{ py: 2 }}
+      role="region"
+      aria-label="Technical Skills Section"
+      aria-describedby="technical-skills-description"
+    >
       <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
-        <Typography variant="h6" fontWeight={600}>
+        <Typography 
+          variant="h6" 
+          fontWeight={600}
+          id="technical-skills-heading"
+        >
           Technical Skills
         </Typography>
         <IconButton
@@ -146,6 +157,8 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
             e.stopPropagation();
             onDeleteSection('Technical Skills');
           }}
+          aria-label="Delete Technical Skills section"
+          aria-describedby="technical-skills-heading"
           sx={{
             border: '1px solid #e0e0e0',
             borderRadius: '50%',
@@ -164,7 +177,13 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
       <DragDropContext onDragEnd={handleAllDragEnd}>
         <Droppable droppableId="categories" type="category">
           {(provided) => (
-            <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.skillCategories || []).length === 0 ? 10 : 100 }}>
+            <div 
+              ref={provided.innerRef} 
+              {...provided.droppableProps} 
+              style={{ minHeight: (resumeData.skillCategories || []).length === 0 ? 10 : 100 }}
+              aria-label="Skill categories list"
+              role="list"
+            >
               {(resumeData.skillCategories || []).map((category, categoryIndex) => (
                 <React.Fragment key={category.id}>
                   <Draggable draggableId={`category-${category.id}`} index={categoryIndex}>
@@ -174,6 +193,9 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                         {...provided.draggableProps}
                         data-category-id={category.id}
                         sx={{ mb: 3, mr: 2, p: 2 }}
+                        role="listitem"
+                        aria-label={`Skill category: ${category.title}`}
+                        aria-describedby={`category-${category.id}-description`}
                       >
                         {/* Category Header */}
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -186,6 +208,9 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                               userSelect: 'none',
                               color: '#bbb',
                             }}
+                            aria-label={`Drag to reorder category: ${category.title}`}
+                            role="button"
+                            tabIndex={0}
                           >
                             <DragIndicatorIcon sx={{ fontSize: 20, color: '#a0a0a0', mr: 1 }} />
                           </Box>
@@ -195,10 +220,16 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                             variant="outlined"
                             label="Category"
                             size="small"
+                            aria-label={`Edit category name for ${category.title}`}
+                            inputProps={{
+                              'aria-describedby': `category-${category.id}-description`
+                            }}
                           />
                           <IconButton
                             size="small"
                             onClick={() => deleteSkillCategory(category.id)}
+                            aria-label={`Delete skill category: ${category.title}`}
+                            aria-describedby={`category-${category.id}-description`}
                             sx={{
                               border: '1px solid #e0e0e0',
                               borderRadius: '50%',
@@ -228,6 +259,8 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                                 gap: 1, 
                                 my: 1.5 
                               }}
+                              role="list"
+                              aria-label={`Skills in ${category.title} category`}
                             >
                               {category.skills.map((skill, skillIndex) => (
                                 <Draggable 
@@ -247,6 +280,8 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                                         transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
                                         transition: 'all 0.2s ease',
                                       }}
+                                      role="listitem"
+                                      aria-label={`Skill: ${skill.name}`}
                                     >
                                       <Chip
                                         sx={{
@@ -263,7 +298,12 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                                         }}
                                         label={
                                           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'grab', ml: -0.5 }}>
+                                            <Box 
+                                              sx={{ display: 'flex', alignItems: 'center', cursor: 'grab', ml: -0.5 }}
+                                              aria-label={`Drag to reorder skill: ${skill.name}`}
+                                              role="button"
+                                              tabIndex={0}
+                                            >
                                               <DragIndicatorIcon sx={{ fontSize: 20, mr: 0.5, color: '#999' }} />
                                             </Box>
                                             <Typography variant="body2" sx={{ mr: 1, flex: 1 }}>
@@ -281,6 +321,8 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                                                   e.preventDefault();
                                                   e.stopPropagation();
                                                 }}
+                                                aria-label={`Remove skill: ${skill.name}`}
+                                                aria-describedby={`category-${category.id}-description`}
                                                 sx={{ p: 0.5, borderRadius: "50%", '&:hover': { backgroundColor: themeColors.gray[500], color: themeColors.white } }}
                                               >
                                                 <CloseIcon sx={{ fontSize: 16 }} />
@@ -306,6 +348,10 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                             value={skillInputs[category.id] || ''}
                             onChange={(e) => handleSkillInputChange(category.id, e.target.value)}
                             onKeyPress={(e) => handleSkillInputKeyPress(category.id, e)}
+                            aria-label={`Add new skill to ${category.title} category`}
+                            inputProps={{
+                              'aria-describedby': `add-skill-${category.id}-help`
+                            }}
                           />
                           <Button
                             size="small"
@@ -315,6 +361,8 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                                 addSkillToCategory(category.id, value.trim());
                               }
                             }}
+                            aria-label={`Add skill to ${category.title} category`}
+                            aria-describedby={`add-skill-${category.id}-help`}
                             sx={{ height: 32, minWidth: 'auto' }}
                           >
                             <AddCircleOutlineIcon fontSize="small" />
@@ -338,6 +386,8 @@ export const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           onClick={addSkillCategory}
           variant="outlined"
           size="small"
+          aria-label="Add new skill category"
+          aria-describedby="technical-skills-description"
         >
           Skill Category
         </Button>

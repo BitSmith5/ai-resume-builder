@@ -76,9 +76,37 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
     { value: '🧮', label: 'Mathematics' }
   ];
 
+  // Clean up any existing duplicate IDs on component mount
+  React.useEffect(() => {
+    const interests = resumeData.interests || [];
+    let hasChanges = false;
+    
+    // Check for duplicate IDs and fix them
+    const seenIds = new Set<string>();
+    const cleanedInterests = interests.map(interest => {
+      // Ensure interest entry has unique ID
+      let interestId = interest.id;
+      if (!interestId || seenIds.has(interestId)) {
+        interestId = `interest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        hasChanges = true;
+      }
+      seenIds.add(interestId);
+      return { ...interest, id: interestId };
+    });
+    
+    // Update data if changes were made
+    if (hasChanges) {
+      setResumeData(prev => ({
+        ...prev,
+        interests: cleanedInterests
+      }));
+    }
+  }, [resumeData.interests, setResumeData]); // Include dependencies
+
   // Initialize interests if not exists
   const interests = resumeData.interests || [
     {
+      id: "default-interest",
       name: "Programming",
       icon: "💻",
     }
@@ -86,6 +114,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
 
   const addInterest = () => {
     const newInterest = {
+      id: `interest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: "",
       icon: "🎵",
     };
@@ -95,22 +124,22 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
     }));
   };
 
-  const updateInterest = (index: number, updates: Partial<{
+  const updateInterest = (interestId: string, updates: Partial<{
     name: string;
     icon: string;
   }>) => {
     setResumeData(prev => ({
       ...prev,
-      interests: (prev.interests || interests).map((interest, i) =>
-        i === index ? { ...interest, ...updates } : interest
+      interests: (prev.interests || interests).map((interest) =>
+        interest.id === interestId ? { ...interest, ...updates } : interest
       )
     }));
   };
 
-  const deleteInterest = (index: number) => {
+  const deleteInterest = (interestId: string) => {
     setResumeData(prev => ({
       ...prev,
-      interests: (prev.interests || interests).filter((_, i) => i !== index)
+      interests: (prev.interests || interests).filter((interest) => interest.id !== interestId)
     }));
   };
 
@@ -157,8 +186,8 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
           {(provided) => (
             <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: (resumeData.interests || interests).length === 0 ? 10 : 100 }}>
               {(resumeData.interests || interests).map((interest, interestIndex) => (
-                <React.Fragment key={interestIndex}>
-                  <Draggable draggableId={`interest-${interestIndex}`} index={interestIndex}>
+                <React.Fragment key={interest.id}>
+                  <Draggable draggableId={interest.id} index={interestIndex}>
                     {(provided) => (
                       <Card
                         ref={provided.innerRef}
@@ -181,7 +210,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                           </Box>
                           <TextField
                             value={interest.name || ''}
-                            onChange={(e) => updateInterest(interestIndex, { name: e.target.value })}
+                            onChange={(e) => updateInterest(interest.id, { name: e.target.value })}
                             placeholder="Interest Name..."
                             variant="outlined"
                             label="Interest Name"
@@ -193,7 +222,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                               <InputLabel>Icon</InputLabel>
                               <Select
                                 value={interest.icon || '🎵'}
-                                onChange={(e) => updateInterest(interestIndex, { icon: e.target.value })}
+                                onChange={(e) => updateInterest(interest.id, { icon: e.target.value })}
                                 label="Icon"
                               >
                                 {AVAILABLE_ICONS.map((iconOption) => (
@@ -211,7 +240,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                           </Box>
                           <IconButton
                             size="small"
-                            onClick={() => deleteInterest(interestIndex)}
+                            onClick={() => deleteInterest(interest.id)}
                             sx={{
                               border: '1px solid #e0e0e0',
                               borderRadius: '50%',

@@ -87,74 +87,132 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   const drawer = (
-    <Box>
+    <Box component="nav" aria-label="Main navigation">
       <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ color: 'rgb(173, 126, 233)' }}>
+        <Typography 
+          variant="h6" 
+          noWrap 
+          component="div" 
+          sx={{ color: 'rgb(173, 126, 233)' }}
+          id="app-title"
+        >
           Resume Builder
         </Typography>
       </Toolbar>
-      <List>
+      <List 
+        role="menubar" 
+        aria-labelledby="app-title"
+        aria-label="Resume builder navigation menu"
+      >
         {menuItems.map((item) => {
           const isSelected = pathname === item.path;
           return (
-            <ListItem key={item.text} disablePadding>
+            <ListItem key={item.text} role="none">
               <ListItemButton
+                role="menuitem"
+                aria-current={isSelected ? 'page' : undefined}
+                aria-label={`Navigate to ${item.text}`}
+                aria-describedby={`${item.text.toLowerCase().replace(/\s+/g, '-')}-description`}
                 onClick={() => router.push(item.path)}
                 sx={{
-                  backgroundColor: isSelected ? '#fafafa' : 'transparent',
-                  color: isSelected ? 'rgb(173, 126, 233)' : 'inherit',
+                  backgroundColor: isSelected ? 'rgb(173, 126, 233)' : 'transparent',
+                  borderRadius: '30px',
+                  color: isSelected ? 'white' : 'inherit',
                   '&:hover': {
-                    backgroundColor: '#fafafa',
+                    backgroundColor: isSelected ? 'rgb(173, 126, 233)' : 'rgb(200, 200, 200)',
+                  },
+                  '&:focus': {
+                    outline: '2px solid rgb(173, 126, 233)',
+                    outlineOffset: '-2px',
                   },
                 }}
               >
-                <ListItemIcon sx={{ color: 'inherit' }}>
+                <ListItemIcon 
+                  sx={{ color: 'inherit' }}
+                  aria-hidden="true"
+                >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText primary={item.text} />
+                <ListItemText 
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    'aria-label': `${item.text} navigation item`
+                  }}
+                />
               </ListItemButton>
             </ListItem>
           );
         })}
       </List>
+
+      {/* Hidden descriptions for screen readers */}
+      <div id="dashboard-description" className="sr-only">
+        Main dashboard where you can view and manage all your resumes.
+      </div>
+      <div id="resume-description" className="sr-only">
+        Resume management page where you can create, edit, and organize your resumes.
+      </div>
+      <div id="profile-description" className="sr-only">
+        Profile settings page where you can manage your personal information and account settings.
+      </div>
     </Box>
   );
 
   return (
     <Box sx={{ 
       display: "flex",
-      height: "100vh", // Ensure full viewport height
-      overflow: "hidden" // Prevent unnecessary scroll bars
+      height: "100vh",
     }}>
+      {/* Skip link for keyboard navigation */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
+      {/* App Bar */}
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          backgroundColor: "white",
-          color: "black",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          backgroundColor: 'white',
+          color: 'black',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         }}
+        role="banner"
+        aria-label="Application header"
       >
         <Toolbar>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileOpen}
+            aria-controls="navigation-drawer"
+            aria-describedby="menu-toggle-description"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
+            sx={{ mr: 2, display: { sm: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="h6" 
+            noWrap 
+            component="div" 
+            sx={{ flexGrow: 1 }}
+            id="page-title"
+          >
             {getCurrentPageTitle()}
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton
+              color="inherit"
+              aria-label="Open user menu"
+              aria-describedby="user-menu-description"
+              aria-haspopup="true"
               onClick={handleProfileMenuOpen}
               sx={{ p: 0 }}
             >
-              <Avatar
+              <Avatar 
                 sx={{
                   width: 32,
                   height: 32,
@@ -170,10 +228,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </Toolbar>
       </AppBar>
 
+      {/* Navigation Drawer */}
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        aria-label="Navigation drawer"
       >
+        {/* Mobile drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -182,64 +243,86 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-            },
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
+          id="navigation-drawer"
+          aria-labelledby="app-title"
         >
           {drawer}
         </Drawer>
+        
+        {/* Desktop drawer */}
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: "none", sm: "block" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-            },
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
           open
+          aria-labelledby="app-title"
         >
           {drawer}
         </Drawer>
       </Box>
 
+      {/* Main Content */}
       <Box
         component="main"
-        sx={{
-          flexGrow: 1,
-          p: 0, // Remove padding to allow content to extend to edges
+        id="main-content"
+        role="main"
+        aria-labelledby="page-title"
+        sx={{ 
+          flexGrow: 1, 
+          p: 3, 
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: "64px",
-          height: "calc(100vh - 64px)", // Ensure main content fits within viewport
-          overflow: "hidden", // Prevent scrolling at this level
-          display: "flex",
-          flexDirection: "column"
+          mt: '64px', // Account for AppBar height
         }}
       >
         {children}
       </Box>
 
+      {/* Profile Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleProfileMenuClose}
-        sx={{
-          "& .MuiPaper-root": {
-            minWidth: 150,
-            mt: 1,
-          },
-        }}
+        onClick={handleProfileMenuClose}
+        role="menu"
+        aria-label="User profile menu"
+        aria-labelledby="user-menu-button"
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleLogout}>
+        <MenuItem 
+          onClick={() => router.push('/profile')}
+          role="menuitem"
+          aria-label="Go to profile settings"
+        >
+          <ListItemIcon>
+            <ProfileIcon fontSize="small" />
+          </ListItemIcon>
+          Profile
+        </MenuItem>
+        <MenuItem 
+          onClick={handleLogout}
+          role="menuitem"
+          aria-label="Sign out of the application"
+        >
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          Logout
+          Sign Out
         </MenuItem>
       </Menu>
+
+      {/* Hidden descriptions for screen readers */}
+      <div id="menu-toggle-description" className="sr-only">
+        Toggles the navigation menu open and closed on mobile devices.
+      </div>
+      <div id="user-menu-description" className="sr-only">
+        Opens a menu with user account options including profile settings and sign out.
+      </div>
     </Box>
   );
 } 

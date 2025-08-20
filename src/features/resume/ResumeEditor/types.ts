@@ -46,6 +46,7 @@ export interface ResumeData {
     }>;
   }>;
   education: Array<{
+    id: string;
     institution: string;
     degree: string;
     field: string;
@@ -55,11 +56,13 @@ export interface ResumeData {
     gpa?: number;
   }>;
   courses: Array<{
+    id: string;
     title: string;
     provider: string;
     link?: string;
   }>;
   interests: Array<{
+    id: string;
     name: string;
     icon: string;
   }>;

@@ -35,6 +35,48 @@ export const VolunteerExperienceSection: React.FC<VolunteerExperienceSectionProp
   const { datePickerOpen, datePickerPosition, openDatePicker, closeDatePicker, handleDateSelect } = useDatePicker();
   const [newBulletId, setNewBulletId] = useState<string | null>(null);
   const bulletRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Removed unused bulletIdCounter variable
+
+  // Clean up any existing duplicate IDs on component mount
+  useEffect(() => {
+    const volunteerExperience = resumeData.volunteerExperience || [];
+    let hasChanges = false;
+    
+    // Check for duplicate IDs and fix them
+    const seenVolunteerIds = new Set<string>();
+    const cleanedVolunteerExperience = volunteerExperience.map(volunteer => {
+      // Ensure volunteer entry has unique ID
+      let volunteerId = volunteer.id;
+      if (!volunteerId || seenVolunteerIds.has(volunteerId)) {
+        volunteerId = `volunteer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        hasChanges = true;
+      }
+      seenVolunteerIds.add(volunteerId);
+      
+      // Check bullet points for duplicate IDs
+      const seenBulletIds = new Set<string>();
+      const cleanedBulletPoints = volunteer.bulletPoints.map(bullet => {
+        let bulletId = bullet.id;
+        if (!bulletId || seenBulletIds.has(bulletId)) {
+          bulletId = `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          hasChanges = true;
+        }
+        seenBulletIds.add(bulletId);
+        return { ...bullet, id: bulletId };
+      });
+      
+      return { ...volunteer, id: volunteerId, bulletPoints: cleanedBulletPoints };
+    });
+    
+    // Update data if changes were made
+    if (hasChanges) {
+      setResumeData(prev => ({
+        ...prev,
+        volunteerExperience: cleanedVolunteerExperience
+      }));
+    }
+  }, [resumeData.volunteerExperience, setResumeData]); // Include dependencies
 
   // Focus on new bullet point when it's added
   useEffect(() => {
@@ -60,7 +102,7 @@ export const VolunteerExperienceSection: React.FC<VolunteerExperienceSectionProp
 
   const addVolunteerExperience = () => {
     const newVolunteer = {
-      id: `volunteer-${Date.now()}`,
+      id: `volunteer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       organization: "",
       position: "",
       location: "",
@@ -102,8 +144,9 @@ export const VolunteerExperienceSection: React.FC<VolunteerExperienceSectionProp
     }));
   };
 
-  const addVolunteerBulletPoint = (volunteerId: string, description: string = "") => {
-    const newBulletId = Math.random().toString();
+  const addBulletPoint = (volunteerId: string, description: string = "") => {
+    // Use a combination of timestamp and random string for unique IDs
+    const newBulletId = `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newBullet = { id: newBulletId, description: description };
     setResumeData(prev => ({
       ...prev,
@@ -371,7 +414,7 @@ export const VolunteerExperienceSection: React.FC<VolunteerExperienceSectionProp
                           {/* Add Bullet Point Button */}
                           <Button
                             startIcon={<AddIcon />}
-                            onClick={() => addVolunteerBulletPoint(volunteer.id)}
+                            onClick={() => addBulletPoint(volunteer.id)}
                             variant="text"
                             size="small"
                             sx={{

@@ -40,16 +40,57 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   
   // State for technology input fields
   const [techInputs, setTechInputs] = React.useState<{ [key: string]: string }>({});
+  
+  // Removed unused bulletIdCounter variable
 
+  // Clean up any existing duplicate IDs on component mount
+  React.useEffect(() => {
+    const projects = resumeData.projects || [];
+    let hasChanges = false;
+    
+    // Check for duplicate IDs and fix them
+    const seenProjectIds = new Set<string>();
+    const cleanedProjects = projects.map(project => {
+      // Ensure project has unique ID
+      let projectId = project.id;
+      if (!projectId || seenProjectIds.has(projectId)) {
+        projectId = `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        hasChanges = true;
+      }
+      seenProjectIds.add(projectId);
+      
+      // Check bullet points for duplicate IDs
+      const seenBulletIds = new Set<string>();
+      const cleanedBulletPoints = project.bulletPoints.map(bullet => {
+        let bulletId = bullet.id;
+        if (!bulletId || seenBulletIds.has(bulletId)) {
+          bulletId = `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          hasChanges = true;
+        }
+        seenBulletIds.add(bulletId);
+        return { ...bullet, id: bulletId };
+      });
+      
+      return { ...project, id: projectId, bulletPoints: cleanedBulletPoints };
+    });
+    
+    // Update data if changes were made
+    if (hasChanges) {
+      setResumeData(prev => ({
+        ...prev,
+        projects: cleanedProjects
+      }));
+    }
+  }, [resumeData.projects, setResumeData]); // Include dependencies
 
   // Initialize projects if not exists
   const projects = resumeData.projects || [
     {
-      id: `project-${Date.now()}`,
+      id: `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: "AI Resume Builder",
       bulletPoints: [
         {
-          id: `bullet-${Date.now()}-${Math.random()}`,
+          id: `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           description: "A modern web application for creating professional resumes with AI assistance"
         }
       ],
@@ -63,7 +104,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   const addProject = () => {
     const newProject = {
-      id: `project-${Date.now()}`,
+      id: `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: "",
       bulletPoints: [],
       technologies: [],
@@ -159,17 +200,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     }
   };
 
-  const addBulletPoint = (projectId: string) => {
-    const project = (resumeData.projects || projects).find(p => p.id === projectId);
-    if (!project) return;
-
+  const addBulletPoint = (projectId: string, description: string = "") => {
     const newBulletPoint = {
-      id: `bullet-${Date.now()}-${Math.random()}`,
-      description: ""
+      id: `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      description: description
     };
-
-    const newBulletPoints = [...project.bulletPoints, newBulletPoint];
-    updateProject(projectId, { bulletPoints: newBulletPoints });
+    setResumeData(prev => ({
+      ...prev,
+      projects: (prev.projects || projects).map(project =>
+        project.id === projectId ? { ...project, bulletPoints: [...project.bulletPoints, newBulletPoint] } : project
+      )
+    }));
   };
 
   const updateBulletPoint = (projectId: string, bulletId: string, description: string) => {

@@ -29,6 +29,48 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
 }) => {
   const [newBulletId, setNewBulletId] = useState<string | null>(null);
   const bulletRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Removed unused bulletIdCounter variable
+
+  // Clean up any existing duplicate IDs on component mount
+  useEffect(() => {
+    const awards = resumeData.awards || [];
+    let hasChanges = false;
+    
+    // Check for duplicate IDs and fix them
+    const seenAwardIds = new Set<string>();
+    const cleanedAwards = awards.map(award => {
+      // Ensure award has unique ID
+      let awardId = award.id;
+      if (!awardId || seenAwardIds.has(awardId)) {
+        awardId = `award-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        hasChanges = true;
+      }
+      seenAwardIds.add(awardId);
+      
+      // Check bullet points for duplicate IDs
+      const seenBulletIds = new Set<string>();
+      const cleanedBulletPoints = award.bulletPoints.map(bullet => {
+        let bulletId = bullet.id;
+        if (!bulletId || seenBulletIds.has(bulletId)) {
+          bulletId = `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          hasChanges = true;
+        }
+        seenBulletIds.add(bulletId);
+        return { ...bullet, id: bulletId };
+      });
+      
+      return { ...award, id: awardId, bulletPoints: cleanedBulletPoints };
+    });
+    
+    // Update data if changes were made
+    if (hasChanges) {
+      setResumeData(prev => ({
+        ...prev,
+        awards: cleanedAwards
+      }));
+    }
+  }, [resumeData.awards, setResumeData]); // Include dependencies
 
   // Focus on new bullet point when it's added
   useEffect(() => {
@@ -45,13 +87,13 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
   // Initialize awards if not exists
   const awards = resumeData.awards || [
     {
-      id: `award-${Date.now()}`,
+      id: `award-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: "Best Student Award",
       organization: "University of Technology",
       year: "2024",
       bulletPoints: [
         {
-          id: `bullet-${Date.now()}-${Math.random()}`,
+          id: `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           description: "Recognized for outstanding academic performance and leadership"
         }
       ],
@@ -60,7 +102,7 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
 
   const addAward = () => {
     const newAward = {
-      id: `award-${Date.now()}`,
+      id: `award-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: "",
       organization: "",
       year: "",
@@ -94,7 +136,8 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
   };
 
   const addAwardBulletPoint = (awardId: string, description: string = "") => {
-    const newBulletId = Math.random().toString();
+    // Use a combination of timestamp and random string for unique IDs
+    const newBulletId = `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newBullet = { id: newBulletId, description: description };
     setResumeData(prev => ({
       ...prev,
@@ -102,7 +145,7 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
         award.id === awardId ? { ...award, bulletPoints: [...award.bulletPoints, newBullet] } : award
       )
     }));
-
+    
     // Set the new bullet ID to trigger focus in useEffect
     setNewBulletId(newBulletId);
   };

@@ -56,6 +56,9 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
   return (
     <>
       <Box
+        component="header"
+        role="banner"
+        aria-label="Resume editor header"
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -70,6 +73,8 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
             sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
             onClick={handleClose}
             disabled={loading}
+            aria-label="Close resume editor and return to dashboard"
+            aria-describedby="close-button-description"
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -84,6 +89,8 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
               py: 0.1,
               minHeight: 28,
             }}
+            role="status"
+            aria-label="Resume status indicator"
           >
             <Box
               sx={{
@@ -96,11 +103,13 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
                 background: 'linear-gradient(90deg, rgb(173, 126, 233) 0%, rgb(203, 156, 263) 100%)',
                 mr: 1,
               }}
+              aria-hidden="true"
             >
               <StarIcon sx={{ fontSize: 14, color: 'black' }} />
             </Box>
             <Typography
               variant="body2"
+              id="resume-title"
               sx={{
                 color: '#1a1a1a',
                 fontWeight: 600,
@@ -114,12 +123,19 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
         </Box>
 
         {/* Right: Action buttons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box 
+          component="nav" 
+          role="navigation" 
+          aria-label="Resume actions"
+          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+        >
           <Button
             variant="text"
             size="small"
             startIcon={<EditIcon />}
             onClick={onEditResumeInfo}
+            aria-label="Edit resume information and settings"
+            aria-describedby="edit-resume-description"
             sx={{
               textTransform: 'none',
               fontWeight: 500,
@@ -146,6 +162,9 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
             startIcon={exportLoading ? null : <DownloadIcon />}
             onClick={handleExport}
             disabled={exportLoading || loading}
+            aria-label={exportLoading ? 'Exporting resume, please wait' : 'Export resume as PDF'}
+            aria-describedby="export-button-description"
+            aria-live="polite"
             sx={{
               textTransform: 'none',
               fontWeight: 500,
@@ -176,6 +195,9 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
             startIcon={<DeleteIcon />}
             onClick={onDelete}
             disabled={loading}
+            aria-label={loading ? 'Deleting resume' : 'Delete resume permanently'}
+            aria-describedby="delete-button-description"
+            aria-live="polite"
             sx={{
               textTransform: 'none',
               fontWeight: 500,
@@ -198,14 +220,37 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
         </Box>
       </Box>
 
+      {/* Hidden descriptions for screen readers */}
+      <div id="close-button-description" className="sr-only">
+        Closes the resume editor and returns to the dashboard. All changes are automatically saved.
+      </div>
+      <div id="edit-resume-description" className="sr-only">
+        Opens a dialog to edit resume title, job title, and other basic information.
+      </div>
+      <div id="export-button-description" className="sr-only">
+        Exports the current resume as a PDF document that can be downloaded or printed.
+      </div>
+      <div id="delete-button-description" className="sr-only">
+        Permanently deletes this resume. This action cannot be undone.
+      </div>
+
       {/* Error Snackbar */}
       <Snackbar
         open={!!error}
         autoHideDuration={6000}
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        aria-label="Error notification"
       >
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+        <Alert 
+          onClose={handleCloseError} 
+          severity="error" 
+          sx={{ width: '100%' }}
+          aria-label="Export error"
+        >
           {error}
         </Alert>
       </Snackbar>

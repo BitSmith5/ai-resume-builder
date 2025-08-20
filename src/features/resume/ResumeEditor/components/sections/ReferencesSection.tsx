@@ -26,12 +26,51 @@ export const ReferencesSection: React.FC<ReferencesSectionProps> = ({
   setResumeData,
   onDeleteSection,
 }) => {
-  // Get references from resumeData, with fallback to empty array
-  const references = resumeData.references || [];
+  // Removed unused referenceIdCounter variable
+
+  // Clean up any existing duplicate IDs on component mount
+  React.useEffect(() => {
+    const references = resumeData.references || [];
+    let hasChanges = false;
+    
+    // Check for duplicate IDs and fix them
+    const seenIds = new Set<string>();
+    const cleanedReferences = references.map(reference => {
+      // Ensure reference entry has unique ID
+      let referenceId = reference.id;
+      if (!referenceId || seenIds.has(referenceId)) {
+        referenceId = `reference-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        hasChanges = true;
+      }
+      seenIds.add(referenceId);
+      return { ...reference, id: referenceId };
+    });
+    
+    // Update data if changes were made
+    if (hasChanges) {
+      setResumeData(prev => ({
+        ...prev,
+        references: cleanedReferences
+      }));
+    }
+  }, [resumeData.references, setResumeData]); // Include dependencies
+
+  // Initialize references if not exists
+  const references = resumeData.references || [
+    {
+      id: `reference-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: "Dr. Jane Smith",
+      title: "Professor",
+      company: "University of Technology",
+      email: "jane.smith@university.edu",
+      phone: "+1 (555) 123-4567",
+      relationship: "Academic Advisor",
+    }
+  ];
 
   const addReference = () => {
     const newReference = {
-      id: `reference-${Date.now()}-${Math.random()}`,
+      id: `reference-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: "",
       title: "",
       company: "",
@@ -39,10 +78,9 @@ export const ReferencesSection: React.FC<ReferencesSectionProps> = ({
       phone: "",
       relationship: "",
     };
-    
     setResumeData(prev => ({
       ...prev,
-      references: [...(prev.references || []), newReference]
+      references: [...(prev.references || references), newReference]
     }));
   };
 
